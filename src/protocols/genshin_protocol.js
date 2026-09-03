@@ -1,7 +1,7 @@
 ﻿const https = require('https');
 const http = require('http');
 
-const GEMINI_KEY = "AIzaSyCBtopxSMXhJYAoI0D_ytzQCut_LB67VXc";
+const GEMINI_KEY = "process.env.GEMINI_API_KEY || "YOUR_GEMINI_API_KEY"";
 
 // Comprehensive Genshin Impact Knowledge System Instruction (Full 7 Nations + Snezhnaya + Khaenri'ah + Nod-K/Nod-Rai)
 const GENSHIN_SYSTEM_PROMPT = `
