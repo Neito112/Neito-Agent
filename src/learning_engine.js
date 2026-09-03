@@ -3,7 +3,7 @@ const path = require('path');
 const https = require('https');
 
 const MEMORY_FILE = path.join(__dirname, 'learning_memory.json');
-const GEMINI_KEY = "AIzaSyCBtopxSMXhJYAoI0D_ytzQCut_LB67VXc";
+const GEMINI_KEY = "process.env.GEMINI_API_KEY || "YOUR_GEMINI_API_KEY"";
 
 // Default Initial Memory Seed based on all past user feedback
 const INITIAL_MEMORY = {
