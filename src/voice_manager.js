@@ -17,7 +17,7 @@ const { spawn } = require('child_process');
 const { pipeline } = require('stream');
 const prism = require('prism-media');
 
-const GEMINI_KEY = "AIzaSyCBtopxSMXhJYAoI0D_ytzQCut_LB67VXc";
+const GEMINI_KEY = "process.env.GEMINI_API_KEY || "YOUR_GEMINI_API_KEY"";
 
 // Engine selection: 'google' (Chuẩn tiếng Việt 100%), 'ms-nam' (Nam Minh chuẩn), 'ms-nu' (Hoài My chuẩn)
 let currentEngine = 'custom';
