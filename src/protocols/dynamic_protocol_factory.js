@@ -2,7 +2,7 @@
 const path = require('path');
 const https = require('https');
 
-const GEMINI_KEY = "AIzaSyCBtopxSMXhJYAoI0D_ytzQCut_LB67VXc";
+const GEMINI_KEY = "process.env.GEMINI_API_KEY || "YOUR_GEMINI_API_KEY"";
 const PROTOCOLS_DIR = __dirname;
 
 // Create a new specialized protocol dynamically
