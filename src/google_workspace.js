@@ -4,7 +4,7 @@ const http = require('http');
 const https = require('https');
 
 const CREDENTIALS_PATH = path.join(__dirname, '..', 'auth_gg_workspace.json');
-const TOKEN_PATH = path.join(__dirname, '..', 'workspaces', 'earner', 'google_token.json');
+const TOKEN_PATH = path.join(__dirname, '..', 'google_token.json');
 
 function getClientCredentials() {
   if (fs.existsSync(CREDENTIALS_PATH)) {
@@ -97,8 +97,9 @@ function getAuthUrl(port = 8085) {
 
   const redirectUri = `http://localhost:${port}/oauth2callback`;
   const scopes = [
-    'https://www.googleapis.com/auth/spreadsheets.readonly',
-    'https://www.googleapis.com/auth/drive.readonly'
+    'https://www.googleapis.com/auth/spreadsheets',
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/documents'
   ].join(' ');
 
   const params = new URLSearchParams({
@@ -270,6 +271,98 @@ async function searchDriveSpreadsheets(query = '') {
   });
 }
 
+async function appendSheetData(spreadsheetId, range = 'A1', values = []) {
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) throw new Error('AUTH_REQUIRED');
+
+  return new Promise((resolve, reject) => {
+    const encodedRange = encodeURIComponent(range);
+    const postBody = JSON.stringify({ values });
+    const req = https.request(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodedRange}:append?valueInputOption=USER_ENTERED`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postBody)
+      }
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          if (json.updates) resolve(json.updates);
+          else if (json.error) reject(new Error(json.error.message));
+          else resolve(json);
+        } catch (e) { reject(e); }
+      });
+    });
+    req.on('error', reject);
+    req.write(postBody);
+    req.end();
+  });
+}
+
+async function createSpreadsheet(title = 'Bảng Tính Mới - Antigravity') {
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) throw new Error('AUTH_REQUIRED');
+
+  return new Promise((resolve, reject) => {
+    const postBody = JSON.stringify({ properties: { title } });
+    const req = https.request('https://sheets.googleapis.com/v4/spreadsheets', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postBody)
+      }
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          if (json.spreadsheetId) resolve({ id: json.spreadsheetId, url: json.spreadsheetUrl });
+          else if (json.error) reject(new Error(json.error.message));
+          else resolve(json);
+        } catch (e) { reject(e); }
+      });
+    });
+    req.on('error', reject);
+    req.write(postBody);
+    req.end();
+  });
+}
+
+async function searchDriveFiles(query = '') {
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) throw new Error('AUTH_REQUIRED');
+
+  return new Promise((resolve, reject) => {
+    let q = "trashed = false";
+    if (query) {
+      q += ` and name contains '${query.replace(/'/g, "\\'")}'`;
+    }
+    const apiUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,mimeType,webViewLink)&pageSize=20`;
+
+    https.get(apiUrl, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'User-Agent': 'AntigravityAgent/1.0'
+      }
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          resolve(json.files || []);
+        } catch (e) { reject(e); }
+      });
+    }).on('error', reject);
+  });
+}
+
 module.exports = {
   getClientCredentials,
   getStoredToken,
@@ -277,5 +370,9 @@ module.exports = {
   getAuthUrl,
   startOAuthFlow,
   fetchSheetData,
-  searchDriveSpreadsheets
+  appendSheetData,
+  createSpreadsheet,
+  searchDriveSpreadsheets,
+  searchDriveFiles
 };
+
