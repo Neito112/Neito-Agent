@@ -4,6 +4,45 @@ const dynamicScheduler = require('./dynamic_scheduler.js');
 const localVideoLearner = require('./local_video_learner.js');
 
 /**
+ * Vietnamese Natural Language Normalizer
+ * Resolves typos, colloquial speech, abbreviations, and informal Vietnamese to canonical intents
+ */
+function normalizeVietnameseIntent(text) {
+  if (!text || typeof text !== 'string') return '';
+  let s = ' ' + text.toLowerCase().trim().replace(/^[!.\/\\~@#]+/, '').trim() + ' ';
+  
+  const replacements = [
+    // Typos and variants for Trúc Ly
+    [/(?<=\s)(truc\s*li|trucli|truct\s*ly|tuc\s*ly|trục\s*ly|gioc\s*ly)(?=\s)/g, 'trúc ly'],
+    // Nói thử / test voice
+    [/(?<=\s)(ns|noi)\s+thu(?=\s)/g, 'nói thử'],
+    [/(?<=\s)(ns|noi)\s+(1|mot)\s+cau(?=\s)/g, 'nói một câu'],
+    [/(?<=\s)(ns|noi)\s+(j|gi|xem|coi)(?=\s)/g, 'nói gì'],
+    [/(?<=\s)(ns|noi)(?=\s)/g, 'nói'],
+    // Voice connection
+    [/(?<=\s)(vai|vao|vo|vô)\s+(voice|phong\s*voice|dam\s*thoai|đàm\s*thoại)(?=\s)/g, 'vào voice'],
+    [/(?<=\s)(thoat|roi|rời|out|tat|tắt|ngat|ngắt)\s+(voice|phong\s*voice|đàm\s*thoại)(?=\s)/g, 'rời voice'],
+    // Status
+    [/(?<=\s)(ktra|chech|check|xem)\s+(trang\s*thai|trạng\s*thái|he\s*thong|hệ\s*thống|tinh\s*hinh|tình\s*hình)(?=\s)/g, 'kiểm tra trạng thái'],
+    [/(?<=\s)(ktra|chech|check)(?=\s)/g, 'kiểm tra'],
+    // Slang & abbreviations
+    [/(?<=\s)(j|gi)(?=\s)/g, 'gì'],
+    [/(?<=\s)(k|ko|hông|hong|khg)(?=\s)/g, 'không'],
+    [/(?<=\s)(dc|đc|dk)(?=\s)/g, 'được'],
+    [/(?<=\s)(wa)(?=\s)/g, 'qua'],
+    [/(?<=\s)(vs)(?=\s)/g, 'với'],
+    [/(?<=\s)(r|roi)(?=\s)/g, 'rồi'],
+    [/(?<=\s)(t)(?=\s)/g, 'tao'],
+    [/(?<=\s)(m)(?=\s)/g, 'mày'],
+    [/(?<=\s)(ik|di|đê|nhe|nha)(?=\s)/g, 'đi']
+  ];
+  for (const [pattern, repl] of replacements) {
+    s = s.replace(pattern, repl);
+  }
+  return s.trim();
+}
+
+/**
  * Natural Language Command & Intent Resolver for Ni-Oh
  * Eliminates all need for '!' commands. Everything is triggered via natural chatting.
  */
@@ -26,15 +65,13 @@ async function handleNaturalCommand(message, rawText, context) {
   let text = rawText.trim();
   if (text.startsWith('!')) text = text.substring(1).trim();
   const lower = text.toLowerCase();
+  const norm = normalizeVietnameseIntent(text);
 
   // ----------------------------------------------------
   // 1. VOIP: VÀO / LÊN VOICE
   // ----------------------------------------------------
   if (
-    lower === 'vào voice' || lower === 'vào voice đi' || lower === 'vào phòng voice' ||
-    lower === 'lên voice' || lower === 'lên voice đi' || lower === 'kết nối voice' ||
-    lower === 'join voice' || lower === 'vào đàm thoại' || lower === 'vào phòng thoại' ||
-    lower === 'vào voice với sếp' || lower === 'vào' || lower === 'join' || lower === 'connect' ||
+    norm.includes('vào voice') || norm.includes('lên voice') || norm === 'vào' || norm === 'join' || norm === 'connect' ||
     /^(ni-?oh\s*,?\s*)?(vào|lên|kết nối|join)\s+(phòng\s+)?voice/i.test(lower)
   ) {
     const userVoiceChannel = message.member?.voice?.channel;
@@ -53,9 +90,8 @@ async function handleNaturalCommand(message, rawText, context) {
   // 2. VOIP: RỜI / THOÁT VOICE
   // ----------------------------------------------------
   if (
-    lower === 'rời voice' || lower === 'thoát voice' || lower === 'ngắt voice' ||
-    lower === 'rời phòng voice' || lower === 'thoát phòng voice' || lower === 'out voice' ||
-    lower === 'leave voice' || lower === 'rời đàm thoại' || lower === 'rời' || lower === 'leave' || lower === 'out' ||
+    norm.includes('rời voice') || norm.includes('thoát voice') || norm.includes('ngắt voice') ||
+    norm === 'rời' || norm === 'leave' || norm === 'out' ||
     /^(ni-?oh\s*,?\s*)?(rời|thoát|ngắt|out|leave)\s+(phòng\s+)?voice/i.test(lower)
   ) {
     voiceManager.leaveVoice();
@@ -67,15 +103,16 @@ async function handleNaturalCommand(message, rawText, context) {
   // 3. KIỂM TRA TRẠNG THÁI HỆ THỐNG (STATUS)
   // ----------------------------------------------------
   if (
-    lower === 'trạng thái' || lower === 'status' || lower === 'kiểm tra trạng thái' ||
-    lower === 'báo cáo trạng thái' || lower === 'tình trạng hệ thống' || lower === 'tình hình hệ thống' ||
-    lower === 'kiểm tra hệ thống' || lower === 'tình hình các bot' || lower === 'trạng thái các agent' ||
-    /^(ni-?oh\s*,?\s*)?(kiểm tra|báo cáo|xem)\s+(trạng thái|tình hình|hệ thống)/i.test(lower)
+    norm.includes('trạng thái') || norm.includes('kiểm tra trạng thái') || norm === 'status' ||
+    norm.includes('tình hình hệ thống') || norm.includes('tình hình các bot') || norm.includes('tình hình bot') ||
+    norm.includes('kiểm tra hệ thống') || norm.includes('kiểm tra bot') ||
+    (norm.includes('kiểm tra') && (norm.includes('bot') || norm.includes('agent') || norm.includes('hệ thống') || norm.includes('các con') || norm.includes('mấy con'))) ||
+    /^(ni-?oh\s*,?\s*)?(kiểm tra|báo cáo|xem)\s+(trạng thái|tình hình|hệ thống|bot|agent)/i.test(lower)
   ) {
     const p = protocolManager.getActiveProtocol();
     const scheds = dynamicScheduler.loadSchedules();
     const isVoiceConnected = voiceManager.isConnected();
-    const curVoice = voiceManager.getCurrentVoiceName?.() || 'vi-VN-NamMinhNeural';
+    const curVoice = voiceManager.getCurrentVoiceName?.() || 'Trúc Ly (VieNeu AI)';
     
     let botStatus = '';
     for (const [k, c] of Object.entries(clients)) {
@@ -104,8 +141,8 @@ async function handleNaturalCommand(message, rawText, context) {
   // 4. DANH SÁCH & KIỂM TRA GIAO THỨC TÁC CHIẾN
   // ----------------------------------------------------
   if (
-    (lower.includes('giao thức') || lower.includes('protocol')) &&
-    (lower.includes('kiểm tra') || lower.includes('danh sách') || lower.includes('có những') || lower.includes('đang có') || lower.includes('hỗ trợ') || lower.includes('liệt kê') || lower.includes('xem') || lower === 'giao thức' || lower === 'protocols')
+    (norm.includes('giao thức') || norm.includes('protocol')) &&
+    (norm.includes('kiểm tra') || norm.includes('danh sách') || norm.includes('có những') || norm.includes('đang có') || norm.includes('hỗ trợ') || norm.includes('liệt kê') || norm.includes('xem') || norm === 'giao thức' || norm === 'protocols')
   ) {
     const list = protocolManager.listProtocols();
     const active = protocolManager.getActiveProtocol();
@@ -124,20 +161,20 @@ async function handleNaturalCommand(message, rawText, context) {
   // 5. CHUYỂN ĐỔI GIAO THỨC TỰ NHIÊN (SWITCH PROTOCOL)
   // ----------------------------------------------------
   if (
-    lower.includes('chuyển sang giao thức') || lower.includes('chuyển giao thức') ||
-    lower.includes('đổi sang giao thức') || lower.includes('đổi giao thức') ||
-    lower.includes('bật giao thức') || lower.includes('kích hoạt giao thức') ||
-    lower.startsWith('giao thức ') || lower === 'giao thức genshin' || lower === 'giao thức lol' ||
-    lower === 'giao thức lmht' || lower === 'giao thức valorant' || lower === 'giao thức van di' ||
-    lower === 'giao thức tính toán' || lower === 'giao thức google sheets' || lower === 'giao thức live stream' ||
-    lower === 'giao thức đồng hành' || lower === 'giao thức mặc định' || lower === 'giao thức thông thường' ||
-    lower === 'chơi genshin' || lower === 'chơi lol' || lower === 'chơi liên minh' ||
-    lower === 'chơi valorant' || lower === 'chơi van di'
+    norm.includes('chuyển sang giao thức') || norm.includes('chuyển giao thức') ||
+    norm.includes('đổi sang giao thức') || norm.includes('đổi giao thức') ||
+    norm.includes('bật giao thức') || norm.includes('kích hoạt giao thức') ||
+    norm.startsWith('giao thức ') || norm === 'giao thức genshin' || norm === 'giao thức lol' ||
+    norm === 'giao thức lmht' || norm === 'giao thức valorant' || norm === 'giao thức van di' ||
+    norm === 'giao thức tính toán' || norm === 'giao thức google sheets' || norm === 'giao thức live stream' ||
+    norm === 'giao thức đồng hành' || norm === 'giao thức mặc định' || norm === 'giao thức thông thường' ||
+    norm.includes('chơi genshin') || norm.includes('chơi lol') || norm.includes('chơi liên minh') ||
+    norm.includes('chơi valorant') || norm.includes('chơi van di')
   ) {
-    let query = lower;
-    if (lower === 'chơi genshin') query = 'genshin';
-    else if (lower === 'chơi lol' || lower === 'chơi liên minh') query = 'lol';
-    else if (lower === 'chơi valorant' || lower === 'chơi van di') query = 'valorant';
+    let query = norm;
+    if (norm.includes('chơi genshin')) query = 'genshin';
+    else if (norm.includes('chơi lol') || norm.includes('chơi liên minh')) query = 'lol';
+    else if (norm.includes('chơi valorant') || norm.includes('chơi van di')) query = 'valorant';
     
     const p = await protocolManager.setProtocol(query);
     if (p) {
@@ -187,13 +224,11 @@ async function handleNaturalCommand(message, rawText, context) {
   }
 
   // ----------------------------------------------------
-  // ----------------------------------------------------
   // 7. QUẢN LÝ GIỌNG ĐỌC TTS & NÓI THỬ SAMPLE
   // ----------------------------------------------------
   if (
-    lower.includes('nói thử') || lower.includes('thử giọng') || lower.includes('test giọng') ||
-    lower === 'nói 1 câu' || lower === 'nói một câu' || lower === 'nói gì đi' || lower === 'nói xem nào' ||
-    /nói\s+thử(\s+1\s+câu|\s+một\s+câu)?(\s+xem\s+nào)?/i.test(lower)
+    norm.includes('nói thử') || norm.includes('thử giọng') || norm.includes('test giọng') ||
+    norm === 'nói 1 câu' || norm.includes('nói một câu') || norm === 'nói gì đi' || norm.includes('nói xem')
   ) {
     const sampleText = "Em đã sẵn sàng, Sếp.";
     const audioPath = await voiceManager.generateSpeechFile(sampleText);
@@ -208,14 +243,14 @@ async function handleNaturalCommand(message, rawText, context) {
   }
 
   if (
-    lower.includes('trúc ly') || lower.includes('truc ly') || lower.includes('trucly') ||
-    lower.startsWith('kích hoạt giọng') || lower.startsWith('bật giọng') || lower.startsWith('dùng giọng') ||
-    lower.startsWith('chuyển sang giọng') || lower.startsWith('chuyển giọng') ||
-    lower === 'danh sách giọng đọc' || lower === 'xem giọng đọc' || lower === 'các giọng đọc' ||
-    lower === 'danh sách giọng' || lower.startsWith('đổi giọng đọc') || lower.startsWith('chọn giọng') ||
-    lower.startsWith('đổi giọng ') || lower === 'đổi giọng'
+    norm.includes('trúc ly') || norm.includes('truc ly') || norm.includes('trucly') ||
+    norm.startsWith('kích hoạt giọng') || norm.startsWith('bật giọng') || norm.startsWith('dùng giọng') ||
+    norm.startsWith('chuyển sang giọng') || norm.startsWith('chuyển giọng') ||
+    norm === 'danh sách giọng đọc' || norm === 'xem giọng đọc' || norm === 'các giọng đọc' ||
+    norm === 'danh sách giọng' || norm.startsWith('đổi giọng đọc') || norm.startsWith('chọn giọng') ||
+    norm.startsWith('đổi giọng ') || norm === 'đổi giọng'
   ) {
-    if (lower.includes('trúc ly') || lower.includes('truc ly') || lower.includes('trucly') || lower.includes('vieneu')) {
+    if (norm.includes('trúc ly') || norm.includes('truc ly') || norm.includes('trucly') || norm.includes('vieneu')) {
       voiceManager.setEngine('vieneu');
       voiceManager.setCustomVoice('Trúc Ly');
       const confirmText = 'Đã kích hoạt giọng Trúc Ly của VieNeu AI.';
