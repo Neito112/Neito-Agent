@@ -21,6 +21,10 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY || "";
 
 // ─── OPEN-SOURCE VOICE PRESET REGISTRY (CÁC NGUỒN MỞ VOICE CÒN SỐNG & ĐỈNH CAO) ──
 const VOICE_PRESETS = {
+  // 0. VieNeu Neural TTS (Giọng Trúc Ly đỉnh cao - Nữ miền Bắc trẻ trung, tự nhiên)
+  'trucly': { engine: 'vieneu', voice: 'Ly', desc: 'VieNeu AI - Trúc Ly (Nữ miền Bắc trẻ trung, tự nhiên)', lang: 'vi-VN' },
+  'vieneu': { engine: 'vieneu', voice: 'Ly', desc: 'VieNeu AI - Trúc Ly (Nữ miền Bắc trẻ trung, tự nhiên)', lang: 'vi-VN' },
+
   // 1. Edge-TTS (100% Miễn Phí, 0 Token, Cực kỳ tự nhiên, Không cần GPU, Chạy ngay)
   'hoaimy': { engine: 'edge', voice: 'vi-VN-HoaiMyNeural', desc: 'Tiếng Việt Nữ (Hoài My - Giọng đọc ấm áp, truyền cảm)', lang: 'vi-VN' },
   'namminh': { engine: 'edge', voice: 'vi-VN-NamMinhNeural', desc: 'Tiếng Việt Nam (Nam Minh - Chuẩn giọng miền Bắc, dứt khoát)', lang: 'vi-VN' },
@@ -39,9 +43,9 @@ const VOICE_PRESETS = {
   'chattts': { engine: 'chattts', voice: 'default', desc: 'ChatTTS Conversational AI Agent (Cười, thở tự nhiên)', lang: 'multi' }
 };
 
-// Mặc định: Edge TTS Nam Minh (Chuẩn tiếng Việt dứt khoát) hoặc Hoài My
-let currentEngine = process.env.VOICE_ENGINE || 'edge';
-let customVoiceName = process.env.VOICE_NAME || 'vi-VN-NamMinhNeural';
+// Mặc định: Giọng Trúc Ly của VieNeu (Nữ miền Bắc trẻ trung, tự nhiên)
+let currentEngine = process.env.VOICE_ENGINE || 'vieneu';
+let customVoiceName = process.env.VOICE_NAME || 'Ly';
 
 // Voice state
 let currentConnection = null;
@@ -107,13 +111,32 @@ function normalizeForVietnameseSpeech(raw) {
     .substring(0, 450);
 }
 
-// 1. VieNeu Neural TTS (Giọng Quân Hồng AI đỉnh cao)
+// Helper: Lấy API key VieNeu từ api_keys.json hoặc biến môi trường
+function getVieNeuApiKey() {
+  try {
+    if (process.env.VIENEU_API_KEY) return process.env.VIENEU_API_KEY;
+    const keysPath = path.join(__dirname, 'api_keys.json');
+    if (fs.existsSync(keysPath)) {
+      const keys = JSON.parse(fs.readFileSync(keysPath, 'utf8'));
+      return keys.vieneu || '';
+    }
+  } catch (_) {}
+  return '';
+}
+
+// 1. VieNeu Neural TTS (Giọng Trúc Ly - Nữ miền Bắc trẻ trung, tự nhiên)
 function generateVieNeuTTS(text, voiceName, outputPath) {
   return new Promise((resolve, reject) => {
     const apiKey = getVieNeuApiKey();
+    let selectedVoice = voiceName || "Ly";
+    if (typeof selectedVoice === 'string' && (selectedVoice.toLowerCase().includes("trúc ly") || selectedVoice.toLowerCase().includes("trucly"))) {
+      selectedVoice = "Ly";
+    }
     const payload = JSON.stringify({
+      model: "tts-1",
       input: text,
-      voice: voiceName || "Quân Hồng"
+      voice: selectedVoice,
+      response_format: "mp3"
     });
 
     const headers = {
@@ -239,10 +262,10 @@ async function speak(text) {
 
     if (currentEngine === 'vieneu') {
       try {
-        await generateVieNeuTTS(cleanText, customVoiceName || 'Quân Hồng', tempAudio);
+        await generateVieNeuTTS(cleanText, customVoiceName || 'Ly', tempAudio);
       } catch (vnErr) {
-        console.warn('[VoiceManager] VieNeu Quân Hồng error / no key, falling back to MS NamMinh:', vnErr.message);
-        await generateMicrosoftTTS(cleanText, 'vi-VN-NamMinhNeural', tempAudio);
+        console.warn('[VoiceManager] VieNeu error / no key, falling back to MS HoaiMy (Nữ tự nhiên):', vnErr.message);
+        await generateMicrosoftTTS(cleanText, 'vi-VN-HoaiMyNeural', tempAudio);
       }
     } else if (currentEngine === 'google') {
       try {
@@ -401,7 +424,7 @@ function joinVoice(voiceChannel, textChannel, onVoicePromptCallback) {
 
   currentConnection.on(VoiceConnectionStatus.Ready, () => {
     console.log(`[VoiceManager] Connected to voice channel: ${voiceChannel.name} (Engine: ${currentEngine} - Voice: ${customVoiceName})`);
-    speak("Thưa Sếp Neito. Em là Ni-Oh, đã sẵn sàng hỗ trợ sếp!");
+    speak("Em nghe đây Sếp.");
   });
 
   const receiver = currentConnection.receiver;
