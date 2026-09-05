@@ -235,6 +235,22 @@ async function readGoogleSheetTool(sheetUrl, keyword = '', agentKey = 'default')
   const gidMatch = targetUrl.match(/gid=([0-9]+)/);
   const gid = gidMatch ? gidMatch[1] : '0';
 
+  // 1. Ưu tiên đọc trực tiếp qua Google Workspace API chính thống nếu đã cấp quyền
+  try {
+    const gw = require('./src/google_workspace.js');
+    const token = await gw.getValidAccessToken();
+    if (token) {
+      const rows = await gw.fetchSheetData(sheetId);
+      if (rows && rows.length > 0) {
+        const textLines = rows.map(r => r.join(' | '));
+        return `[DỮ LIỆU GOOGLE WORKSPACE API "${targetUrl}" - ĐỌC THÀNH CÔNG ${rows.length} DÒNG]:\n` + textLines.slice(0, 40).join('\n');
+      }
+    }
+  } catch (gwErr) {
+    // Nếu token chưa có hoặc hết hạn, tiếp tục thử tải qua CSV
+  }
+
+  // 2. Dự phòng đọc qua CSV trực tiếp
   const exportUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
 
   return new Promise((resolve) => {
@@ -249,8 +265,19 @@ async function readGoogleSheetTool(sheetUrl, keyword = '', agentKey = 'default')
         let body = '';
         res.on('data', c => body += c);
         res.on('end', () => {
-          if (body.includes('accounts.google.com') || body.includes('document-root') || body.includes('Cho phép Google Trang tính')) {
-            resolve(`[GOOGLE SHEET - CẦN PHÂN QUYỀN]:\nFile Google Sheet "${targetUrl}" hiện đang ở chế độ Riêng tư (yêu cầu đăng nhập Google).\n👉 Sếp vui lòng mở file Sheet trên trình duyệt -> Bấm nút [Chia sẻ] (Share) ở góc trên bên phải -> Chuyển "Truy cập chung" thành 'Bất kỳ ai có đường liên kết đều có thể xem' để em có thể đọc và tính toán tự động số dư ví cho Sếp nhé ạ!`);
+          if (res.statusCode === 401 || res.statusCode === 403 || body.includes('accounts.google.com') || body.includes('document-root') || body.includes('Cho phép Google Trang tính')) {
+            let authLink = '';
+            try {
+              const gw = require('./src/google_workspace.js');
+              authLink = gw.getAuthUrl(8085);
+            } catch (_) {}
+
+            let msg = `[GOOGLE SHEET - CẦN PHÂN QUYỀN TRUY CẬP]:\nFile Google Sheet "${targetUrl}" hiện đang ở chế độ Riêng tư (Private).\n`;
+            if (authLink) {
+              msg += `\n👉 **Cách 1 - Cấp quyền Google Workspace (1 Click duy nhất):**\nSếp bấm vào đường link ủy quyền này để cấp quyền cho Kim đọc Google Sheets của Sếp:\n${authLink}\n`;
+            }
+            msg += `\n👉 **Cách 2 - Mở quyền nhanh trong 3 giây:**\nSếp mở file Sheet trên trình duyệt -> Bấm nút [Chia sẻ] ở góc trên bên phải -> Chuyển "Truy cập chung" thành 'Bất kỳ ai có đường liên kết đều có thể xem' nhé ạ!`;
+            resolve(msg);
           } else {
             const lines = body.split('\n').map(l => l.trim()).filter(Boolean);
             let summary = `[DỮ LIỆU GOOGLE SHEET "${targetUrl}" - ĐỌC THÀNH CÔNG ${lines.length} DÒNG]:\n`;
