@@ -1,0 +1,91 @@
+{
+  "topicName": "Khung - Kiến Trúc & Kết Cấu 3D",
+  "lastUpdated": "2026-09-06T04:30:00.000Z",
+  "modules_learned": {
+    "module_1_spatial_and_ergonomics": {
+      "title": "Nguyên lý Thiết kế, Nhân trắc học & Tỷ lệ Không gian",
+      "date_studied": "2026-09-01",
+      "core_knowledge": [
+        "Hệ tỷ lệ Modulor (Le Corbusier) và Tỷ lệ vàng (1.618) trong quy hoạch phân chia mặt bằng.",
+        "Thông số nhân trắc học tiêu chuẩn người Việt: Chiều cao mặt bàn làm việc 750mm, ghế ngồi 450mm, mặt bàn bếp 810-860mm, chiều cao bậc thang 150-180mm (rộng bậc 250-300mm), hành lang lưu thông tối thiểu 900-1200mm.",
+        "Zoning phân khu chức năng: Tách biệt tuyệt đối không gian tĩnh (phòng ngủ, phòng làm việc) và không gian động (phòng khách, bếp, sân chơi) thông qua hành lang đệm hoặc vách ngăn thị giác."
+      ]
+    },
+    "module_2_materials_and_joinery": {
+      "title": "Nguyên lý Cấu tạo & Vật liệu Nội thất Hiện đại",
+      "date_studied": "2026-09-03",
+      "core_knowledge": [
+        "Phân loại cốt gỗ công nghiệp: Ván dăm (PB - Particle Board rẻ, dễ xơ), MDF thường vs MDF lõi xanh chống ẩm HMR (tỷ trọng 700-800 kg/m³), HDF siêu chống ẩm chịu lực sàn, Plywood ván ép nhiều lớp chống cong vênh vượt trội chịu lực tủ bếp dưới, WPB tấm ván nhựa PVC chịu nước 100% cho khu ẩm ướt.",
+        "Vật liệu bề mặt: Melamine (phủ sẵn tiện dụng, chống trầy nhẹ), Laminate (chịu va đập, chịu xước, uốn cong post-forming), Acrylic bóng gương (không đường line cạnh, tăng chiều sâu thị giác), Veneer lạng gỗ tự nhiên (sồi, óc chó).",
+        "Tiêu chuẩn phát thải an toàn: Formaldehyde E1 (<0.1 ppm), E0 hoặc CARB-P2 đảm bảo không gây cay mắt và an toàn hô hấp cho gia chủ."
+      ]
+    },
+    "module_3_lighting_and_acoustics": {
+      "title": "Ánh sáng Kiến trúc & Nhịp điệu Thị giác",
+      "date_studied": "2026-09-04",
+      "core_knowledge": [
+        "Tiêu chuẩn độ rọi Lux: Phòng ngủ 150 Lux, phòng khách 300 Lux, bàn làm việc/đọc sách 500 Lux, khu bếp nấu 400-500 Lux.",
+        "Nhiệt độ màu CCT: 2700K-3000K (Warm White - ấm áp thư giãn), 4000K (Natural White - trung tính làm việc tập trung), 6500K (Cool White - kỹ thuật công nghiệp).",
+        "Layering ánh sáng 3 lớp: Ambient Light (chiếu sáng tổng thể), Task Light (chiếu sáng công năng tập trung bàn làm việc/bếp), Accent Light (chiếu rọi tranh, hốc tủ, khe trần gián tiếp)."
+      ]
+    },
+    "module_4_blender_python_automation": {
+      "title": "Tự động hóa Dựng hình 3D với Blender Python (bpy)",
+      "date_studied": "2026-09-05",
+      "core_knowledge": [
+        "Cơ chế scripting bpy: Xóa đối tượng cũ `bpy.ops.object.select_all(action='SELECT')`, khởi tạo Mesh Cube theo kích thước tham số phòng `size_x, size_y, size_z`.",
+        "Tạo Node Material Principled BSDF lập trình qua Python: gán base_color, metallic, roughness để mô phỏng vật liệu gỗ, kính, tường sơn bê tông.",
+        "Tự động đặt Camera góc phối cảnh 35mm, gán đèn Area Light / Sun Light và kích hoạt render Cycles/Eevee xuất ảnh tự động."
+      ]
+    }
+  },
+  "lastSwept": "2026-09-05T22:18:18.308Z",
+  "latestMeta": "- Khóa học giúp diễn họa kiến trúc 3D từ modeling đến render.\n- Cuốn sách hướng dẫn tạo mẫu thiết kế kiến trúc và phối cảnh trong Blender.\n- Blender cung cấp công cụ toàn diện cho mô hình hóa, ánh sáng, rendering và game development.\n- Học cách sử dụng Blender để tự tạo nội thất - kiến trúc chuyên nghiệp.",
+  "entries": [
+    {
+      "time": "2026-09-05T22:18:18.308Z",
+      "summary": "- Khóa học giúp diễn họa kiến trúc 3D từ modeling đến render.\n- Cuốn sách hướng dẫn tạo mẫu thiết kế kiến trúc và phối cảnh trong Blender.\n- Blender cung cấp công cụ toàn diện cho mô hình hóa, ánh sáng, rendering và game development.\n- Học cách sử dụng Blender để tự tạo nội thất - kiến trúc chuyên nghiệp."
+    },
+    {
+      "time": "2026-09-05T22:17:32.381Z",
+      "topic": "Blender 4 interior architecture tutorial",
+      "source": "Tài liệu nghiên cứu web tự động",
+      "summary": "- Kỹ thuật mô hình hóa nội thất: Học cách tạo ra các chi tiết của một không gian nội thất từ bản vẽ mặt bằng. Đây là bước cơ bản trong quá trình thiết kế kiến trúc.\n\n- Áp dụng chất liệu và texturizing: Hiểu về việc sử dụng các công cụ để áp dụng chất liệu thực tế lên mô hình, giúp tăng tính chân thật cho cảnh quan.\n\n- Sử dụng HDRI và Sky-lighting: Học cách bố trí ánh sáng trong nội thất bằng cách sử dụng HDRIs (HDR Image) và sky lighting để tạo ra hiệu ứng ánh sáng tự nhiên.\n\n- Tạo render chất lượng cao: Kiểm tra kỹ năng của bạn thông qua việc thực hiện các bước cuối cùng, từ mô hình hóa đến texturizing và rendering một không gian nội thất hoàn chỉnh."
+    },
+    {
+      "time": "2026-09-05T22:14:31.225Z",
+      "summary": "- Diễn họa kiến trúc từ mô hình hóa (Modeling) đến hoàn thiện chất liệu, ánh sáng và render.\n- Hiểu về ánh sáng trong nội ngoại thất và đặc tả vật liệu 3D.\n- Sử dụng phần mềm Blender cho diễn họa kiến trúc nội thất chuyên nghiệp.\n- Hậu kỳ bằng Photoshop để hoàn thiện kết quả."
+    },
+    {
+      "time": "2026-09-05T22:13:22.453Z",
+      "topic": "Kỹ thuật tối ưu hóa topology trong Blender 4",
+      "source": "Tài liệu nghiên cứu tự động",
+      "summary": "- Retopology là một kỹ thuật quan trọng giúp tối ưu hóa lưới mô hình trong Blender 4 theo cách thủ công hoặc bán tự động. Kỹ thuật này tạo ra hệ thống lưới gọn gàng và dễ dàng cho quá trình làm hoạt hình hay xuất file chất lượng cao.\n\n- Quy tắc \"Quad is King\" rất cần thiết: luôn sử dụng lưới 4 (Quads) để tối ưu hóa cấu trúc lưới, giúp bề mặt chia nhỏ đều đặn và dễ kiểm soát. Điều này ảnh hưởng đến dòng chảy ánh sáng trên mô hình và khả năng chuyển động.\n\n- Trong quá trình tạo khối gối trong Blender như video hướng dẫn đề cập, việc tối ưu topology là bước quan trọng để chuẩn bị cho các bước sau về skinning hoặc rigging."
+    },
+    {
+      "time": "2026-09-05T22:07:53.593Z",
+      "summary": "- Tri thức về mô hình hóa (modeling) và đặc tả chất liệu trong kiến trúc nội ngoại thất.\n- Hiểu biết về ánh sáng và vật liệu trong diễn họa 3D Kiến Trúc.\n- Sử dụng phần mềm Blender cho các tác vụ Diễn Họa Nội Thất Kiến Trúc."
+    },
+    {
+      "time": "2026-09-05T22:05:10.435Z",
+      "summary": "- Giới thiệu chất liệu vật lý dựa trên thực tế trong 3D.\n\n- Tạo và quản lý thư viện chất liệu riêng cho Blender.\n\n- Sử dụng khe nguyên vật liệu để tái sử dụng các chất liệu hiện có. \n\n- Hoạt họa ví dụ về chất liệu khói trong 3D."
+    },
+    {
+      "time": "2026-09-05T21:57:03.989Z",
+      "summary": "- Meta: Khóa học giúp sáng tạo và diễn họa kiến trúc, nội thất.\n- Bản cập nhật: Sử dụng phần mềm 3D Blender hiện đại.\n- Thay đổi quan trọng: Học từ mô hình hóa đến hậu kỳ render.\n- Điểm cốt lõi: Hiểu ánh sáng và vật liệu trong thiết kế."
+    },
+    {
+      "time": "2026-09-05T21:54:27.119Z",
+      "summary": "- Meta: Tự học kiến trúc diễn họa và nội thất.\n- Bản cập nhật kỹ thuật: Sử dụng phần mềm Blender 3D.\n- Thay đổi quan trọng về ánh sáng và vật liệu trong diễn họa 3D.\n- Hoàn thiện chất lượng hình ảnh bằng Photoshop hậu kỳ."
+    },
+    {
+      "time": "2026-09-05T21:51:12.262Z",
+      "summary": "- Khóa học giúp sáng tạo hình ảnh diễn họa Nội Thất - Kiến Trúc chuyên nghiệp từ Modeling đến Render.\n- Blender cung cấp công cụ đầy đủ cho mô hình 3D, vật liệu, ánh sáng và rendering mà không cần phần mềm phụ.\n- Cuốn sách hướng dẫn kỹ thuật cơ bản để tạo mẫu thiết kế kiến trúc 3D hiện thực."
+    },
+    {
+      "time": "2026-09-05T21:42:27.048Z",
+      "summary": "- Khóa học giúp diễn họa kiến trúc 3D từ modeling đến render.\n- Cuốn sách hướng dẫn tạo mẫu thiết kế kiến trúc và phối cảnh trong Blender 3D.\n- Blender cung cấp công cụ toàn diện cho mô hình hóa, ánh sáng, rendering và game development."
+    }
+  ],
+  "lastLearned": "2026-09-05T22:17:32.381Z"
+}
