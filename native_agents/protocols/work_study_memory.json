@@ -1,0 +1,30 @@
+{
+  "topicName": "Work & Study Assistant Protocol (Tính Toán & Google Sheets)",
+  "lastSwept": "2026-09-06T04:30:00.000Z",
+  "tactical_knowledge": {
+    "sheets_formula_automation": {
+      "lookup_and_match": "=INDEX(return_range, MATCH(lookup_value, lookup_range, 0)) thay thế hoàn toàn VLOOKUP tĩnh.",
+      "multi_criteria_sums": "=SUMIFS(sum_range, criteria_range1, criteria1, criteria_range2, criteria2)",
+      "query_language": "=QUERY(data_range, \"SELECT A, B, SUM(C) WHERE D = 'Active' GROUP BY A, B ORDER BY SUM(C) DESC LABEL SUM(C) 'Doanh Thu'\", 1)",
+      "array_formulas": "=ARRAYFORMULA(IF(A2:A=\"\", \"\", B2:B * C2:C)) tự động mở rộng theo dòng dữ liệu mới."
+    },
+    "task_and_calculation_offload": {
+      "financial_math": "Tính toán dòng tiền ròng NPV, lãi suất kép CAGR, tỷ suất sinh lời IRR và chiết khấu dòng tiền DCF.",
+      "engineering_specs": "Tính tải trọng kết cấu, công suất tiêu thụ điện năng (kW/h sang kWh tính tiền điện lũy tiến), lưu lượng thông gió.",
+      "project_decomposition": "Phân rã dự án theo cấu trúc WBS (Work Breakdown Structure), xác định đường găng Critical Path (CPM) và thời gian đệm Slack."
+    }
+  },
+  "latestMeta": "Giao thức hỗ trợ học tập và xử lý công việc: Tự động hóa công thức bảng tính Google Sheets, lập bảng ma trận phân tích dữ liệu, giải toán tài chính và phân rã dự án nhanh gọn.",
+  "videoLearned": [
+    {
+      "source": "https://youtu.be/dQw4w9WgXcQ",
+      "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)",
+      "author": "Rick Astley",
+      "learnedAt": "2026-09-05T22:04:11.855Z",
+      "hasTimestampedTranscript": true,
+      "totalTranscriptLines": 60,
+      "distilledKnowledge": "1. TÓM TẮT CỐT LÕI:\nVideo này thể hiện cam kết không đổi của một người trong tình yêu, nhấn mạnh sự trung thành và lòng dũng cảm để nói ra những gì mình đang cảm nhận.\n\n2. CÁC MỐC THỜI GIAN & BƯỚC HÀNH ĐỘNG QUAN TRỌNG:\n- [0:43 - 0:51] ♪ Never gonna give you up ♪, ♪ Never gonna let you down ♪, ♪ Never gonna run around and desert you ♪\n   Mục tiêu là thể hiện sự cam kết và không bỏ rơi đối tác.\n   \n- [2:08 - 2:14] ♪ Never gonna give, never gonna give (Give you up) ♪ \n   Nâng cao quyết tâm với lời khẳng định mạnh mẽ.\n\n3. BÀI HỌC / CHIẾN THUẬT RÚT RA ĐỂ ÁP DỤNG NGAY:\n- Khi làm việc nhóm hoặc trong quan hệ, hãy luôn giữ cam kết và trung thực.\n- Không ngại thể hiện cảm xúc của mình ngay cả khi sợ hãi bị từ chối. \n- Lời nói đi đôi với hành động - không bao giờ bỏ rơi người khác sau những lời hứa hẹn.\n\nNhững bài học này có thể áp dụng trong nhiều tình huống, giúp xây dựng lòng tin và tạo nên mối quan hệ vững chắc hơn."
+    }
+  ],
+  "lastVideoLearnedAt": "2026-09-05T22:04:11.855Z"
+}
