@@ -434,13 +434,33 @@ async function broadcast(text, textChannel = null) {
 }
 
 function setEngine(engineName) {
-  if (['vieneu', 'google', 'ms-nam', 'ms-nu'].includes(engineName)) {
-    currentEngine = engineName;
-    if (engineName === 'vieneu') customVoiceName = 'Quân Hồng';
+  currentEngine = engineName;
+  return true;
+}
+
+function setCustomVoice(voiceIdOrName) {
+  if (VOICE_PRESETS[voiceIdOrName]) {
+    currentEngine = VOICE_PRESETS[voiceIdOrName].engine;
+    customVoiceName = VOICE_PRESETS[voiceIdOrName].voice;
     return true;
   }
-  return false;
+  customVoiceName = voiceIdOrName;
+  return true;
 }
+
+function selectVoice(voiceKey) {
+  if (VOICE_PRESETS[voiceKey]) {
+    currentEngine = VOICE_PRESETS[voiceKey].engine;
+    customVoiceName = VOICE_PRESETS[voiceKey].voice;
+    return VOICE_PRESETS[voiceKey];
+  }
+  return null;
+}
+
+function listAvailableVoices() {
+  return VOICE_PRESETS;
+}
+
 
 module.exports = {
   setCustomVoice,
