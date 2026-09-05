@@ -1,0 +1,69 @@
+{
+  "topicName": "Cư - Bất Động Sản & Không Gian Sống",
+  "lastUpdated": "2026-09-06T04:30:00.000Z",
+  "modules_learned": {
+    "hanoi_rental_price_index_q3_2026": {
+      "title": "Chỉ số Giá Thuê Nhà Hà Nội Phân Khúc 4 - 6 Triệu VNĐ",
+      "date_studied": "2026-09-03",
+      "core_knowledge": [
+        "Quận Cầu Giấy (Dịch Vọng, Quan Hoa, Trần Thái Tông, Trung Hòa): 4.8 - 5.5 triệu/tháng cho phòng studio/1N1K khép kín 28-32m², có thang máy, ban công riêng phơi đồ, đủ đồ cơ bản (giường, tủ, điều hòa, nóng lạnh).",
+        "Quận Đống Đa (Thái Hà, Chùa Lộc, Xã Đàn, Đội Cấn): 5.0 - 6.0 triệu/tháng cho phòng 30-35m², ngõ nông ô tô đỗ gần.",
+        "Quận Nam Từ Liêm (Mỹ Đình, Đình Thôn, Mễ Trì): 4.0 - 4.8 triệu/tháng cho căn hộ mini full nội thất 30m², thuận tiện di chuyển về phía Tây.",
+        "Quận Thanh Xuân (Khương Đình, Nguyễn Trãi, Triều Khúc): 4.2 - 5.0 triệu/tháng."
+      ]
+    },
+    "pccc_safety_and_contract_fraud_prevention": {
+      "title": "Tiêu chuẩn An toàn PCCC & Phòng chống Bẫy Hợp Đồng Thuê Nhà",
+      "date_studied": "2026-09-04",
+      "core_knowledge": [
+        "6 Tiêu chí an toàn PCCC bắt buộc phải kiểm tra: Có lối thoát nạn thứ hai (thang thoát hiểm ngoài trời hoặc lồng cọp mở cửa sổ có chìa khóa/búa), cửa chống cháy ngăn khói tại cầu thang bộ, bình chữa cháy dạng bột/CO2 còn hạn kiểm định tại mỗi tầng, hệ thống báo khói cục bộ còn pin, ngõ vào không bị rào chắn xe cứu hỏa, dây điện không câu mắc chằng chịt.",
+        "5 Bẫy hợp đồng cần loại bỏ: Biểu giá điện nước trá hình (điện không quá 3.5k-4k/số, nước không quá 30k/khối), chi phí dịch vụ ẩn (thang máy, rác, wifi, dọn vệ sinh, máy giặt không được vượt quá 200k-300k/người), điều khoản cọc vô lý (yêu cầu báo trước 30 ngày để lấy lại 100% tiền cọc), khấu hao đồ nội thất tự nhiên không được trừ cọc."
+      ]
+    },
+    "smart_home_and_energy_management": {
+      "title": "Hệ thống Nhà Thông Minh (Smart Home) & Tiết kiệm Năng lượng",
+      "date_studied": "2026-09-05",
+      "core_knowledge": [
+        "Giao thức kết nối: Zigbee 3.0 và Matter/Thread hoạt động nội bộ mạng LAN, phản hồi nhanh dưới 50ms và không bị mất kiểm soát khi đứt mạng Internet.",
+        "Cảm biến thông minh: mmWave Presence Sensor nhận diện hơi thở con người chính xác hơn cảm biến hồng ngoại PIR cũ, tự động bật/tắt đèn chiếu sáng và điều hòa theo người thực tế trong phòng.",
+        "Đo lường năng lượng: Rơ-le thông minh giám sát công suất tức thời (Watt) và tổng tiêu thụ điện (kWh) giúp phát hiện rò rỉ điện hoặc thiết bị ngốn điện bất thường."
+      ]
+    }
+  },
+  "lastSwept": "2026-09-05T22:19:18.377Z",
+  "latestMeta": "- Giá cho thuê: Phòng studio từ 4-7 triệu/tháng; nhà trọ, phòng trọ Cầu Giấy từ 5-8 triệu/tháng.\n- Diện tích đa dạng, tiện ích đầy đủ trong một số căn hộ dịch vụ.\n- Nhiều lựa chọn vị trí thuận lợi, gần khu trung tâm và trường học.",
+  "entries": [
+    {
+      "time": "2026-09-05T22:19:18.377Z",
+      "summary": "- Giá cho thuê: Phòng studio từ 4-7 triệu/tháng; nhà trọ, phòng trọ Cầu Giấy từ 5-8 triệu/tháng.\n- Diện tích đa dạng, tiện ích đầy đủ trong một số căn hộ dịch vụ.\n- Nhiều lựa chọn vị trí thuận lợi, gần khu trung tâm và trường học."
+    },
+    {
+      "time": "2026-09-05T22:15:25.094Z",
+      "summary": "- Giá thuê phòng trọ tại Cầu Giay, Hà Nội dao động từ 4 đến 8 triệu đồng/tháng.\n- Phong trào dịch vụ có sẵn nội thất và tiện ích, với giá khoảng 5-8 triệu đồng/tháng.\n- Thị trường đa dạng về diện tích, vị trí và mức giá cho thuê nhà đất tại Cầu Giay."
+    },
+    {
+      "time": "2026-09-05T22:08:38.444Z",
+      "summary": "- Giá cho thuê: Phòng studio từ 4-7 triệu/tháng; nhà trọ dịch vụ từ 5-8 triệu/tháng.\n- Diện tích & tiện ích: Phù hợp với diện tích khác nhau, có sẵn nội thất trong phòng trọ dịch vụ.\n- Vị trí & thuận lợi di chuyển: Gần khu trung tâm và các trường học, dễ dàng đi lại."
+    },
+    {
+      "time": "2026-09-05T22:05:56.311Z",
+      "summary": "- Cung cấp đa dạng phòng trọ tại Cầu Giấy, Hà Nội.\n- Giá cho thuê dao động từ 4 đến 8 triệu đồng/tháng.\n- Nhiều tiện ích sẵn có như nội thất đầy đủ trong một số phòng.\n- Thông tin cập nhật thường xuyên với nhiều lựa chọn về vị trí và diện tích."
+    },
+    {
+      "time": "2026-09-05T21:57:55.460Z",
+      "summary": "- Dân số tìm kiếm phòng trọ ở quận Cầu Giay, Hà Nội tăng.\n- Giá trung bình: 4-7 triệu đồng/tháng.\n- Nhiều lựa chọn về diện tích và tiện ích.\n- Thông tin được cập nhật thường xuyên từ ngày 23/08/2026."
+    },
+    {
+      "time": "2026-09-05T21:55:18.397Z",
+      "summary": "- Giá thuê phòng trọ ở Cầu Giay, Hà Nội: 4-8 triệu đồng/tháng.\n- Có các loại hình như studio và phòng dịch vụ với mức giá từ 5-8 triệu đồng/tháng.\n- Số tin rao vặt cho thuê phòng trọ tại đây là 66 bản ghi.\n- Giá bình quân cho thuê khoảng 150 nghìn/m², cập nhật ngày 23/08/2026."
+    },
+    {
+      "time": "2026-09-05T21:52:09.320Z",
+      "summary": "- Có 66 tin rao về cho thuê phòng trọ ở Quận Cầu Giay, Hà Nội.\n- Giá trung bình khoảng 150 nghìn đồng/m²/tháng.\n- Phòng studio từ 4-7 triệu đồng/tháng; phòng trọ dịch vụ từ 5-8 triệu đồng/tháng.\n- Có nhiều lựa chọn về diện tích và tiện nghi."
+    },
+    {
+      "time": "2026-09-05T21:43:17.112Z",
+      "summary": "- Giá trung bình phòng trọ ở Phường Cầu Giay khoảng 150 nghìn đồng/m².\n- Có nhiều lựa chọn từ phòng studio (4-7 triệu/tháng) đến nhà trọ dịch vụ (5-8 triệu/tháng).\n- Tin rao cho thuê đa dạng về diện tích, giá cả và tiện ích tại Quận Cầu Giấy."
+    }
+  ]
+}
