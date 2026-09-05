@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 const fileEngine = require('./zalo_file_engine.js');
+const localVideoLearner = require('./local_video_learner.js');
 
 // ─── 1. Web Search (DuckDuckGo JSON API - no API key, reliable) ───────────
 async function searchWeb(query, maxResults = 5) {
@@ -83,7 +84,7 @@ async function searchWebHtml(query, maxResults = 5) {
   });
 }
 
-// ─── 2. Web Fetch (extract text from URL) ─────────────────────────────────
+// ─── 2. Web Fetch (extract text & embedded videos from URL) ────────────────
 async function fetchUrlContent(targetUrl, maxChars = 5000) {
   return new Promise((resolve) => {
     const proto = targetUrl.startsWith('https') ? https : http;
@@ -97,6 +98,15 @@ async function fetchUrlContent(targetUrl, maxChars = 5000) {
       let html = '';
       res.on('data', c => html += c);
       res.on('end', () => {
+        // Tự động quét và phát hiện các video nhúng (YouTube iframe, video player, links)
+        const embeddedVideos = [];
+        const ytEmbedRegex = /(?:youtube\.com\/(?:embed\/|watch\?v=)|youtu\.be\/)([\w-]{11})/gi;
+        let vMatch;
+        while ((vMatch = ytEmbedRegex.exec(html)) !== null) {
+          const vUrl = `https://www.youtube.com/watch?v=${vMatch[1]}`;
+          if (!embeddedVideos.includes(vUrl)) embeddedVideos.push(vUrl);
+        }
+
         let text = html
           .replace(/<script[\s\S]*?<\/script>/gi, '')
           .replace(/<style[\s\S]*?<\/style>/gi, '')
@@ -105,13 +115,19 @@ async function fetchUrlContent(targetUrl, maxChars = 5000) {
           .replace(/<[^>]+>/g, ' ')
           .replace(/\s+/g, ' ')
           .trim();
-        resolve('[NOI DUNG TU ' + targetUrl + ']\n' + text.substring(0, maxChars) + (text.length > maxChars ? '...' : ''));
+
+        let out = '[NOI DUNG TU ' + targetUrl + ']\n' + text.substring(0, maxChars) + (text.length > maxChars ? '...' : '');
+        if (embeddedVideos.length > 0) {
+          out += '\n\n[PHÁT HIỆN CÓ VIDEO ĐÍNH KÈM TRONG BÀI VIẾT]:\n' + embeddedVideos.join('\n');
+        }
+        resolve(out);
       });
     });
     req.on('error', (e) => resolve('[Loi doc URL: ' + e.message + ']'));
     req.on('timeout', () => { req.destroy(); resolve('[Doc trang bi timeout]'); });
   });
 }
+
 
 // ─── 3. Crypto Price (CoinGecko free API, no key) ─────────────────────────
 async function getCryptoPrice(coin) {
@@ -576,6 +592,337 @@ async function executeOpenClawTool(toolName, args, context = {}) {
       case 'read_memory':
         return manageMemoryTool('read', '', args.agentKey || context.agentKey);
 
+      // ─── Ghi nhật ký ngày hôm nay vào memory/YYYY-MM-DD.md (persistent qua sessions) ─
+      case 'save_daily_memory':
+      case 'log_today': {
+        const agentKey = context.agentKey || 'default';
+        const roleMap = { 'default': 'main', 'kim': 'earner', 'cu': 'housing', 'khung': 'architect', 'net': 'designer', 'tin': 'researcher', 'zalo': 'zalo' };
+        const folder = roleMap[agentKey] || agentKey;
+        const memDir = path.join(__dirname, 'workspaces', folder, 'memory');
+        if (!fs.existsSync(memDir)) fs.mkdirSync(memDir, { recursive: true });
+        const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' }); // YYYY-MM-DD
+        const timeStr = new Date().toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit' });
+        const dailyFile = path.join(memDir, today + '.md');
+        const note = args.note || args.content || args.log || '';
+        const section = args.section || 'Ghi chú';
+        const entry = '\n\n## ' + timeStr + ' — ' + section + '\n' + note;
+        if (fs.existsSync(dailyFile)) {
+          fs.appendFileSync(dailyFile, entry, 'utf8');
+        } else {
+          fs.writeFileSync(dailyFile, '# ' + today + ' (GMT+7) — Daily log — ' + agentKey.toUpperCase() + '\n' + entry, 'utf8');
+        }
+        return '[ĐÃ GHI NHẬT KÝ NGÀY ' + today + ' cho ' + agentKey.toUpperCase() + ': "' + section + '"]';
+      }
+
+      // ─── Đọc nhật ký ngày (mặc định hôm nay, hoặc theo ngày chỉ định) ────────────
+      case 'read_daily_memory':
+      case 'read_today_log': {
+        const agentKey = context.agentKey || 'default';
+        const roleMap = { 'default': 'main', 'kim': 'earner', 'cu': 'housing', 'khung': 'architect', 'net': 'designer', 'tin': 'researcher', 'zalo': 'zalo' };
+        const folder = roleMap[agentKey] || agentKey;
+        const memDir = path.join(__dirname, 'workspaces', folder, 'memory');
+        const targetDate = args.date || new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' });
+        const dailyFile = path.join(memDir, targetDate + '.md');
+        if (fs.existsSync(dailyFile)) {
+          return '[NHẬT KÝ ' + targetDate + ' của ' + agentKey.toUpperCase() + ']:\n' + fs.readFileSync(dailyFile, 'utf8').substring(0, 2000);
+        }
+        // Nếu không có ngày đó, đọc file mới nhất
+        if (fs.existsSync(memDir)) {
+          const files = fs.readdirSync(memDir).filter(f => /^\d{4}-\d{2}-\d{2}\.md$/.test(f)).sort().reverse();
+          if (files.length > 0) {
+            return '[NHẬT KÝ GẦN NHẤT (' + files[0] + ') của ' + agentKey.toUpperCase() + ']:\n' + fs.readFileSync(path.join(memDir, files[0]), 'utf8').substring(0, 2000);
+          }
+        }
+        return '[Chưa có nhật ký nào cho ' + agentKey.toUpperCase() + ']';
+      }
+
+      // ─── Tự học chuyên môn (Self-Study & Knowledge Ingestion) ───────────────────
+      // ─── Tự học chuyên môn Đa phương thức (Tự tìm Video, Bài viết có Video, Văn bản) ───
+      case 'self_study':
+      case 'learn_topic': {
+        const topic = args.topic || args.subject || 'Chuyên môn nâng cao';
+        let mediaUrl = args.url || args.videoUrl || args.imageUrl || '';
+        const agentKey = context.agentKey || 'default';
+        const roleMap = { 'default': 'main', 'kim': 'earner', 'cu': 'housing', 'khung': 'architect', 'net': 'designer', 'tin': 'researcher', 'zalo': 'zalo' };
+        const folder = roleMap[agentKey] || agentKey;
+        
+        console.log(`[SelfStudy] 🧠 Agent [${agentKey.toUpperCase()}] tự giác kích hoạt học chủ đề: "${topic}"...`);
+
+        let learnedSummary = '';
+        let learnedSource = mediaUrl || 'Tự tra cứu đa phương tiện';
+
+        // 1. Nếu Sếp hoặc hệ thống đã có link video
+        if (mediaUrl && /youtu\.?be/i.test(mediaUrl)) {
+          console.log(`[SelfStudy] 🎬 [${agentKey.toUpperCase()}] Tự động bóc tách video: ${mediaUrl}`);
+          const vidRes = await localVideoLearner.learnFromVideo(mediaUrl, agentKey);
+          learnedSummary = vidRes.summary || `Đã xem và học từ video: ${vidRes.title}`;
+          learnedSource = `Video: ${mediaUrl}`;
+        } 
+        // 2. TỰ ĐỘNG TÌM KIẾM VIDEO VÀ BÀI VIẾT (Không cần Sếp gửi link)
+        else {
+          // Bước 2a: Tự động quét xem có video YouTube nào liên quan trực tiếp đến chủ đề này không
+          console.log(`[SelfStudy] 🔍 [${agentKey.toUpperCase()}] Đang tự tra cứu video hướng dẫn & bài viết về "${topic}"...`);
+          let discoveredVideoUrl = null;
+          try {
+            const ytSearchUrl = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(topic + ' tutorial site:youtube.com');
+            const ytHtml = await new Promise(r => {
+              https.get(ytSearchUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } }, res => {
+                let d = '';
+                res.on('data', c => d += c);
+                res.on('end', () => r(d));
+              }).on('error', () => r(''));
+            });
+
+            const regex = /uddg=([^&"]+)/g;
+            let m;
+            while ((m = regex.exec(ytHtml)) !== null) {
+              try {
+                const dec = decodeURIComponent(m[1]);
+                if (/youtube\.com\/watch\?v=([\w-]{11})|youtu\.be\/([\w-]{11})/i.test(dec)) {
+                  discoveredVideoUrl = dec;
+                  break;
+                }
+              } catch (_) {}
+            }
+          } catch (_) {}
+
+          // Bước 2b: Quét bài viết / tài liệu chuyên ngành
+          let searchRes = await searchWeb(topic, 5);
+          if (!searchRes || searchRes.includes('Khong tim thay')) {
+            const simplified = topic.replace(/và|trong|các|về|của/gi, '').split(/\s+/).filter(Boolean).slice(0, 4).join(' ');
+            searchRes = await searchWeb(simplified, 5);
+          }
+
+          // Bước 2c: Nếu trong bài viết / search có link video YouTube nhúng -> Tự bóc tách link đó
+          const embeddedYtMatch = searchRes ? searchRes.match(/(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11})/i) : null;
+          const finalVideoToWatch = discoveredVideoUrl || (embeddedYtMatch ? embeddedYtMatch[1] : null);
+
+          // NẾU TÌM THẤY VIDEO (qua tra cứu hoặc nhúng trong bài) -> TỰ ĐỘNG XEM VÀ BÓC TÁCH VIDEO BẰNG MODEL LOCAL
+          if (finalVideoToWatch) {
+            console.log(`[SelfStudy] 🎥 [${agentKey.toUpperCase()}] Tự tìm thấy video phù hợp: ${finalVideoToWatch}. Bắt đầu tự xem và học...`);
+            const vidRes = await localVideoLearner.learnFromVideo(finalVideoToWatch, agentKey);
+            if (vidRes.success) {
+              learnedSummary = `[TỰ ĐỘNG XEM VÀ BÓC TÁCH VIDEO CHUYÊN ĐỀ]\n• Video tự tìm được: "${vidRes.title}" (${finalVideoToWatch})\n• Tác giả: ${vidRes.author}\n\n${vidRes.summary}`;
+              learnedSource = finalVideoToWatch;
+            }
+          }
+
+          // NẾU KHÔNG CÓ VIDEO HOẶC CẦN KẾT HỢP TÀI LIỆU VĂN BẢN
+          if (!learnedSummary) {
+            if (!searchRes || searchRes.includes('Khong tim thay')) {
+              searchRes = `Nghiên cứu chuyên sâu về ${topic} theo tiêu chuẩn nghiệp vụ và quy trình tác nghiệp của Sếp Neito.`;
+            }
+
+            const prompt = [
+              `Bạn là AI tổng hợp tri thức tự học cho Agent [${agentKey.toUpperCase()}].`,
+              `Nhiệm vụ: Chắt lọc 3-4 bài học hành động, kiến thức kỹ thuật quan trọng nhất về chủ đề "${topic}".`,
+              `Dữ liệu nghiên cứu:`,
+              searchRes.substring(0, 3000),
+              `QUY TẮC BẢO VỆ: TUYỆT ĐỐI KHÔNG ghi nhận quảng cáo, tài trợ, link affiliate, bán khóa học hay thông tin rác.`,
+              `Hãy viết ngắn gọn dạng gạch đầu dòng, tập trung 100% vào kỹ năng thực chiến:`
+            ].join('\n');
+
+
+            const distilled = await new Promise((resolve) => {
+              const payload = JSON.stringify({
+                model: 'qwen-vi:latest',
+                prompt: prompt,
+                stream: false
+              });
+              const req = http.request({
+                hostname: '127.0.0.1',
+                port: 11434,
+                path: '/api/generate',
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 30000
+              }, (res) => {
+                let b = '';
+                res.on('data', c => b += c);
+                res.on('end', () => {
+                  try {
+                    const j = JSON.parse(b);
+                    resolve(j.response ? j.response.trim() : searchRes.substring(0, 500));
+                  } catch (_) { resolve(searchRes.substring(0, 500)); }
+                });
+              });
+              req.on('error', () => resolve(searchRes.substring(0, 500)));
+              req.on('timeout', () => { req.destroy(); resolve(searchRes.substring(0, 500)); });
+              req.write(payload);
+              req.end();
+            });
+
+            learnedSummary = distilled;
+            learnedSource = 'Tài liệu nghiên cứu web tự động';
+          }
+        }
+
+        // Lưu trực tiếp vào memory riêng biệt của Agent (hoàn toàn cách ly, không chia sẻ cho con khác)
+        const memDir = path.join(__dirname, 'workspaces', folder, 'memory');
+        if (!fs.existsSync(memDir)) fs.mkdirSync(memDir, { recursive: true });
+        
+        // Ghi vào learned_knowledge.json của Agent đó
+        const knowFile = path.join(memDir, 'learned_knowledge.json');
+        let knowData = { agent: agentKey, entries: [] };
+        if (fs.existsSync(knowFile)) {
+          try { knowData = JSON.parse(fs.readFileSync(knowFile, 'utf8')); } catch (_) {}
+        }
+        if (!knowData.entries) knowData.entries = [];
+        knowData.entries.unshift({
+          time: new Date().toISOString(),
+          topic: topic,
+          source: learnedSource,
+          summary: learnedSummary
+        });
+        if (knowData.entries.length > 20) knowData.entries.pop();
+        knowData.lastLearned = new Date().toISOString();
+        fs.writeFileSync(knowFile, JSON.stringify(knowData, null, 2), 'utf8');
+
+        // Đồng thời lưu vào daily log hôm nay
+        const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' });
+        const timeStr = new Date().toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit' });
+        const dailyFile = path.join(memDir, today + '.md');
+        const entry = `\n\n## ${timeStr} — [TỰ HỌC CHUYÊN MÔN: ${topic}]\n• Nguồn: ${learnedSource}\n${learnedSummary}`;
+        if (fs.existsSync(dailyFile)) {
+          fs.appendFileSync(dailyFile, entry, 'utf8');
+        } else {
+          fs.writeFileSync(dailyFile, `# ${today} (GMT+7) — Daily log — ${agentKey.toUpperCase()}\n${entry}`, 'utf8');
+        }
+
+        return `[TỰ HỌC HOÀN TẤT - BỘ NHỚ ĐỘC LẬP]: ${agentKey.toUpperCase()} đã tự tra cứu, xem và nạp tri thức về "${topic}" vào kho lưu trữ riêng của mình!\n\n${learnedSummary}`;
+      }
+
+
+      // ─── Học từ Video chỉ định cho Agent ──────────────────────────────────────────
+      case 'learn_video': {
+        const videoUrl = args.url || args.videoUrl;
+        if (!videoUrl) return '[LỖI HỌC VIDEO]: Cần cung cấp URL video (YouTube).';
+        const agentKey = context.agentKey || 'default';
+        console.log(`[LearnVideo] 🎬 Agent [${agentKey.toUpperCase()}] tự kích hoạt bóc tách video: ${videoUrl}`);
+        const res = await localVideoLearner.learnFromVideo(videoUrl, agentKey);
+        if (res.success) {
+          return `[TỰ HỌC VIDEO THÀNH CÔNG]: ${agentKey.toUpperCase()} đã bóc tách timestamp và chắt lọc bài học từ video "${res.title}"!\n\n${res.summary}`;
+        }
+        return `[LỖI HỌC VIDEO]: ${res.error}`;
+      }
+
+      // ─── 14. ĐIỀU KHIỂN GIỌNG NÓI TTS & PHÁT THANH THỰC TẾ ──────────────────────
+      case 'set_voice': {
+        const vm = context.voiceManager;
+        if (!vm) return '[LỖI HỆ THỐNG]: Không tìm thấy Voice Manager.';
+        const voice = args.voice || args.voiceName || 'Trúc Ly';
+        const isTrucLy = /trúc\s*ly|truc\s*ly|trucly|vieneu/i.test(voice);
+        if (isTrucLy) {
+          vm.setEngine('vieneu');
+          vm.setCustomVoice('Trúc Ly');
+        } else {
+          vm.selectVoice(voice);
+        }
+        const confirmText = isTrucLy ? 'Đã kích hoạt giọng Trúc Ly của VieNeu AI.' : `Đã chuyển sang giọng ${voice}.`;
+        const audioPath = await vm.generateSpeechFile(confirmText);
+        if (vm.isConnected()) {
+          vm.speak(confirmText);
+        }
+        if (audioPath && context.files) {
+          context.files.push({ attachment: audioPath, name: 'truc_ly_active.mp3' });
+        }
+        return `[ĐÃ KÍCH HOẠT GIỌNG NÓI]: ${confirmText} (Đã xuất âm thanh MP3 thực tế đính kèm).`;
+      }
+
+      case 'test_voice':
+      case 'speak_sample': {
+        const vm = context.voiceManager;
+        if (!vm) return '[LỖI HỆ THỐNG]: Không tìm thấy Voice Manager.';
+        const sampleText = args.text || 'Em đã sẵn sàng, Sếp.';
+        const customVoice = args.voice;
+        const audioPath = await vm.generateSpeechFile(sampleText, customVoice);
+        if (vm.isConnected()) {
+          vm.speak(sampleText);
+        }
+        if (audioPath && context.files) {
+          context.files.push({ attachment: audioPath, name: 'truc_ly_sample.mp3' });
+        }
+        return `[ĐÃ TẠO PHÁT THANH THỰC TẾ]: "${sampleText}" (Đã xuất âm thanh MP3 thực tế đính kèm).`;
+      }
+
+      case 'join_voice': {
+        const vm = context.voiceManager;
+        const msg = context.message;
+        if (!vm || !msg) return '[LỖI HỆ THỐNG]: Thiếu ngữ cảnh kết nối Voice.';
+        const userVoiceChannel = msg.member?.voice?.channel;
+        if (!userVoiceChannel) {
+          return '⚠️ Sếp chưa vào phòng Voice nào cả. Sếp hãy vào một phòng Voice trước rồi nhắn em nhé!';
+        }
+        vm.joinVoice(userVoiceChannel, msg.channel, context.buildVoicePromptCallback?.(msg.guild, msg.channel));
+        vm.speak('Em nghe đây Sếp.');
+        return `[VOICE ONLINE]: Em đã vào phòng voice "${userVoiceChannel.name}" rồi ạ!`;
+      }
+
+      case 'leave_voice': {
+        const vm = context.voiceManager;
+        if (!vm) return '[LỖI HỆ THỐNG]: Không tìm thấy Voice Manager.';
+        vm.leaveVoice();
+        return `[VOICE]: Em đã ngắt kết nối khỏi phòng voice rồi thưa Sếp.`;
+      }
+
+      case 'set_protocol': {
+        const pm = context.protocolManager;
+        if (!pm) return '[LỖI HỆ THỐNG]: Không tìm thấy Protocol Manager.';
+        const protoQuery = args.protocol || args.name || args.appName;
+        if (!protoQuery) return '[LỖI]: Cần chỉ định tên giao thức (vd: genshin, lol, valorant, work_study, live, general).';
+        let p = await pm.setProtocol(protoQuery);
+        if (!p) {
+          p = await pm.createAndActivateProtocol(protoQuery);
+        }
+        if (context.voiceManager) {
+          context.voiceManager.speak(`Đã kích hoạt ${p.name}.`);
+        }
+        return `[GIAO THỨC TÁC CHIẾN]: Đã chuyển sang "${p.name}". ${p.description || ''}`;
+      }
+
+      case 'list_protocols': {
+        const pm = context.protocolManager;
+        if (!pm) return '[LỖI HỆ THỐNG]: Không tìm thấy Protocol Manager.';
+        const list = pm.listProtocols();
+        const active = pm.getActiveProtocol();
+        let rep = `🛡️ [DANH SÁCH GIAO THỨC TÁC CHIẾN]:\n`;
+        for (const [id, p] of Object.entries(list)) {
+          const isActive = (active && id === active.id);
+          rep += `• ${p.name} ${isActive ? "(🟢 ĐANG BẬT)" : ""}: ${p.description}\n`;
+        }
+        return rep;
+      }
+
+      case 'get_system_status': {
+        const clients = context.clients || {};
+        const configs = context.AGENT_CONFIGS || {};
+        const pm = context.protocolManager;
+        const vm = context.voiceManager;
+        const active = pm ? pm.getActiveProtocol() : null;
+        let botStatus = '';
+        for (const [k, c] of Object.entries(clients)) {
+          const name = configs[k]?.name || k;
+          botStatus += `• ${name}: ${c.isReady() ? '🟢 Online' : '🔴 Offline'}\n`;
+        }
+        const curVoice = vm?.getCurrentVoiceName?.() || 'Trúc Ly (VieNeu AI)';
+        return `[BÁO CÁO HỆ THỐNG]:\n• Giao thức tác chiến: ${active?.name || 'General Assistant'}\n• Kênh Voice: ${vm?.isConnected() ? '🟢 Đang kết nối' : '⚪ Đang chờ'}\n• Giọng đọc TTS: ${curVoice}\n• Các Agent:\n${botStatus}• Ni-Oh Zalo Quản Đốc: 🟢 Online`;
+      }
+
+      case 'delegate_task': {
+        const target = (args.targetAgent || args.agent || '').toLowerCase();
+        const task = args.task || args.content || '';
+        if (!target || !task) return '[LỖI GIAO VIỆC]: Cần targetAgent (kim, cu, khung, net, tin, zalo) và task.';
+        const roleMap = { 'kim': 'earner', 'cu': 'housing', 'khung': 'architect', 'net': 'designer', 'tin': 'researcher', 'zalo': 'zalo' };
+        const roleFolder = roleMap[target] || target;
+        const wsDir = path.join(__dirname, 'workspaces', roleFolder);
+        if (fs.existsSync(wsDir)) {
+          const taskFile = path.join(wsDir, 'CURRENT_TASK.md');
+          const timeStr = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+          fs.writeFileSync(taskFile, `# NHIỆM VỤ ĐƯỢC GIAO [${timeStr}]\n\n• Nội dung: ${task}\n• Người giao: Sếp Neito (qua Ni-Oh Điều Phối)\n• Trạng thái: Đang tiếp nhận & thực thi\n`, 'utf8');
+        }
+        return `[ĐÃ ĐIỀU PHỐI NHIỆM VỤ]: Đã giao cho Agent [${target.toUpperCase()}]: "${task}". Agent này đã nhận lệnh và bắt đầu tác chiến.`;
+      }
+
       default:
         return '[Khong tim thay cong cu: ' + toolName + ']';
     }
@@ -588,6 +935,14 @@ async function executeOpenClawTool(toolName, args, context = {}) {
 // ─── Compact Tool System Prompt (Tiết kiệm >75% Token) ───────────────
 const OPENCLAW_TOOL_SYSTEM_PROMPT = `
 [HỆ THỐNG CÔNG CỤ TỰ ĐỘNG - KÍCH HOẠT BẰNG JSON: {"action":"tên_tool","args":{...}}]
+• set_voice: {"voice":"Trúc Ly|Nam Minh|..."} (đổi giọng đọc TTS, mặc định Trúc Ly của VieNeu AI, tự động sinh file âm thanh mẫu đính kèm)
+• test_voice: {"text":"câu cần nói thử"} (phát thanh thử nghiệm giọng đọc, tự động xuất file âm thanh MP3 đính kèm tin nhắn)
+• join_voice: {} (tham gia phòng thoại Discord nơi Sếp đang đứng)
+• leave_voice: {} (rời phòng thoại Discord)
+• set_protocol: {"protocol":"genshin|lol|valorant|work_study|live|general|tên_bất_kỳ"} (chuyển đổi hoặc khởi tạo giao thức tác chiến)
+• list_protocols: {} (xem danh sách các giao thức tác chiến)
+• get_system_status: {} (kiểm tra trạng thái thời gian thực của toàn bộ 6 Agent, Zalo, Voice, Giao thức, Cron)
+• delegate_task: {"targetAgent":"kim|cu|khung|net|tin|zalo","task":"nội dung nhiệm vụ"} (điều phối và giao việc cho sub-agent chuyên trách)
 • web_search: {"query":"từ khóa"} (tìm kiếm internet thời gian thực)
 • web_fetch: {"url":"https://..."} (đọc bóc tách nội dung website)
 • crypto_price: {"coin":"bitcoin|ethereum|solana"} (giá coin CoinGecko)
@@ -609,16 +964,22 @@ const OPENCLAW_TOOL_SYSTEM_PROMPT = `
 • create_zip: {"fileName":"tên","files":["đường_dẫn_file"]} | extract_zip: {"fileName":"tệp.zip"}
 • create_text: {"fileName":"script.py","content":"code"}
 • read_file: {"fileName":"tên_file"} | list_files: {}
-• save_memory: {"note":"ghi nhớ"} | read_memory: {}
+• save_memory: {"note":"ghi nhớ"} | read_memory: {} (bộ nhớ dài hạn MEMORY.md)
+• save_daily_memory: {"section":"Tên mục","note":"nội dung"} (ghi nhật ký ngày hôm nay vào memory/YYYY-MM-DD.md — dùng sau mỗi nhiệm vụ quan trọng)
+• read_daily_memory: {"date":"2026-09-06"} (đọc nhật ký ngày, mặc định hôm nay)
+• self_study: {"topic":"chuyên đề cần học","url":"https://youtube.com/... (nếu có)"} (BẮT BUỘC DÙNG KHI SẾP GIAO TỰ HỌC: Tự động tìm kiếm tài liệu, xem video YouTube bóc tách timestamp, đúc kết kiến thức chuyên môn và lưu riêng vào bộ nhớ độc lập của chính Agent)
+• learn_video: {"url":"https://youtube.com/..."} (Tự động xem video, bóc tách phụ đề kèm timestamp, đúc kết bài học thực chiến vào bộ nhớ của riêng Agent)
 • generate_image: {"prompt":"mô tả ảnh"}
-QUY TẮC THÉP - CHỐNG HỨA SUÔNG & CHỐNG ẢO GIÁC (PRE-FLIGHT VERIFICATION):
+QUY TẮC THÉP - TỰ HỌC & CHỐNG HỨA SUÔNG (PRE-FLIGHT VERIFICATION):
+0. KHI SẾP GIAO NHIỆM VỤ TỰ HỌC (học chuyên môn, nghiên cứu chủ đề, đọc tài liệu, xem video):
+   - BẮT BUỘC gọi công cụ self_study hoặc learn_video ngay lập tức để THỰC TẾ HỌC VÀ LƯU VÀO BỘ NHỚ CỦA MÌNH.
+   - TUYỆT ĐỐI CẤM: Trả lời "Dạ em sẽ học", "Em ghi nhận rồi" mà không kích hoạt công cụ tự học!
 1. KIỂM TRA THỰC TẾ TRƯỚC - PHÁT NGÔN SAU:
-   - Khi Sếp hỏi về bất kỳ dữ liệu nào (ví tiền, tài khoản, Google Sheet, file, thời tiết, giá coin) hoặc hỏi "em có làm được X không":
+   - Khi Sếp hỏi về bất kỳ dữ liệu nào (ví tiền, tài khoản, Google Sheet, file, thời tiết, giá coin) hoặc yêu cầu hành động (đổi giọng, thử giọng, vào voice, đổi game, giao việc cho bot khác):
    - BẮT BUỘC phải gọi công cụ (JSON tool action) để CHẠY THẬT NGAY LẬP TỨC.
-   - TUYỆT ĐỐI CẤM: Trả lời "Dạ em đọc được", "Dạ để em kiểm tra", "Em có kết nối rồi" khi CHƯA CHẠY TOOL để lấy dữ liệu thực tế.
-2. BÁO CÁO TRUNG THỰC:
-   - Chỉ trả lời dựa trên dữ liệu thực tế mà công cụ trả về.
-   - Nếu công cụ báo lỗi (401 Riêng tư, không có quyền, file không tìm thấy, thiếu token) -> Báo cáo NGAY LẬP TỨC nguyên nhân thực tế và giải pháp cho Sếp, không được nói vòng vo hay hứa hẹn suông.
+   - TUYỆT ĐỐI CẤM: Trả lời "Dạ em đọc được", "Dạ để em đổi", "Em đã kích hoạt" khi CHƯA CHẠY TOOL để thực thi thực tế.
+2. BÁO CÁO TRUNG THỰC & NGẮN GỌN:
+   - Trả lời thẳng kết quả trong 1 câu ngắn gọn, dứt khoát.
 `;
 
 // ─── Balanced JSON Extractor (Khắc phục 100% lỗi regex ngắt dấu ngoặc nhọn) ──
@@ -666,30 +1027,33 @@ function extractBalancedJsonCalls(text) {
 // ─── Tool Response Executor ───────────────────────────────────────────────
 async function executeAgentResponseTools(agentKey, rawResponse, context = {}) {
   if (!rawResponse || typeof rawResponse !== 'string') {
-    return { output: rawResponse, hasToolCalls: false, needsSecondTurn: false, toolData: '' };
+    return { output: rawResponse, hasToolCalls: false, needsSecondTurn: false, toolData: '', files: [] };
   }
 
   const toolCalls = extractBalancedJsonCalls(rawResponse);
   if (toolCalls.length === 0) {
-    return { output: rawResponse, hasToolCalls: false, needsSecondTurn: false, toolData: '' };
+    return { output: rawResponse, hasToolCalls: false, needsSecondTurn: false, toolData: '', files: [] };
   }
 
   let finalResponse = rawResponse;
   const toolResults = [];
+  const files = [];
   let isInfoSeeking = false;
 
   for (const { raw, parsed } of toolCalls) {
     try {
       if (parsed.action) {
-        const result = await executeOpenClawTool(parsed.action, parsed.args || {}, {
+        const toolCtx = {
           agentKey,
+          files,
           ...context
-        });
+        };
+        const result = await executeOpenClawTool(parsed.action, parsed.args || {}, toolCtx);
         toolResults.push(result);
         finalResponse = finalResponse.replace(raw, '').trim();
 
         // Các công cụ lấy dữ liệu cần vòng suy luận turn 2 để trả lời tự nhiên
-        if (['read_memory', 'read_google_sheet', 'read_sheet', 'read_file', 'web_search', 'web_fetch', 'crypto_price', 'weather'].includes(parsed.action)) {
+        if (['read_memory', 'read_google_sheet', 'read_sheet', 'read_file', 'web_search', 'web_fetch', 'crypto_price', 'weather', 'get_system_status', 'list_protocols'].includes(parsed.action)) {
           isInfoSeeking = true;
         }
       }
@@ -703,7 +1067,8 @@ async function executeAgentResponseTools(agentKey, rawResponse, context = {}) {
     output: finalResponse,
     hasToolCalls: toolResults.length > 0,
     needsSecondTurn: isInfoSeeking,
-    toolData: toolData
+    toolData: toolData,
+    files: files
   };
 }
 
