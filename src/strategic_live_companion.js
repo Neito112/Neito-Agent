@@ -1,4 +1,4 @@
-﻿const { exec } = require('child_process');
+const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
@@ -6,7 +6,7 @@ const voiceManager = require('./voice_manager.js');
 const protocolManager = require('./protocol_manager.js');
 const deepGateway = require('./deep_reasoning_gateway.js');
 
-const SCREENSHOT_PATH = path.join(process.env.TEMP, 'jarvis_live_screen.jpg');
+const SCREENSHOT_PATH = path.join(process.env.TEMP, 'nioh_live_screen.jpg');
 const LIVE_LOG_FILE = path.join(__dirname, 'live_screen_cache.jsonl');
 
 // ─── STRATEGIC LIVE SESSION COMPANION (Trợ Lý Tác Chiến Live Phân Cấp) ───────
