@@ -138,6 +138,22 @@ Ni-Oh được tích hợp sẵn các nguồn Voice AI mã nguồn mở chất l
 - Trên Discord: Gõ `!voice list` để xem toàn bộ giọng có sẵn, hoặc gõ `!voice set hoaimy` (Nữ) / `!voice set namminh` (Nam).
 - Trong file `.env`: Thay đổi giá trị `VOICE_NAME=vi-VN-HoaiMyNeural`.
 
+### 6. 🖥️ Nhánh Phát Triển 1: Desktop Overlay & Floating Companion (Cảm Hứng Hakko AI)
+> Không chỉ dừng lại ở Discord, Ni-Oh đang mở rộng thành một **Trợ Lý Màn Hình Trực Tiếp (Desktop Overlay HUD)** chạy độc lập:
+* **Avatar Nổi Trên Màn Hình (Always-on-Top / Draggable)**: Biểu tượng chiến thuật phát sáng tinh tế ở góc màn hình, có hoạt ảnh nhịp đập và phản ứng theo trạng thái.
+* **Triệu Hồi Nhanh Bằng Phím Tắt (Alt + Space)**: Bật tức thì thanh nhập lệnh chiến thuật đè lên mọi cửa sổ ứng dụng (Game, Excel, Trình duyệt, IDE) mà không cần Alt-Tab.
+* **Bong Bóng Hội Thoại & Đọc Giọng Nói Tự Động**: Ni-Oh trả lời bằng bong bóng thoại hoạt ảnh mượt mà kèm phát âm thanh qua Edge-TTS.
+* **Mã nguồn khởi chạy**: Nằm tại thư mục `src/desktop_overlay/` (chạy qua lệnh `node src/desktop_overlay/overlay_server.js` và truy cập `http://localhost:7890`).
+
+---
+
+### 7. 🦾 Nhánh Phát Triển 2: Embodied AI & Robotics Bridge (Đưa Ni-Oh Vào Robot Ngoài Đời Thực)
+> **Tham vọng lớn**: Mang tư duy chiến lược và thị giác của Ni-Oh vượt ra ngoài màn hình máy tính để **nhập thể vào các Robot thực thể ngoài đời thực** (Robot để bàn, xe tự hành, chó robot bốn chân, cánh tay robot):
+* **Cổng giao tiếp Robot chuyên dụng (`src/robotics_bridge/robot_gateway.js`)**: Tiếp nhận dữ liệu cảm biến (Camera USB/CSI, khoảng cách siêu âm HC-SR04, mức pin, IMU) qua giao thức HTTP REST / WebSocket / ROS 2.
+* **Thị giác không gian & Quyết định hành vi**: Ni-Oh phân tích ảnh môi trường thực tế từ robot, nhận diện vật cản và sinh lệnh điều hướng chuyển động (`/cmd_vel`), quay servo góc nhìn và phát giọng nói ra loa ngoài của robot.
+* **Hỗ trợ phần cứng đa dạng**: Tương thích từ vi điều khiển giá rẻ (ESP32, Arduino) đến các máy tính nhúng mạnh mẽ (Raspberry Pi 5, NVIDIA Jetson Orin Nano) và hệ điều hành Robot chuyên dụng (ROS 2).
+* **Tài liệu hướng dẫn phần cứng**: Xem chi tiết tại `src/robotics_bridge/hardware_specs.md`.
+
 ---
 
 ## 🕹️ Bảng Lệnh Nhanh Trên Discord & Terminal
@@ -156,12 +172,27 @@ Ni-Oh được tích hợp sẵn các nguồn Voice AI mã nguồn mở chất l
 
 ---
 
-## ☕ Mời Tác Giả 1 Tách Cà Phê (Ủng Hộ Dự Án)
+## 🤝 Lời Kêu Gọi Cộng Đồng Cùng Chung Tay Phát Triển
 
-Nếu **Ni-Oh** và hệ sinh thái Agent này mang lại giá trị hữu ích cho công việc, học tập hay tác chiến game của bạn, hãy ủng hộ tác giả một tách cà phê để tiếp thêm năng lượng phát triển nhé! ☕
+> *"Toàn bộ hệ thống Agent này được xây dựng và sinh mã hoàn toàn bằng trợ lý AI **Google Antigravity**, bản thân tôi (người sở hữu) chỉ đưa ra tư duy chiến lược, kiến trúc luồng dữ liệu và phương thức hoạt động. Tôi biết tham vọng đưa Ni-Oh thành Desktop Companion hoàn chỉnh cũng như nạp vào Robot thế giới thực là những bài toán rất lớn và đầy thách thức. Bản thân dự án chắc chắn còn nhiều thiếu sót, bug hay những chỗ chưa tối ưu. Tôi rất hy vọng và tha thiết kêu gọi cộng đồng các lập trình viên, các bạn đam mê AI, UI/UX, cũng như anh em kỹ sư phần cứng & robotics hãy cùng nhau đóng góp, mở rộng và hoàn thiện dự án này ngày một mạnh mẽ hơn!"*
+
+### 🛠️ Các mảng đang rất cần sự đóng góp từ bạn:
+1. **Desktop GUI & Overlay**: Xây dựng client Electron / Tauri hoàn chỉnh cho Desktop Overlay HUD (icon khay hệ thống, bong bóng chat xuyên thấu game).
+2. **Robotics & ROS 2**: Viết package ROS 2 chính thức kết nối camera & motor robot với Ni-Oh Robotics Bridge.
+3. **Local AI & Optimization**: Tối ưu hóa thêm các mô hình VLM cục bộ nhẹ hơn và chạy nhanh hơn trên nhiều cấu hình máy.
+
+---
+
+## ☕ Mời Tác Giả 1 Tách Cà Phê (Buy Me A Coffee)
+
+Nếu **Ni-Oh** và hệ sinh thái Agent này mang lại giá trị hữu ích hay nguồn cảm hứng cho công việc, học tập và đam mê công nghệ của bạn, bạn có thể ủng hộ tác giả một tách cà phê để tiếp thêm năng lượng duy trì dự án nhé! ☕
+
+<details>
+<summary><b>👉 Nhấp vào đây để xem thông tin ủng hộ (VietQR)</b></summary>
+<br/>
 
 <p align="center">
-  <img src="assets/donate_qr.png" alt="Ủng hộ tác giả 1 tách cà phê" width="350" style="border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);" />
+  <img src="assets/donate_qr_clean.png" alt="Ủng hộ tác giả 1 tách cà phê" width="260" style="border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.12);" />
 </p>
 
 <p align="center">
@@ -170,12 +201,11 @@ Nếu **Ni-Oh** và hệ sinh thái Agent này mang lại giá trị hữu ích 
   Chủ tài khoản: <b>TRẦN VĂN TIẾN</b>
 </p>
 
-> 💬 **Lời tâm sự từ tác giả**:
-> *"Hệ thống Agent này được code hoàn toàn bằng trợ lý AI **Google Antigravity**, người sở hữu chỉ viết ra phương thức hoạt động, tư duy chiến lược và quy chuẩn luồng dữ liệu. Tôi rất hy vọng cộng đồng các nhà phát triển và anh em yêu thích công nghệ mã nguồn mở sẽ cùng nhau chung tay đóng góp, mở rộng và hoàn thiện dự án này ngày càng phát triển mạnh mẽ hơn nữa!"*
+</details>
 
 ---
 
-## 📜 Bản Quyền & Đóng Góp Cộng Đồng
-* Dự án được xây dựng và phát triển bởi **Neito112**.
+## 📜 Bản Quyền & Giấy Phép Mã Nguồn Mở
+* Dự án được khởi xướng và phát triển bởi **Neito112**.
 * Phát hành mã nguồn mở hoàn toàn theo giấy phép **MIT License**.
-* Mọi đóng góp (Pull Request, Issue, đề xuất tính năng) từ cộng đồng đều được chào đón nồng nhiệt!
+* Mọi đóng góp (Pull Request, Issue, đề xuất tính năng) từ cộng đồng đều được trân trọng và chào đón nồng nhiệt!
