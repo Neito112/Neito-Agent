@@ -121,6 +121,23 @@ Có những thông tin mang tính **bảo mật và riêng tư cá nhân** mà h
 * **Tạo file**: Bảng tính Excel có sẵn công thức, Tài liệu Word (`.docx`), Slide thuyết trình PowerPoint (`.pptx`), Tệp PDF chuẩn tiếng Việt có dấu, File ghi âm giọng nói tiếng Việt tự nhiên (`.mp3`).
 * **Đọc file chuyên biệt**: Bóc tách hình ảnh xem trước và cấu trúc của các tệp đồ họa và thiết kế kỹ thuật: CorelDRAW (`.cdr`), SketchUp (`.skp`), 3ds Max (`.max`), AutoCAD (`.dwg`, `.dxf`), Photoshop (`.psd`), Illustrator (`.ai`).
 
+### 5. 🎙️ Hệ Thống Voice Agent Nguồn Mở Đa Dạng (Tùy Chọn Giọng Đọc Đỉnh Cao)
+Ni-Oh được tích hợp sẵn các nguồn Voice AI mã nguồn mở chất lượng cao nhất hiện nay, hoạt động mượt mà và hoàn toàn không tốn token:
+* **Microsoft Edge Neural TTS (Tích hợp sẵn - 0 Cấu hình - 100% Miễn phí)**:
+  - 🇻🇳 `vi-VN-HoaiMyNeural` (Nữ Việt: Ấm áp, tự nhiên, truyền cảm)
+  - 🇻🇳 `vi-VN-NamMinhNeural` (Nam Việt: Chuẩn giọng miền Bắc, dứt khoát, chuyên nghiệp)
+  - 🇺🇸 `en-US-JennyNeural`, `en-US-GuyNeural` (Tiếng Anh Mỹ tự nhiên)
+  - 🇯🇵 `ja-JP-NanamiNeural` (Tiếng Nhật phong cách Anime)
+* **Liên kết các nguồn mở Voice SOTA hàng đầu thế giới**:
+  - [**Kokoro-82M**](https://github.com/hexgrad/kokoro): Mô hình Neural TTS mã nguồn mở nhẹ nhất (82M params) đạt chất lượng âm thanh sánh ngang các dịch vụ thương mại hàng đầu thế giới.
+  - [**Piper TTS**](https://github.com/rhasspy/piper): Hệ thống phát âm thanh thần kinh siêu tốc, chạy 100% offline trên CPU/GPU, hỗ trợ model tiếng Việt Vivos.
+  - [**ChatTTS**](https://github.com/2noise/ChatTTS): Mô hình âm thanh đàm thoại chuyên biệt cho AI Agent, tự động mô phỏng tiếng thở, ngắt nghỉ và tiếng cười tự nhiên.
+  - [**F5-TTS**](https://github.com/SWivid/F5-TTS): Mô hình nhân bản giọng nói (Zero-Shot Voice Cloning) nhanh và chân thực chỉ từ vài giây audio mẫu.
+
+👉 **Cách chọn giọng cực nhanh**:
+- Trên Discord: Gõ `!voice list` để xem toàn bộ giọng có sẵn, hoặc gõ `!voice set hoaimy` (Nữ) / `!voice set namminh` (Nam).
+- Trong file `.env`: Thay đổi giá trị `VOICE_NAME=vi-VN-HoaiMyNeural`.
+
 ---
 
 ## 🕹️ Bảng Lệnh Nhanh Trên Discord & Terminal
@@ -131,8 +148,30 @@ Có những thông tin mang tính **bảo mật và riêng tư cá nhân** mà h
 | `!live stop` | Dừng quét màn hình và tổng kết dữ liệu phiên làm việc / tác chiến. |
 | `!live status` | Xem trạng thái quét màn hình và nhật ký phân cấp hiện tại. |
 | `!sheet [mô tả bài toán]` | Yêu cầu Ni-Oh tạo file Excel mẫu kèm công thức tính toán tự động. |
+| `!voice list` | Xem danh sách tất cả các giọng Voice Agent nguồn mở sẵn có. |
+| `!voice set [mã]` | Đổi giọng nhanh (vd: `!voice set hoaimy` hoặc `!voice set namminh`). |
+| `!voice test [câu]` | Nghe thử giọng đọc trực tiếp trong phòng thoại Voice Channel. |
 | `!ask [câu hỏi]` | Đặt câu hỏi chiến lược cho Ni-Oh (hoặc tag `@Ni-Oh` trong Discord). |
 | `exit` | Thoát khỏi chế độ Interactive CLI Terminal. |
+
+---
+
+## ☕ Mời Tác Giả 1 Tách Cà Phê (Ủng Hộ Dự Án)
+
+Nếu **Ni-Oh** và hệ sinh thái Agent này mang lại giá trị hữu ích cho công việc, học tập hay tác chiến game của bạn, hãy ủng hộ tác giả một tách cà phê để tiếp thêm năng lượng phát triển nhé! ☕
+
+<p align="center">
+  <img src="assets/donate_qr.png" alt="Ủng hộ tác giả 1 tách cà phê" width="350" style="border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);" />
+</p>
+
+<p align="center">
+  <b>Ngân hàng TMCP Quốc Tế Việt Nam (VIB)</b><br/>
+  Số tài khoản: <code>387245132</code><br/>
+  Chủ tài khoản: <b>TRẦN VĂN TIẾN</b>
+</p>
+
+> 💬 **Lời tâm sự từ tác giả**:
+> *"Hệ thống Agent này được code hoàn toàn bằng trợ lý AI **Google Antigravity**, người sở hữu chỉ viết ra phương thức hoạt động, tư duy chiến lược và quy chuẩn luồng dữ liệu. Tôi rất hy vọng cộng đồng các nhà phát triển và anh em yêu thích công nghệ mã nguồn mở sẽ cùng nhau chung tay đóng góp, mở rộng và hoàn thiện dự án này ngày càng phát triển mạnh mẽ hơn nữa!"*
 
 ---
 
