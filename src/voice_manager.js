@@ -124,63 +124,100 @@ function getVieNeuApiKey() {
   return '';
 }
 
-// 1. VieNeu Neural TTS (Giọng Trúc Ly - Nữ miền Bắc trẻ trung, tự nhiên)
+// 1. VieNeu Neural TTS (Giọng Trúc Ly - VieNeu-TTS v3 Turbo chính thức trên HuggingFace)
 function generateVieNeuTTS(text, voiceName, outputPath) {
   return new Promise((resolve, reject) => {
-    const apiKey = getVieNeuApiKey();
-    let selectedVoice = voiceName || "Ly";
-    if (typeof selectedVoice === 'string' && (selectedVoice.toLowerCase().includes("trúc ly") || selectedVoice.toLowerCase().includes("trucly"))) {
-      selectedVoice = "Ly";
-    }
-    const payload = JSON.stringify({
-      model: "tts-1",
-      input: text,
-      voice: selectedVoice,
-      response_format: "mp3"
-    });
-
-    const headers = {
-      'Content-Type': 'application/json'
-    };
-    if (apiKey) {
-      headers['Authorization'] = 'Bearer ' + apiKey;
-    }
-
-    const file = fs.createWriteStream(outputPath);
-    const req = https.request({
-      hostname: 'api.vieneu.io',
-      path: '/api/v1/audio/speech',
-      method: 'POST',
-      headers: headers,
-      timeout: 10000
-    }, (res) => {
-      if (res.statusCode >= 200 && res.statusCode < 300) {
-        res.pipe(file);
-        file.on('finish', () => {
-          file.close();
-          resolve(outputPath);
-        });
-      } else {
-        let errBody = '';
-        res.on('data', c => errBody += c);
-        res.on('end', () => {
-          try { file.close(); fs.unlinkSync(outputPath); } catch (_) {}
-          reject(new Error(`VieNeu API status ${res.statusCode}: ${errBody}`));
-        });
+    let selectedVoice = voiceName || "Trúc Ly";
+    if (typeof selectedVoice === 'string') {
+      const low = selectedVoice.toLowerCase();
+      if (low.includes("trúc ly") || low.includes("trucly") || low === "ly") {
+        selectedVoice = "Trúc Ly";
+      } else if (low.includes("quân hồng") || low.includes("quanhong")) {
+        selectedVoice = "Minh Quân";
+      } else if (low.includes("vĩnh") || low.includes("vinh")) {
+        selectedVoice = "Xuân Vĩnh";
+      } else if (low.includes("bình") || low.includes("binh")) {
+        selectedVoice = "Thanh Bình";
       }
+    }
+
+    const postData = JSON.stringify({
+      data: [
+        text,
+        selectedVoice,
+        null,
+        0.8,
+        25,
+        0.95,
+        1.2,
+        300,
+        256
+      ]
     });
 
-    req.on('error', (e) => {
-      try { file.close(); fs.unlinkSync(outputPath); } catch (_) {}
-      reject(e);
-    });
-    req.on('timeout', () => {
-      req.destroy();
-      try { file.close(); fs.unlinkSync(outputPath); } catch (_) {}
-      reject(new Error('VieNeu Timeout'));
+    const req = https.request({
+      hostname: 'pnnbao-ump-vieneu-tts-v3-turbo.hf.space',
+      path: '/gradio_api/call/synthesize',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData)
+      },
+      timeout: 15000
+    }, (res) => {
+      let body = '';
+      res.on('data', c => body += c);
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(body);
+          if (!parsed.event_id) {
+            return reject(new Error('VieNeu HF Space did not return event_id: ' + body));
+          }
+
+          const sseReq = https.get('https://pnnbao-ump-vieneu-tts-v3-turbo.hf.space/gradio_api/call/synthesize/' + parsed.event_id, { timeout: 25000 }, (sseRes) => {
+            let sseData = '';
+            sseRes.on('data', chunk => sseData += chunk);
+            sseRes.on('end', () => {
+              try {
+                const match = sseData.match(/data:\s*(\[[\s\S]*?\])\s*(\n|$)/);
+                if (match && match[1]) {
+                  const arr = JSON.parse(match[1]);
+                  const audioObj = arr[0];
+                  if (audioObj && audioObj.url) {
+                    const tempWav = path.join(process.env.TEMP, `vieneu_${Date.now()}.wav`);
+                    const fileStream = fs.createWriteStream(tempWav);
+                    https.get(audioObj.url, dlRes => {
+                      dlRes.pipe(fileStream);
+                      fileStream.on('finish', () => {
+                        fileStream.close();
+                        const proc = spawn(ffmpegPath, ['-i', tempWav, '-b:a', '128k', '-y', outputPath]);
+                        proc.on('close', (code) => {
+                          try { fs.unlinkSync(tempWav); } catch (_) {}
+                          if (code === 0) resolve(outputPath);
+                          else reject(new Error('FFmpeg conversion failed'));
+                        });
+                      });
+                    }).on('error', reject);
+                    return;
+                  }
+                }
+                reject(new Error('Could not parse audio url from SSE data: ' + sseData.substring(0, 200)));
+              } catch (e) {
+                reject(e);
+              }
+            });
+          });
+          sseReq.on('error', reject);
+          sseReq.on('timeout', () => { sseReq.destroy(); reject(new Error('VieNeu SSE timeout')); });
+        } catch (e) {
+          reject(e);
+        }
+      });
     });
 
-    req.write(payload);
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('VieNeu Call timeout')); });
+    req.write(postData);
     req.end();
   });
 }
@@ -251,6 +288,42 @@ function playNextInQueue() {
   }
 }
 
+// Convert text to speech and save to an audio file
+async function generateSpeechFile(text, customVoice = null) {
+  try {
+    const cleanText = normalizeForVietnameseSpeech(text);
+    if (!cleanText) return null;
+
+    const tempAudio = path.join(process.env.TEMP, `nioh_speech_${Date.now()}.mp3`);
+    const voiceToUse = customVoice || customVoiceName || 'Trúc Ly';
+
+    if (currentEngine === 'vieneu') {
+      try {
+        await generateVieNeuTTS(cleanText, voiceToUse, tempAudio);
+        return tempAudio;
+      } catch (vnErr) {
+        console.warn('[VoiceManager] VieNeu error, falling back to MS HoaiMy:', vnErr.message);
+        await generateMicrosoftTTS(cleanText, 'vi-VN-HoaiMyNeural', tempAudio);
+        return tempAudio;
+      }
+    } else if (currentEngine === 'google') {
+      try {
+        await generateGoogleTTS(cleanText, tempAudio);
+        return tempAudio;
+      } catch (gErr) {
+        await generateMicrosoftTTS(cleanText, 'vi-VN-HoaiMyNeural', tempAudio);
+        return tempAudio;
+      }
+    } else {
+      await generateMicrosoftTTS(cleanText, voiceToUse || 'vi-VN-HoaiMyNeural', tempAudio);
+      return tempAudio;
+    }
+  } catch (err) {
+    console.error('[VoiceManager] generateSpeechFile error:', err.message);
+    return null;
+  }
+}
+
 // Convert text to speech with standard Vietnamese pronunciation
 async function speak(text) {
   if (!currentConnection) return false;
@@ -258,28 +331,8 @@ async function speak(text) {
     const cleanText = normalizeForVietnameseSpeech(text);
     if (!cleanText) return false;
 
-    const tempAudio = path.join(process.env.TEMP, `nioh_speech_${Date.now()}.mp3`);
-
-    if (currentEngine === 'vieneu') {
-      try {
-        await generateVieNeuTTS(cleanText, customVoiceName || 'Ly', tempAudio);
-      } catch (vnErr) {
-        console.warn('[VoiceManager] VieNeu error / no key, falling back to MS HoaiMy (Nữ tự nhiên):', vnErr.message);
-        await generateMicrosoftTTS(cleanText, 'vi-VN-HoaiMyNeural', tempAudio);
-      }
-    } else if (currentEngine === 'google') {
-      try {
-        await generateGoogleTTS(cleanText, tempAudio);
-      } catch (gErr) {
-        console.warn('[VoiceManager] Google TTS failed, fallback to MS NamMinh:', gErr.message);
-        await generateMicrosoftTTS(cleanText, 'vi-VN-NamMinhNeural', tempAudio);
-      }
-    } else if (currentEngine === 'edge' || currentEngine === 'ms-nam' || currentEngine === 'ms-nu' || currentEngine === 'custom') {
-      await generateMicrosoftTTS(cleanText, customVoiceName || 'vi-VN-NamMinhNeural', tempAudio);
-    } else {
-      // Fallback mặc định Edge TTS siêu ổn định
-      await generateMicrosoftTTS(cleanText, customVoiceName || 'vi-VN-NamMinhNeural', tempAudio);
-    }
+    const tempAudio = await generateSpeechFile(cleanText);
+    if (!tempAudio) return false;
 
     getOrCreatePlayer();
     speechQueue.push({ filePath: tempAudio, text: cleanText });
@@ -545,6 +598,7 @@ module.exports = {
   joinVoice,
   leaveVoice,
   speak,
+  generateSpeechFile,
   broadcast,
   setEngine,
   getEngine: () => currentEngine,
