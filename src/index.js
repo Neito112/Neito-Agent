@@ -37,6 +37,7 @@ const computationSheet = require('./computation_sheet_engine.js');
 const knowledgeDaemon = require('./knowledge_daemon.js');
 const fileEngine = require('./zalo_file_engine.js');
 const toolExecutor = require('./agent_tool_executor.js');
+const voiceManager = require('./voice_manager.js');
 
 console.log("======================================================================");
 console.log("       🛡️ NI-OH: TRỢ LÝ CHIẾN LƯỢC TOÀN NĂNG (COMMUNITY EDITION)");
@@ -117,7 +118,31 @@ if (BOT_TOKEN && BOT_TOKEN !== 'your_discord_bot_token_here' && BOT_TOKEN !== 'Y
       return msg.reply(res.message);
     }
 
-    // Phản hồi khi được tag hoặc trong tin nhắn riêng
+    // Lệnh quản lý Voice Agent nguồn mở
+    if (content === '!voice' || content === '!voice list') {
+      const list = voiceManager.listAvailableVoices();
+      const lines = list.map(v => `• **\`${v.key}\`**: ${v.description}`).join('\n');
+      return msg.reply(`🎙️ **DANH SÁCH VOICE AGENT NGUỒN MỞ SẴN CÓ:**\n${lines}\n\n👉 *Dùng lệnh \`!voice set <tên_mã>\` để đổi giọng! (Ví dụ: \`!voice set hoaimy\` hoặc \`!voice set namminh\`)*`);
+    }
+    if (content.startsWith('!voice set ')) {
+      const vName = content.replace('!voice set ', '').trim();
+      const selected = voiceManager.selectVoice(vName);
+      if (selected) {
+        return msg.reply(`✅ Đã chuyển Voice Agent sang: **${selected.desc}**`);
+      } else {
+        return msg.reply(`❌ Không tìm thấy mã voice "${vName}". Gõ \`!voice list\` để xem danh sách.`);
+      }
+    }
+    if (content.startsWith('!voice test ')) {
+      const testText = content.replace('!voice test ', '').trim();
+      if (msg.member?.voice?.channel) {
+        await voiceManager.joinVoice(msg.member.voice.channel, msg.channel);
+        await voiceManager.speak(testText);
+        return msg.reply(`🔊 Đang phát giọng đọc mẫu vào phòng voice!`);
+      } else {
+        return msg.reply(`⚠️ Bạn cần tham gia vào một Voice Channel Discord trước khi dùng lệnh \`!voice test\`.`);
+      }
+    }
     if (isMentioned || isDM || content.startsWith('!nioh ') || content.startsWith('!ask ')) {
       let prompt = content.replace(/<@!?\d+>/g, '').replace(/^!(nioh|ask)\s+/i, '').trim();
       if (!prompt) return msg.reply("Sếp cần Ni-Oh hỗ trợ chiến lược gì?");
