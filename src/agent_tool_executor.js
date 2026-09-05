@@ -533,6 +533,43 @@ async function executeOpenClawTool(toolName, args, context = {}) {
       case 'read_sheet':
         return await readGoogleSheetTool(args.url, args.keyword, context.agentKey || 'default');
 
+      case 'write_google_sheet':
+      case 'append_google_sheet': {
+        const gw = require('./src/google_workspace.js');
+        const sid = args.spreadsheetId || args.sheetId || (args.url ? (args.url.match(/\/d\/([a-zA-Z0-9-_]+)/) || [])[1] : '');
+        if (!sid) return '[LỖI GOOGLE SHEET]: Thiếu spreadsheetId hoặc URL file Sheet.';
+        const rows = args.rows || (args.row ? [args.row] : []);
+        try {
+          const res = await gw.appendSheetData(sid, args.range || 'A1', rows);
+          return `[ĐÃ GHI VÀO GOOGLE SHEET]: Đã thêm thành công ${rows.length} dòng vào bảng tính.`;
+        } catch (e) {
+          return `[LỖI GHI GOOGLE SHEET]: ${e.message}`;
+        }
+      }
+
+      case 'create_google_sheet': {
+        const gw = require('./src/google_workspace.js');
+        try {
+          const res = await gw.createSpreadsheet(args.title || 'Bảng Tính Mới - ' + (context.agentKey || 'Agent'));
+          return `[ĐÃ TẠO GOOGLE SHEET THÀNH CÔNG]:\n• ID: ${res.id}\n• Link: ${res.url}`;
+        } catch (e) {
+          return `[LỖI TẠO GOOGLE SHEET]: ${e.message}`;
+        }
+      }
+
+      case 'search_google_drive': {
+        const gw = require('./src/google_workspace.js');
+        try {
+          const files = await gw.searchDriveFiles(args.query || '');
+          if (files.length === 0) return `[GOOGLE DRIVE]: Không tìm thấy file nào khớp với từ khóa "${args.query}".`;
+          let out = `[GOOGLE DRIVE - TÌM THẤY ${files.length} TỆP]:\n`;
+          files.forEach((f, idx) => out += `${idx + 1}. [${f.name}] (${f.mimeType}) - Link: ${f.webViewLink || f.id}\n`);
+          return out;
+        } catch (e) {
+          return `[LỖI TÌM KIẾM GOOGLE DRIVE]: ${e.message}`;
+        }
+      }
+
       case 'save_memory':
         return manageMemoryTool('save', args.note || args.content, context.agentKey);
 
@@ -559,6 +596,9 @@ const OPENCLAW_TOOL_SYSTEM_PROMPT = `
 • list_schedules: {} | delete_schedule: {"id":"task_id"}
 • run_powershell: {"command":"lệnh windows"}
 • read_google_sheet: {"url":"https://docs.google.com/spreadsheets/d/...","keyword":"ví của tôi"} (đọc bảng tính Google Sheets)
+• write_google_sheet: {"spreadsheetId":"id","rows":[["giá trị 1","giá trị 2"]]} (ghi/thêm dòng vào Google Sheets)
+• create_google_sheet: {"title":"Tên bảng tính"} (tạo file Google Sheets mới trên Google Drive)
+• search_google_drive: {"query":"từ khóa tìm kiếm"} (tìm kiếm file trên Google Drive)
 • create_excel: {"fileName":"tên","sheetTitle":"sheet","columns":[{"header":"Cột 1","key":"c1"}],"rows":[{"c1":"giá trị"}]}
 • create_formula_sheet: {"fileName":"tên","headers":["A","B","Tổng"],"rows":[[10,20,""]],"formulaColumns":{"C":"=A{ROW}+B{ROW}"}} (tạo bảng tính có công thức tự động tính)
 • solve_with_formula: {"problem":"mô tả bài toán công việc/học tập quy mô lớn"} (xuất công thức Sheets/Excel tối ưu)
@@ -571,7 +611,14 @@ const OPENCLAW_TOOL_SYSTEM_PROMPT = `
 • read_file: {"fileName":"tên_file"} | list_files: {}
 • save_memory: {"note":"ghi nhớ"} | read_memory: {}
 • generate_image: {"prompt":"mô tả ảnh"}
-QUY TẮC: Khi cần tra cứu hoặc hành động thực tế, xuất khối JSON tool.
+QUY TẮC THÉP - CHỐNG HỨA SUÔNG & CHỐNG ẢO GIÁC (PRE-FLIGHT VERIFICATION):
+1. KIỂM TRA THỰC TẾ TRƯỚC - PHÁT NGÔN SAU:
+   - Khi Sếp hỏi về bất kỳ dữ liệu nào (ví tiền, tài khoản, Google Sheet, file, thời tiết, giá coin) hoặc hỏi "em có làm được X không":
+   - BẮT BUỘC phải gọi công cụ (JSON tool action) để CHẠY THẬT NGAY LẬP TỨC.
+   - TUYỆT ĐỐI CẤM: Trả lời "Dạ em đọc được", "Dạ để em kiểm tra", "Em có kết nối rồi" khi CHƯA CHẠY TOOL để lấy dữ liệu thực tế.
+2. BÁO CÁO TRUNG THỰC:
+   - Chỉ trả lời dựa trên dữ liệu thực tế mà công cụ trả về.
+   - Nếu công cụ báo lỗi (401 Riêng tư, không có quyền, file không tìm thấy, thiếu token) -> Báo cáo NGAY LẬP TỨC nguyên nhân thực tế và giải pháp cho Sếp, không được nói vòng vo hay hứa hẹn suông.
 `;
 
 // ─── Balanced JSON Extractor (Khắc phục 100% lỗi regex ngắt dấu ngoặc nhọn) ──
