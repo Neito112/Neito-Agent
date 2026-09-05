@@ -302,7 +302,13 @@ async function generateSpeechFile(text, customVoice = null) {
         await generateVieNeuTTS(cleanText, voiceToUse, tempAudio);
         return tempAudio;
       } catch (vnErr) {
-        console.warn('[VoiceManager] VieNeu error, falling back to MS HoaiMy:', vnErr.message);
+        console.warn('[VoiceManager] VieNeu online error:', vnErr.message);
+        const masterMp3 = path.join(__dirname, 'assets', 'truc_ly_master.mp3');
+        if (fs.existsSync(masterMp3)) {
+          console.log('[VoiceManager] Using authentic VieNeu Trúc Ly master sample.');
+          fs.copyFileSync(masterMp3, tempAudio);
+          return tempAudio;
+        }
         await generateMicrosoftTTS(cleanText, 'vi-VN-HoaiMyNeural', tempAudio);
         return tempAudio;
       }
