@@ -5,33 +5,55 @@ const lolProtocol = require('./protocols/lol_protocol.js');
 const valorantProtocol = require('./protocols/valorant_protocol.js');
 const factory = require('./protocols/dynamic_protocol_factory.js');
 
+function matchAlias(query, alias) {
+  if (!query || !alias) return false;
+  const q = query.toLowerCase().trim();
+  const a = alias.toLowerCase().trim();
+  if (q === a) return true;
+  const escaped = a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp('(^|\\s|[.,!?;])' + escaped + '($|\\s|[.,!?;])', 'i');
+  return regex.test(q);
+}
+
 const PROTOCOLS = {
   genshin: {
     id: 'genshin',
     name: 'Genshin Impact Protocol (Bách Khoa Toàn Thư Teyvat)',
-    aliases: ['genshin', 'genshin impact', 'gi', 'teyvat'],
+    aliases: [
+      'genshin', 'genshin impact', 'gi', 'teyvat', 'raiden', 'zhongli', 'nahida',
+      'furina', 'mavuika', 'hutao', 'kazuha', 'thánh di vật', 'la hoàn', 'nguyên thạch',
+      'primogems', 'nod-rai', 'khaenri\'ah', 'băng quốc'
+    ],
     description: 'Bách khoa toàn thư Teyvat: 7 quốc gia, Băng Quốc, Nod-Rai, Khaenri\'ah, giải đố cơ quan, build đội hình.',
     module: genshinProtocol
   },
   lol: {
     id: 'lol',
     name: 'Liên Minh Huyền Thoại Protocol (LOL)',
-    aliases: ['lol', 'lmht', 'lien minh', 'liên minh', 'league of legends'],
+    aliases: [
+      'lol', 'lmht', 'lien minh', 'liên minh', 'league of legends', 'tốc chiến',
+      'wild rift', 'yasuo', 'yone', 'jinx', 'leesin', 'faker', 'summoner',
+      'baron', 'hang rồng', 'lên đồ', 'bảng ngọc', 'meta lmht', 'riot games'
+    ],
     description: 'Cố vấn chiến thuật LMHT: Macro/Micro, wave control, jungle tracking, lên đồ thích ứng và giao tranh.',
     module: lolProtocol
   },
   valorant: {
     id: 'valorant',
     name: 'Valorant Protocol (Van Di / Văn Di)',
-    aliases: ['valorant', 'van di', 'văn di', 'vandi', 'valo'],
+    aliases: [
+      'valorant', 'van di', 'văn di', 'vandi', 'valo', 'jett', 'reyna', 'sova',
+      'omen', 'vandal', 'phantom', 'spike', 'ascent', 'bind', 'haven', 'split',
+      'breeze', 'lotus', 'sunset', 'abyss', 'lineup', 'đặc vụ'
+    ],
     description: 'Cố vấn chiến thuật FPS: Economy, lineup đặc vụ, map callout, timing Spike, retake site.',
     module: valorantProtocol
   },
   general: {
     id: 'general',
-    name: 'General Assistant Protocol (Trợ Lý Đa Năng)',
-    aliases: ['general', 'mac dinh', 'mặc định', 'default'],
-    description: 'Chế độ trợ lý tổng hợp thông thường (lập trình, quản trị hệ thống, tra cứu đa năng).',
+    name: 'General Assistant Protocol (Trò Chuyện Thông Thường & Tổng Hợp)',
+    aliases: ['general', 'mac dinh', 'mặc định', 'default', 'thông thường', 'trò chuyện thông thường'],
+    description: 'Chế độ trợ lý tổng hợp thông thường (đa quan điểm, lập trình, quản trị hệ thống, so sánh đa nền tảng).',
     module: null
   }
 };
@@ -73,7 +95,7 @@ async function setProtocol(protocolQuery) {
   // Find by ID or alias
   let target = null;
   for (const [id, p] of Object.entries(PROTOCOLS)) {
-    if (id === q || (p.aliases && p.aliases.some(a => a === q || q.includes(a)))) {
+    if (id === q || (p.aliases && p.aliases.some(a => matchAlias(q, a)))) {
       target = p;
       break;
     }
@@ -93,9 +115,9 @@ async function setProtocol(protocolQuery) {
 // Smart Voice Resolver: Detect voice switch requests
 function resolveProtocolByVoice(voiceTranscript) {
   const lower = voiceTranscript.toLowerCase();
-  if (lower.includes('đổi sang giao thức') || lower.includes('chuyển sang giao thức') || lower.includes('bật giao thức') || lower.includes('chuyển giao thức') || lower.includes('đổi giao thức')) {
+  if (lower.includes('đổi sang giao thức') || lower.includes('chuyển sang giao thức') || lower.includes('bật giao thức') || lower.includes('chuyển giao thức') || lower.includes('đổi giao thức') || lower.includes('kích hoạt giao thức')) {
     for (const [id, p] of Object.entries(PROTOCOLS)) {
-      if (p.aliases && p.aliases.some(a => lower.includes(a))) {
+      if (p.aliases && p.aliases.some(a => matchAlias(lower, a))) {
         return setProtocol(id);
       }
     }
@@ -133,6 +155,7 @@ module.exports = {
   createAndActivateProtocol,
   getActiveProtocol,
   listProtocols,
+  matchAlias,
   genshin: genshinProtocol,
   lol: lolProtocol,
   valorant: valorantProtocol
