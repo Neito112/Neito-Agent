@@ -1,6 +1,10 @@
-﻿const fs = require('fs');
+const fs = require('fs');
 const path = require('path');
 const https = require('https');
+let ipc = null;
+try {
+  ipc = require('../ipc/antigravity_ipc_bridge.js');
+} catch (_) {}
 
 const MEMORY_FILE = path.join(__dirname, 'learning_memory.json');
 const GEMINI_KEY = "AIzaSyCBtopxSMXhJYAoI0D_ytzQCut_LB67VXc";
