@@ -17,28 +17,36 @@ const { spawn } = require('child_process');
 const { pipeline } = require('stream');
 const prism = require('prism-media');
 
-const GEMINI_KEY = "process.env.GEMINI_API_KEY || "YOUR_GEMINI_API_KEY"";
+const GEMINI_KEY = "AIzaSyCBtopxSMXhJYAoI0D_ytzQCut_LB67VXc";
 
-// Engine selection: 'google' (Chuẩn tiếng Việt 100%), 'ms-nam' (Nam Minh chuẩn), 'ms-nu' (Hoài My chuẩn)
-let currentEngine = 'custom';
-
-let customVoiceName = 'vi-VN-NamMinhNeural';
-
-function setCustomVoice(voiceCode) {
-  if (voiceCode && voiceCode.trim()) {
-    customVoiceName = voiceCode.trim();
-    currentEngine = 'custom';
-    return customVoiceName;
-  }
-  return null;
-}
-
+// Engine selection: 'vieneu' (Quân Hồng VieNeu AI), 'ms-nam' (Nam Minh), 'ms-nu' (Hoài My), 'google' (Google Standard)
+let currentEngine = 'vieneu';
+let customVoiceName = 'Quân Hồng';
 
 let currentConnection = null;
 let audioPlayer = null;
 let currentTextChannel = null;
 let isSpeaking = false;
 let speechQueue = [];
+
+function getVieNeuApiKey() {
+  try {
+    const keysPath = path.join(__dirname, 'api_keys.json');
+    if (fs.existsSync(keysPath)) {
+      const keys = JSON.parse(fs.readFileSync(keysPath, 'utf8'));
+      return keys.vieneu || process.env.VIENEU_API_KEY || '';
+    }
+  } catch (_) {}
+  return process.env.VIENEU_API_KEY || '';
+}
+
+function setCustomVoice(voiceCode) {
+  if (voiceCode && voiceCode.trim()) {
+    customVoiceName = voiceCode.trim();
+    return customVoiceName;
+  }
+  return null;
+}
 
 // Phonetic Dictionary for Natural Vietnamese Pronunciation
 function normalizeForVietnameseSpeech(raw) {
@@ -47,7 +55,7 @@ function normalizeForVietnameseSpeech(raw) {
     .replace(/[*_~`#|>]/g, '')
     .replace(/https?:\/\/\S+/g, '')
     .replace(/\[.*?\]/g, '')
-    .replace(/💡|🎙️|🔊|ℹ️|⚠️|❌|🟢|🔴|🤖|👤|🧠|👉|✨|🎮|📌/g, '')
+    .replace(/💡|🎙️|🔊|ℹ️|⚠️|❌|🟢|🔴|🤖|👤|🧠|👉|✨|🎮|📌|🛡️/g, '')
     .replace(/\bJARVIS\b/gi, 'Gia Vít')
     .replace(/\bJ\.A\.R\.V\.I\.S\b/gi, 'Gia Vít')
     .replace(/\bAI\b/gi, 'A I')
@@ -67,7 +75,62 @@ function normalizeForVietnameseSpeech(raw) {
     .substring(0, 450);
 }
 
-// 1. Google Standard Vietnamese TTS (Phát âm & ngữ điệu chuẩn tiếng Việt 100%)
+// 1. VieNeu Neural TTS (Giọng Quân Hồng AI đỉnh cao)
+function generateVieNeuTTS(text, voiceName, outputPath) {
+  return new Promise((resolve, reject) => {
+    const apiKey = getVieNeuApiKey();
+    const payload = JSON.stringify({
+      input: text,
+      voice: voiceName || "Quân Hồng"
+    });
+
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    if (apiKey) {
+      headers['Authorization'] = 'Bearer ' + apiKey;
+    }
+
+    const file = fs.createWriteStream(outputPath);
+    const req = https.request({
+      hostname: 'api.vieneu.io',
+      path: '/api/v1/audio/speech',
+      method: 'POST',
+      headers: headers,
+      timeout: 10000
+    }, (res) => {
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        res.pipe(file);
+        file.on('finish', () => {
+          file.close();
+          resolve(outputPath);
+        });
+      } else {
+        let errBody = '';
+        res.on('data', c => errBody += c);
+        res.on('end', () => {
+          try { file.close(); fs.unlinkSync(outputPath); } catch (_) {}
+          reject(new Error(`VieNeu API status ${res.statusCode}: ${errBody}`));
+        });
+      }
+    });
+
+    req.on('error', (e) => {
+      try { file.close(); fs.unlinkSync(outputPath); } catch (_) {}
+      reject(e);
+    });
+    req.on('timeout', () => {
+      req.destroy();
+      try { file.close(); fs.unlinkSync(outputPath); } catch (_) {}
+      reject(new Error('VieNeu Timeout'));
+    });
+
+    req.write(payload);
+    req.end();
+  });
+}
+
+// 2. Google Standard Vietnamese TTS
 function generateGoogleTTS(text, outputPath) {
   return new Promise((resolve, reject) => {
     const encoded = encodeURIComponent(text);
@@ -91,7 +154,7 @@ function generateGoogleTTS(text, outputPath) {
   });
 }
 
-// 2. Microsoft Neural TTS (Nam Minh / Hoài My nguyên bản không bẻ dấu)
+// 3. Microsoft Neural TTS (Nam Minh / Hoài My)
 async function generateMicrosoftTTS(text, voiceName, outputPath) {
   const tts = new EdgeTTS({
     voice: voiceName,
@@ -142,7 +205,14 @@ async function speak(text) {
 
     const tempAudio = path.join(process.env.TEMP, `jarvis_speech_${Date.now()}.mp3`);
 
-    if (currentEngine === 'google') {
+    if (currentEngine === 'vieneu') {
+      try {
+        await generateVieNeuTTS(cleanText, customVoiceName || 'Quân Hồng', tempAudio);
+      } catch (vnErr) {
+        console.warn('[VoiceManager] VieNeu Quân Hồng error / no key, falling back to MS NamMinh:', vnErr.message);
+        await generateMicrosoftTTS(cleanText, 'vi-VN-NamMinhNeural', tempAudio);
+      }
+    } else if (currentEngine === 'google') {
       try {
         await generateGoogleTTS(cleanText, tempAudio);
       } catch (gErr) {
@@ -266,7 +336,7 @@ function joinVoice(voiceChannel, textChannel, onVoicePromptCallback) {
   currentConnection.subscribe(player);
 
   currentConnection.on(VoiceConnectionStatus.Ready, () => {
-    console.log(`[VoiceManager] Connected to voice channel: ${voiceChannel.name}`);
+    console.log(`[VoiceManager] Connected to voice channel: ${voiceChannel.name} (Engine: ${currentEngine} - Voice: ${customVoiceName})`);
     speak("Thưa Sếp Neito. Em là Gia Vít, đã sẵn sàng hỗ trợ sếp!");
   });
 
@@ -344,8 +414,9 @@ async function broadcast(text, textChannel = null) {
 }
 
 function setEngine(engineName) {
-  if (['google', 'ms-nam', 'ms-nu'].includes(engineName)) {
+  if (['vieneu', 'google', 'ms-nam', 'ms-nu'].includes(engineName)) {
     currentEngine = engineName;
+    if (engineName === 'vieneu') customVoiceName = 'Quân Hồng';
     return true;
   }
   return false;
