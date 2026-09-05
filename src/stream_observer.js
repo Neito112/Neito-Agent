@@ -1,11 +1,15 @@
-﻿const { exec } = require('child_process');
+const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const https = require('https');
+const { Jimp } = require('jimp');
 const voiceManager = require('./voice_manager.js');
-
-const GEMINI_KEY = "process.env.GEMINI_API_KEY || "YOUR_GEMINI_API_KEY"";
-const SCREENSHOT_PATH = path.join(process.env.TEMP, 'jarvis_stream_capture.jpg');
+const ipc = require('../ipc/antigravity_ipc_bridge.js');
+let appDetector = null;
+try {
+  appDetector = require('./app_detector.js');
+} catch (_) {}
+const SCREENSHOT_PATH = path.join(process.env.TEMP, 'nioh_stream_capture.jpg');
+const OPTIMIZED_IMG_PATH = path.join(process.env.TEMP, 'nioh_stream_opt.jpg');
 
 let isObserving = false;
 let nextTickTimer = null;
@@ -14,12 +18,16 @@ let isProcessingTick = false;
 
 // Adaptive Cadence State Machine
 let currentSceneState = "IDLE";
-let currentCadenceDelaySec = 20;
+let currentCadenceDelaySec = 25;
 let lastSpokenHint = "";
 let lastSpokenTimestamp = 0;
 let consecutiveSameSceneCount = 0;
 
-// Capture primary screen using native Windows PowerShell / .NET
+// Local Frame Difference Gate (0-Token Local Change Detector)
+let previousTinyBuffer = null;
+let skippedFramesCount = 0;
+
+// 1. Capture primary screen using native Windows PowerShell / .NET
 function captureScreen() {
   return new Promise((resolve, reject) => {
     const psScript = `
@@ -42,117 +50,114 @@ $bitmap.Dispose()
   });
 }
 
-// Adaptive Cadence Deduction Engine with Structured AI Reasoning
-function inferAdaptiveCadence(base64Image) {
-  return new Promise((resolve) => {
-    const payload = JSON.stringify({
-      contents: [{
-        parts: [
-          { inline_data: { mime_type: "image/jpeg", data: base64Image } },
-          { text: "Bạn là AI Cố Vấn Tác Chiến JARVIS. Hãy phân tích trạng thái màn hình để tự động suy luận tần suất quan sát tối ưu: " +
-                  "1. scene_state: 'COMBAT' (giao tranh/đánh boss), 'EXPLORING' (chạy map/khám phá), 'MENU' (menu/nhật ký/hội thoại), 'PUZZLE' (đối mặt câu đố/cơ quan phong ấn cần giải). " +
-                  "2. should_speak: Chỉ TRUE khi phát hiện cơ quan/câu đố cần hướng dẫn người chơi. Mặc định là FALSE khi đang đánh nhau, mở menu, hoặc chạy bộ thông thường. " +
-                  "3. next_scan_delay_sec: Tự suy luận chu kỳ quét tiếp theo (COMBAT: 30-40s, MENU: 50-60s, EXPLORING: 30-45s, PUZZLE: 15-25s). " +
-                  "4. hint: Đúng 1 câu gợi ý giải đố ngắn gọn (chỉ khi should_speak là TRUE, ngược lại để trống)." }
-        ]
-      }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "OBJECT",
-          properties: {
-            scene_state: {
-              type: "STRING",
-              enum: ["COMBAT", "EXPLORING", "MENU", "PUZZLE"]
-            },
-            should_speak: {
-              type: "BOOLEAN"
-            },
-            next_scan_delay_sec: {
-              type: "INTEGER"
-            },
-            hint: {
-              type: "STRING"
-            }
-          },
-          required: ["scene_state", "should_speak", "next_scan_delay_sec", "hint"]
-        }
-      }
-    });
+// 2. Local Frame Difference Analyzer (Phát hiện chuyển động cục bộ - 0 TOKEN)
+// So sánh ảnh thu nhỏ 32x18 trên RAM để nhận biết màn hình có biến động thật không
+async function evaluateLocalFrameDifference(rawImgPath) {
+  try {
+    const image = await Jimp.read(rawImgPath);
+    // Tạo bản thumbnail siêu nhỏ để so sánh biến động
+    const tiny = image.clone().resize({ w: 32, h: 18 });
+    const currentBuffer = Buffer.from(tiny.bitmap.data);
 
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=" + GEMINI_KEY;
-    const req = https.request(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      timeout: 10000
-    }, (res) => {
-      let data = "";
-      res.on("data", c => data += c);
-      res.on("end", () => {
-        try {
-          const json = JSON.parse(data);
-          const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (rawText) {
-            resolve(JSON.parse(rawText));
-          } else {
-            resolve({ scene_state: "EXPLORING", should_speak: false, next_scan_delay_sec: 30, hint: "" });
-          }
-        } catch (_) {
-          resolve({ scene_state: "EXPLORING", should_speak: false, next_scan_delay_sec: 30, hint: "" });
-        }
-      });
-    });
+    if (!previousTinyBuffer) {
+      previousTinyBuffer = currentBuffer;
+      return { hasSignificantChange: true, diffRatio: 1.0 };
+    }
 
-    req.on("error", () => resolve({ scene_state: "EXPLORING", should_speak: false, next_scan_delay_sec: 30, hint: "" }));
-    req.on("timeout", () => { req.destroy(); resolve({ scene_state: "EXPLORING", should_speak: false, next_scan_delay_sec: 30, hint: "" }); });
-    req.write(payload);
-    req.end();
-  });
+    let totalDiff = 0;
+    const len = currentBuffer.length;
+    for (let i = 0; i < len; i += 4) {
+      const dR = Math.abs(currentBuffer[i] - previousTinyBuffer[i]);
+      const dG = Math.abs(currentBuffer[i+1] - previousTinyBuffer[i+1]);
+      const dB = Math.abs(currentBuffer[i+2] - previousTinyBuffer[i+2]);
+      totalDiff += (dR + dG + dB) / (3 * 255);
+    }
+    const diffRatio = totalDiff / (len / 4);
+
+    previousTinyBuffer = currentBuffer;
+
+    // Ngưỡng phát hiện: Nếu biến động < 4.5% và chưa skip quá 4 lần liên tiếp -> Coi như màn hình tĩnh
+    const isStatic = (diffRatio < 0.045) && (skippedFramesCount < 4);
+    if (isStatic) {
+      skippedFramesCount++;
+      return { hasSignificantChange: false, diffRatio };
+    }
+
+    skippedFramesCount = 0;
+    return { hasSignificantChange: true, diffRatio };
+  } catch (e) {
+    return { hasSignificantChange: true, diffRatio: 1.0 };
+  }
 }
 
-// On-demand prompt call when explicitly requested
-function callDirectPrompt(base64Image, promptText) {
-  return new Promise((resolve) => {
-    const payload = JSON.stringify({
-      contents: [{
-        parts: [
-          { inline_data: { mime_type: "image/jpeg", data: base64Image } },
-          { text: "Bạn là JARVIS. Nhìn màn hình và trả lời thật ngắn gọn, đúng 1-2 câu, không chào hỏi dài dòng: " + promptText }
-        ]
-      }],
-      generationConfig: {
-        maxOutputTokens: 200,
-        temperature: 0.1
-      }
-    });
-
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=" + GEMINI_KEY;
-    const req = https.request(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      timeout: 10000
-    }, (res) => {
-      let data = "";
-      res.on("data", c => data += c);
-      res.on("end", () => {
-        try {
-          const json = JSON.parse(data);
-          const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-          resolve(text ? text.trim() : "NO_PUZZLE");
-        } catch (_) {
-          resolve("NO_PUZZLE");
-        }
-      });
-    });
-
-    req.on("error", () => resolve("NO_PUZZLE"));
-    req.on("timeout", () => { req.destroy(); resolve("NO_PUZZLE"); });
-    req.write(payload);
-    req.end();
-  });
+// 3. Downscale Image for AI (Chỉ gửi 640px = 1 Tile = 258 tokens thay vì 1,024 tokens)
+async function prepareOptimizedImageForAI(rawImgPath) {
+  try {
+    const img = await Jimp.read(rawImgPath);
+    // Resize về chiều ngang 640px giữ tỉ lệ
+    img.resize({ w: 640 });
+    await img.write(OPTIMIZED_IMG_PATH);
+    return fs.readFileSync(OPTIMIZED_IMG_PATH).toString('base64');
+  } catch (_) {
+    return fs.readFileSync(rawImgPath).toString('base64');
+  }
 }
 
-// Helper: Check hint similarity to avoid repetitive nag
+// 4. Token-Optimized Cadence Inference via Secure Antigravity IPC Bridge
+async function inferAdaptiveCadence(base64Image) {
+  const sysPrompt = "Bạn là AI Cố Vấn Tác Chiến Ni-Oh. Hãy phân tích ảnh màn hình live và xuất JSON: " +
+                    "{\"scene\":\"COMBAT|EXPLORING|MENU|PUZZLE\",\"should_speak\":true|false,\"delay\":số_giây_chờ,\"hint\":\"câu gợi ý nếu should_speak=true\",\"detected_app\":\"tên_game_hoặc_phần_mềm_trên_màn_hình_nếu_nhận_diện_được\"}. " +
+                    "Quy tắc: COMBAT=45, MENU=60, EXPLORING=35, PUZZLE=15. should_speak chỉ true khi có cơ quan/câu đố cần giải. Nếu nhận ra game hoặc phần mềm lạ đang mở trên màn hình, hãy điền tên chính xác vào detected_app.";
+  const userPrompt = "Phân tích trạng thái màn hình này:";
+
+  try {
+    const rawReply = await ipc.dispatchToAntigravity(
+      'default',
+      sysPrompt,
+      userPrompt,
+      [{ mimeType: 'image/jpeg', data: base64Image }],
+      15000
+    );
+
+    const jsonMatch = rawReply.match(/\{[\s\S]*?"scene"[\s\S]*?\}/);
+    if (jsonMatch) {
+      const p = JSON.parse(jsonMatch[0]);
+      // TỰ ĐỘNG TẠO HOẶC KÍCH HOẠT GIAO THỨC NẾU NHẬN DIỆN PHẦN MỀM LẠ TRÊN MÀN HÌNH
+      if (p.detected_app && typeof p.detected_app === 'string' && p.detected_app.trim().length > 2) {
+        const detectedName = p.detected_app.trim();
+        if (appDetector && typeof appDetector.handleDetectedApp === 'function') {
+          appDetector.handleDetectedApp(detectedName, 'Màn Hình Live Stream').catch(() => {});
+        }
+      }
+      return {
+        scene_state: p.scene || "EXPLORING",
+        should_speak: !!p.should_speak,
+        next_scan_delay_sec: p.delay || 35,
+        hint: p.hint || "",
+        detected_app: p.detected_app || ""
+      };
+    }
+  } catch (err) {
+    console.warn("[StreamObserver] Cadence inference error:", err.message);
+  }
+  return { scene_state: "EXPLORING", should_speak: false, next_scan_delay_sec: 35, hint: "" };
+}
+
+// 5. On-Demand Prompt via Antigravity IPC Bridge
+async function callDirectPrompt(base64Image, promptText) {
+  try {
+    return await ipc.dispatchToAntigravity(
+      'default',
+      'Bạn là Ni-Oh. Trả lời cực kỳ ngắn gọn 1-2 câu cho Sếp Neito.',
+      promptText,
+      [{ mimeType: 'image/jpeg', data: base64Image }],
+      15000
+    );
+  } catch (err) {
+    return 'Không có phản hồi từ AI';
+  }
+}
+
 function isSimilarHint(a, b) {
   if (!a || !b) return false;
   const wordsA = a.toLowerCase().split(/\s+/).filter(w => w.length > 2);
@@ -161,25 +166,37 @@ function isSimilarHint(a, b) {
   return common.length >= Math.min(wordsA.length, wordsB.length) * 0.6;
 }
 
-// Adaptive Tick Loop (Self-adjusting dynamic delay)
+// 6. Adaptive Tick Loop with Multi-Tier Token Saving
 async function onAdaptiveTick() {
   if (!isObserving || !targetChannel || isProcessingTick) return;
   isProcessingTick = true;
 
   try {
-    const imgPath = await captureScreen();
-    const base64Image = fs.readFileSync(imgPath).toString('base64');
+    const rawImgPath = await captureScreen();
+
+    // TẦNG 1: Kiểm tra sai khác cục bộ (0-Token Local Gate)
+    const diffCheck = await evaluateLocalFrameDifference(rawImgPath);
+    if (!diffCheck.hasSignificantChange) {
+      // Màn hình tĩnh, Sếp đang đọc menu hoặc AFK -> BỎ QUA KHÔNG GỌI API (TIẾT KIỆM 100% TOKEN)
+      console.log(`[StreamObserver] ⚡ [0-TOKEN SKIP] Screen static (diff: ${(diffCheck.diffRatio*100).toFixed(1)}%). Next scan in ${currentCadenceDelaySec}s...`);
+      if (isObserving) {
+        nextTickTimer = setTimeout(onAdaptiveTick, currentCadenceDelaySec * 1000);
+      }
+      return;
+    }
+
+    // TẦNG 2: Màn hình có biến động -> Nén và Downscale về 640px (1 Tile = 258 tokens)
+    const base64Image = await prepareOptimizedImageForAI(rawImgPath);
     const decision = await inferAdaptiveCadence(base64Image);
 
     currentSceneState = decision.scene_state;
-    // Calculate adaptive delay with bounds (15s to 90s)
-    let nextDelay = Math.max(15, Math.min(90, decision.next_scan_delay_sec || 30));
 
-    // Dynamic exponential backoff if player stays in same scene state
+    // TẦNG 3: Adaptive Backoff (Đánh nhau giãn cách 45-60s, Puzzle quét 15s)
+    let nextDelay = Math.max(15, Math.min(90, decision.next_scan_delay_sec || 30));
     if (decision.scene_state === currentSceneState) {
       consecutiveSameSceneCount++;
-      if (consecutiveSameSceneCount > 3) {
-        nextDelay = Math.min(90, nextDelay + (consecutiveSameSceneCount * 5));
+      if (consecutiveSameSceneCount > 2) {
+        nextDelay = Math.min(90, nextDelay + (consecutiveSameSceneCount * 6));
       }
     } else {
       consecutiveSameSceneCount = 0;
@@ -187,23 +204,22 @@ async function onAdaptiveTick() {
 
     currentCadenceDelaySec = nextDelay;
 
-    // Handle intelligent speech decision
+    // TẦNG 4: Tránh lặp lời & Cooldown thông minh
     const now = Date.now();
-    const isCooldownOver = (now - lastSpokenTimestamp) > 75000; // 75s minimal cooldown
+    const isCooldownOver = (now - lastSpokenTimestamp) > 70000;
 
     if (decision.should_speak && decision.hint && decision.hint.length > 3 && isCooldownOver) {
       if (!isSimilarHint(decision.hint, lastSpokenHint)) {
         lastSpokenTimestamp = now;
         lastSpokenHint = decision.hint;
-        const msg = `💡 **[JARVIS - Gợi Ý Chiến Thuật]**\n${decision.hint}`;
-        console.log(`[StreamObserver] [State: ${decision.scene_state}] Spoke hint: "${decision.hint}". Next scan: ${nextDelay}s`);
+        const msg = `💡 **[Ni-Oh - Cố Vấn Tác Chiến]**\n${decision.hint}`;
+        console.log(`[StreamObserver] 🎯 [State: ${decision.scene_state}] Spoke hint: "${decision.hint}". Next: ${nextDelay}s`);
         await voiceManager.broadcast(msg, targetChannel);
       }
     } else {
-      console.log(`[StreamObserver] [State: ${decision.scene_state}] Silent. Next scan in ${nextDelay}s...`);
+      console.log(`[StreamObserver] [State: ${decision.scene_state}] (Diff: ${(diffCheck.diffRatio*100).toFixed(1)}%) Silent. Next scan in ${nextDelay}s...`);
     }
 
-    // Schedule next adaptive tick
     if (isObserving) {
       nextTickTimer = setTimeout(onAdaptiveTick, nextDelay * 1000);
     }
@@ -224,11 +240,13 @@ function startObserving(channel) {
   lastSpokenHint = "";
   lastSpokenTimestamp = 0;
   consecutiveSameSceneCount = 0;
-  currentCadenceDelaySec = 20;
+  currentCadenceDelaySec = 25;
+  previousTinyBuffer = null;
+  skippedFramesCount = 0;
   
   if (nextTickTimer) clearTimeout(nextTickTimer);
-  nextTickTimer = setTimeout(onAdaptiveTick, 3000); // start after 3s
-  console.log(`[StreamObserver] Started Adaptive Cadence Observer on channel ${channel.id}`);
+  nextTickTimer = setTimeout(onAdaptiveTick, 3000);
+  console.log(`[StreamObserver] 🚀 Started Ultra-Token-Saving Adaptive Cadence Observer on channel ${channel.id}`);
   return true;
 }
 
@@ -237,13 +255,14 @@ function stopObserving() {
   isObserving = false;
   if (nextTickTimer) clearTimeout(nextTickTimer);
   nextTickTimer = null;
+  previousTinyBuffer = null;
   console.log("[StreamObserver] Stopped observer.");
   return true;
 }
 
 async function captureAndAnalyzeNow(customPrompt = null) {
-  const imgPath = await captureScreen();
-  const base64 = fs.readFileSync(imgPath).toString('base64');
+  const rawImgPath = await captureScreen();
+  const base64 = await prepareOptimizedImageForAI(rawImgPath);
   return await callDirectPrompt(base64, customPrompt || "Tóm tắt tình trạng màn hình.");
 }
 
@@ -254,8 +273,11 @@ module.exports = {
     sceneState: currentSceneState,
     currentCadenceDelaySec,
     lastSpokenTimestamp,
-    isObserving
+    isObserving,
+    skippedFrames: skippedFramesCount
   }),
   isObserving: () => isObserving,
   captureAndAnalyzeNow
 };
+
+
