@@ -1,4 +1,4 @@
-﻿const https = require('https');
+const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -207,6 +207,61 @@ function manageMemoryTool(action, note, agentKey = 'default') {
     return '[Chua co bo nho nao cho ' + agentKey + ']';
   }
   return 'Hanh dong khong hop le: ' + action;
+}
+
+// ─── 6.1. Google Sheets Tool (Real-time CSV Ingestion) ───────────────────
+async function readGoogleSheetTool(sheetUrl, keyword = '', agentKey = 'default') {
+  let targetUrl = (sheetUrl || '').trim();
+
+  // If no URL passed in args, search the agent's MEMORY.md for saved Sheet links
+  if (!targetUrl) {
+    const roleMap = { 'default': 'main', 'kim': 'earner', 'cu': 'housing', 'khung': 'architect', 'net': 'designer', 'tin': 'researcher', 'zalo': 'zalo' };
+    const folder = roleMap[agentKey] || agentKey;
+    const memFile = path.join(__dirname, 'workspaces', folder, 'MEMORY.md');
+    if (fs.existsSync(memFile)) {
+      const memContent = fs.readFileSync(memFile, 'utf8');
+      const urlMatch = memContent.match(/https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)[^\s\]\)"']*/);
+      if (urlMatch) targetUrl = urlMatch[0].replace(/[.,;]+$/, '');
+    }
+  }
+
+  if (!targetUrl) {
+    return '[GOOGLE SHEET]: Không tìm thấy URL file Google Sheet nào trong bộ nhớ của ' + agentKey.toUpperCase() + '. Sếp vui lòng gửi kèm link Google Sheet nhé ạ!';
+  }
+
+  const idMatch = targetUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if (!idMatch) return '[GOOGLE SHEET]: URL không hợp lệ (không trích xuất được Google Sheet ID).';
+  const sheetId = idMatch[1];
+  const gidMatch = targetUrl.match(/gid=([0-9]+)/);
+  const gid = gidMatch ? gidMatch[1] : '0';
+
+  const exportUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+
+  return new Promise((resolve) => {
+    function fetchCsv(url) {
+      https.get(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        timeout: 15000
+      }, (res) => {
+        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          return fetchCsv(res.headers.location);
+        }
+        let body = '';
+        res.on('data', c => body += c);
+        res.on('end', () => {
+          if (body.includes('accounts.google.com') || body.includes('document-root') || body.includes('Cho phép Google Trang tính')) {
+            resolve(`[GOOGLE SHEET - CẦN PHÂN QUYỀN]:\nFile Google Sheet "${targetUrl}" hiện đang ở chế độ Riêng tư (yêu cầu đăng nhập Google).\n👉 Sếp vui lòng mở file Sheet trên trình duyệt -> Bấm nút [Chia sẻ] (Share) ở góc trên bên phải -> Chuyển "Truy cập chung" thành 'Bất kỳ ai có đường liên kết đều có thể xem' để em có thể đọc và tính toán tự động số dư ví cho Sếp nhé ạ!`);
+          } else {
+            const lines = body.split('\n').map(l => l.trim()).filter(Boolean);
+            let summary = `[DỮ LIỆU GOOGLE SHEET "${targetUrl}" - ĐỌC THÀNH CÔNG ${lines.length} DÒNG]:\n`;
+            summary += lines.slice(0, 30).join('\n');
+            resolve(summary);
+          }
+        });
+      }).on('error', (e) => resolve('[GOOGLE SHEET LỖI]: ' + e.message));
+    }
+    fetchCsv(exportUrl);
+  });
 }
 
 // ─── 7. Read File from Drive ──────────────────────────────────────────────
@@ -447,6 +502,10 @@ async function executeOpenClawTool(toolName, args, context = {}) {
       case 'generate_image':
         return await generateImageTool(args.prompt, context.agentKey);
 
+      case 'read_google_sheet':
+      case 'read_sheet':
+        return await readGoogleSheetTool(args.url, args.keyword, context.agentKey || 'default');
+
       case 'save_memory':
         return manageMemoryTool('save', args.note || args.content, context.agentKey);
 
@@ -472,6 +531,7 @@ const OPENCLAW_TOOL_SYSTEM_PROMPT = `
 • create_schedule: {"id":"task_id","cronTime":"0 6 * * *","description":"mô tả","targetType":"discord|zalo","targetChannel":"id"}
 • list_schedules: {} | delete_schedule: {"id":"task_id"}
 • run_powershell: {"command":"lệnh windows"}
+• read_google_sheet: {"url":"https://docs.google.com/spreadsheets/d/...","keyword":"ví của tôi"} (đọc bảng tính Google Sheets)
 • create_excel: {"fileName":"tên","sheetTitle":"sheet","columns":[{"header":"Cột 1","key":"c1"}],"rows":[{"c1":"giá trị"}]}
 • create_formula_sheet: {"fileName":"tên","headers":["A","B","Tổng"],"rows":[[10,20,""]],"formulaColumns":{"C":"=A{ROW}+B{ROW}"}} (tạo bảng tính có công thức tự động tính)
 • solve_with_formula: {"problem":"mô tả bài toán công việc/học tập quy mô lớn"} (xuất công thức Sheets/Excel tối ưu)
@@ -484,42 +544,93 @@ const OPENCLAW_TOOL_SYSTEM_PROMPT = `
 • read_file: {"fileName":"tên_file"} | list_files: {}
 • save_memory: {"note":"ghi nhớ"} | read_memory: {}
 • generate_image: {"prompt":"mô tả ảnh"}
-QUY TẮC: Khi cần hành động thực tế, xuất khối JSON tool. Câu trả lời luôn súc tích, dứt khoát, đi thẳng vào trọng tâm.
+QUY TẮC: Khi cần tra cứu hoặc hành động thực tế, xuất khối JSON tool.
 `;
+
+// ─── Balanced JSON Extractor (Khắc phục 100% lỗi regex ngắt dấu ngoặc nhọn) ──
+function extractBalancedJsonCalls(text) {
+  if (!text || typeof text !== 'string') return [];
+  const calls = [];
+
+  // 1. Kiểm tra khối markdown codeblock
+  const mdRegex = /```(?:json)?\s*(\{[\s\S]*?\})\s*```/g;
+  let mdMatch;
+  while ((mdMatch = mdRegex.exec(text)) !== null) {
+    try {
+      const obj = JSON.parse(mdMatch[1]);
+      if (obj && obj.action) calls.push({ raw: mdMatch[0], parsed: obj });
+    } catch (_) {}
+  }
+  if (calls.length > 0) return calls;
+
+  // 2. Parser đếm cặp dấu ngoặc nhọn cân bằng
+  let startIndex = -1;
+  let depth = 0;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '{') {
+      if (depth === 0) startIndex = i;
+      depth++;
+    } else if (text[i] === '}') {
+      depth--;
+      if (depth === 0 && startIndex !== -1) {
+        const candidate = text.substring(startIndex, i + 1);
+        if (candidate.includes('"action"')) {
+          try {
+            const obj = JSON.parse(candidate);
+            if (obj && obj.action) {
+              calls.push({ raw: candidate, parsed: obj });
+            }
+          } catch (_) {}
+        }
+        startIndex = -1;
+      }
+    }
+  }
+  return calls;
+}
 
 // ─── Tool Response Executor ───────────────────────────────────────────────
 async function executeAgentResponseTools(agentKey, rawResponse, context = {}) {
-  if (!rawResponse || typeof rawResponse !== 'string') return rawResponse;
+  if (!rawResponse || typeof rawResponse !== 'string') {
+    return { output: rawResponse, hasToolCalls: false, needsSecondTurn: false, toolData: '' };
+  }
 
-  const jsonMatches = rawResponse.match(/```json\s*(\{[\s\S]*?"action"[\s\S]*?\})\s*```/g) ||
-                      rawResponse.match(/(\{"action"\s*:\s*"[^"]+?"[\s\S]*?\})/g);
-
-  if (!jsonMatches || jsonMatches.length === 0) return rawResponse;
+  const toolCalls = extractBalancedJsonCalls(rawResponse);
+  if (toolCalls.length === 0) {
+    return { output: rawResponse, hasToolCalls: false, needsSecondTurn: false, toolData: '' };
+  }
 
   let finalResponse = rawResponse;
   const toolResults = [];
+  let isInfoSeeking = false;
 
-  for (const matchStr of jsonMatches) {
+  for (const { raw, parsed } of toolCalls) {
     try {
-      const cleanJson = matchStr.replace(/```json/g, '').replace(/```/g, '').trim();
-      const toolCall = JSON.parse(cleanJson);
-      if (toolCall.action) {
-        const result = await executeOpenClawTool(toolCall.action, toolCall.args || {}, {
+      if (parsed.action) {
+        const result = await executeOpenClawTool(parsed.action, parsed.args || {}, {
           agentKey,
           ...context
         });
         toolResults.push(result);
-        finalResponse = finalResponse.replace(matchStr, '').trim();
+        finalResponse = finalResponse.replace(raw, '').trim();
+
+        // Các công cụ lấy dữ liệu cần vòng suy luận turn 2 để trả lời tự nhiên
+        if (['read_memory', 'read_google_sheet', 'read_sheet', 'read_file', 'web_search', 'web_fetch', 'crypto_price', 'weather'].includes(parsed.action)) {
+          isInfoSeeking = true;
+        }
       }
     } catch (e) {
-      console.warn('[OpenClawToolkit] Parse error for ' + agentKey + ':', e.message);
+      console.warn('[OpenClawToolkit] Execute error for ' + agentKey + ':', e.message);
     }
   }
 
-  if (toolResults.length > 0) {
-    return (finalResponse + '\n\n' + toolResults.join('\n\n')).trim();
-  }
-  return rawResponse;
+  const toolData = toolResults.join('\n\n');
+  return {
+    output: finalResponse,
+    hasToolCalls: toolResults.length > 0,
+    needsSecondTurn: isInfoSeeking,
+    toolData: toolData
+  };
 }
 
 module.exports = {
