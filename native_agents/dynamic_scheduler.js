@@ -144,10 +144,34 @@ class DynamicScheduler {
           const result = await this.callMultiTierAI(item.agentKey, sysPrompt, item.prompt);
 
           if (result && result.trim()) {
+            // Tự động kích hoạt các công cụ (Tool Calls như self_study, save_daily_memory, search_web...)
+            let textToSend = result;
+            try {
+              const toolExec = require('./agent_tool_executor.js');
+              if (toolExec && toolExec.executeAgentResponseTools) {
+                const toolRes = await toolExec.executeAgentResponseTools(item.agentKey, result, {
+                  isScheduler: true,
+                  agentKey: item.agentKey
+                });
+                if (toolRes.hasToolCalls) {
+                  textToSend = toolRes.output || '';
+                  if (!textToSend && toolRes.toolData) textToSend = toolRes.toolData;
+                }
+              }
+            } catch (tErr) {
+              console.warn(`[DynamicScheduler] Tool exec warning for ${item.id}:`, tErr.message);
+            }
+
+            // Nếu lệnh yêu cầu im lặng (vd: cron 4h dọn dẹp) hoặc kết quả rỗng thì không gửi tin nhắn thừa
+            if (!textToSend || !textToSend.trim() || item.prompt.includes('im lặng tuyệt đối')) {
+              console.log(`[DynamicScheduler] 🤫 Job "${item.id}" completed in silence (as requested).`);
+              return;
+            }
+
             if (item.targetType === 'zalo') {
               const sendFn = this.zaloAgent && (this.zaloAgent.sendMessage || this.zaloAgent.sendZaloMessage);
               if (sendFn) {
-                await sendFn(item.targetChannel, result);
+                await sendFn(item.targetChannel, textToSend);
                 console.log(`[DynamicScheduler] 📱 Sent scheduled report "${item.id}" to Zalo ${item.targetChannel}`);
               } else {
                 console.error(`[DynamicScheduler] ❌ No Zalo send function found! (zaloAgent: ${!!this.zaloAgent})`);
@@ -157,7 +181,7 @@ class DynamicScheduler {
               if (client) {
                 const channel = await client.channels.fetch(item.targetChannel);
                 if (channel) {
-                  await this.sendLongMessage(channel, result);
+                  await this.sendLongMessage(channel, textToSend);
                   console.log(`[DynamicScheduler] 💬 Sent scheduled report "${item.id}" to Discord #${channel.name}`);
                 }
               }
