@@ -3,7 +3,7 @@ const path = require('path');
 const https = require('https');
 
 const MEMORY_FILE = path.join(__dirname, 'learning_memory.json');
-const GEMINI_KEY = "process.env.GEMINI_API_KEY || "YOUR_GEMINI_API_KEY"";
+const GEMINI_KEY = "AIzaSyCBtopxSMXhJYAoI0D_ytzQCut_LB67VXc";
 
 // Default Initial Memory Seed based on all past user feedback
 const INITIAL_MEMORY = {
@@ -81,16 +81,30 @@ function saveMemory(mem) {
   }
 }
 
-// Get Concise Learned Context for Prompt Injection
-function getLearnedContext() {
+// Get Concise Contextual Learned Rules (Lọc thông minh theo Protocol & Tiết kiệm token tối đa)
+function getLearnedContext(activeProtocol = "general") {
   const mem = loadMemory();
-  let ctx = "[BỘ KINH NGHIỆM ĐÃ TỰ HỌC TỪ SẾP NEITO]:\n";
-  ctx += `• Phong cách: ${mem.profile.preferred_style}\n`;
-  ctx += "• Quy tắc bắt buộc:\n";
-  mem.learned_rules.forEach(r => {
-    ctx += `  - ${r.rule}\n`;
-  });
-  return ctx;
+  const targetTag = (activeProtocol || "general").toLowerCase();
+
+  // Luôn lấy phong cách cốt lõi
+  let ctx = `[QUY TẮC PHỤC VỤ SẾP NEITO]: ${mem.profile.preferred_style}\n`;
+
+  // Lọc thông minh: Chỉ lấy các rules cốt lõi (communication) + rules của protocol đang chạy
+  const relevantRules = mem.learned_rules.filter(r => {
+    if (r.category === 'communication') return true;
+    if (r.tags && r.tags.includes(targetTag)) return true;
+    if (r.category === targetTag) return true;
+    if (targetTag === 'general' && (!r.tags || r.tags.length === 0)) return true;
+    return false;
+  }).slice(-4); // Chỉ lấy tối đa 4 quy tắc mới nhất và quan trọng nhất để tiết kiệm token
+
+  if (relevantRules.length > 0) {
+    ctx += "• Lưu ý trọng tâm:\n";
+    relevantRules.forEach(r => {
+      ctx += `  - ${r.rule}\n`;
+    });
+  }
+  return ctx.trim();
 }
 
 // Teach a new habit or rule manually
@@ -112,78 +126,48 @@ function learnDirectly(userText) {
   return newRule;
 }
 
-// Automatic Feedback Reflection: Analyze user correction and self-learn
-async function autoReflectAndLearn(userMessage, previousAiOutput) {
+// Automatic Feedback Reflection: Analyze user correction and self-learn via IPC Bridge
+async function autoReflectAndLearn(userMessage, previousAiOutput, activeProtocol = "general") {
   const mem = loadMemory();
   
-  const payload = JSON.stringify({
-    contents: [{
-      parts: [{
-        text: `Bạn là Hệ Thống Tự Tiến Hóa & Học Hỏi của JARVIS. ` +
-              `Sếp vừa phản hồi: "${userMessage}". ` +
-              `Câu trả lời trước đó của AI là: "${previousAiOutput}". ` +
-              `Hãy phân tích xem Sếp có đang sửa lỗi, góp ý hoặc dạy một kinh nghiệm mới không. ` +
-              `Nếu có, trích xuất đúng 1 quy tắc bài học kinh nghiệm ngắn gọn (dưới 20 từ) để AI không bao giờ tái phạm và phục vụ Sếp tốt hơn. ` +
-              `Nếu chỉ là trò chuyện thông thường, trả về is_new_lesson: false.`
-      }]
-    }],
-    generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: "OBJECT",
-        properties: {
-          is_new_lesson: { type: "BOOLEAN" },
-          lesson_rule: { type: "STRING" },
-          category: { type: "STRING", enum: ["communication", "gameplay", "preference", "general"] }
-        },
-        required: ["is_new_lesson", "lesson_rule"]
+  const sysPrompt = "Bạn là Hệ Thống Tự Tiến Hóa & Học Hỏi của Ni-Oh. " +
+                    "Hãy phân tích xem Sếp có đang sửa lỗi, góp ý hoặc dạy một kinh nghiệm mới không. " +
+                    "Nếu có, xuất JSON: {\"is_new_lesson\": true, \"lesson_rule\": \"quy tắc dưới 20 từ\", \"category\": \"communication|gameplay|preference|general\", \"tags\": [\"tên_game_hoặc_lĩnh_vực\"]}. " +
+                    "Nếu chỉ là trò chuyện thông thường, trả về: {\"is_new_lesson\": false}.";
+  const userPrompt = `Sếp vừa phản hồi: "${userMessage}". Câu trả lời trước đó của AI là: "${previousAiOutput}".`;
+
+  try {
+    const rawReply = await ipc.dispatchToAntigravity('default', sysPrompt, userPrompt, 10000);
+    const jsonMatch = rawReply.match(/\{[\s\S]*?"is_new_lesson"[\s\S]*?\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (parsed.is_new_lesson && parsed.lesson_rule && parsed.lesson_rule.trim()) {
+        const ruleText = parsed.lesson_rule.trim();
+        const assignedTags = Array.isArray(parsed.tags) ? parsed.tags : [];
+        if (activeProtocol && !assignedTags.includes(activeProtocol)) {
+          assignedTags.push(activeProtocol.toLowerCase());
+        }
+        mem.learned_rules.push({
+          id: `auto_${Date.now()}`,
+          category: parsed.category || "auto_reflection",
+          rule: ruleText,
+          tags: assignedTags,
+          confidence: 0.95,
+          timestamp: new Date().toISOString()
+        });
+        mem.evolution_log.push({
+          event: `Tự học từ phản hồi: "${userMessage}" -> Bài học: "${ruleText}"`,
+          timestamp: new Date().toISOString()
+        });
+        saveMemory(mem);
+        console.log(`[LearningEngine] Auto-learned new rule: "${ruleText}" (Tags: ${assignedTags.join(', ')})`);
+        return ruleText;
       }
     }
-  });
-
-  return new Promise((resolve) => {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${GEMINI_KEY}`;
-    const req = https.request(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      timeout: 10000
-    }, (res) => {
-      let data = "";
-      res.on("data", c => data += c);
-      res.on("end", () => {
-        try {
-          const json = JSON.parse(data);
-          const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (rawText) {
-            const parsed = JSON.parse(rawText);
-            if (parsed.is_new_lesson && parsed.lesson_rule && parsed.lesson_rule.trim()) {
-              const ruleText = parsed.lesson_rule.trim();
-              mem.learned_rules.push({
-                id: `auto_${Date.now()}`,
-                category: parsed.category || "auto_reflection",
-                rule: ruleText,
-                confidence: 0.95,
-                timestamp: new Date().toISOString()
-              });
-              mem.evolution_log.push({
-                event: `Tự học từ phản hồi: "${userMessage}" -> Bài học: "${ruleText}"`,
-                timestamp: new Date().toISOString()
-              });
-              saveMemory(mem);
-              console.log(`[LearningEngine] Auto-learned new rule: "${ruleText}"`);
-              return resolve(ruleText);
-            }
-          }
-        } catch (_) {}
-        resolve(null);
-      });
-    });
-
-    req.on("error", () => resolve(null));
-    req.on("timeout", () => { req.destroy(); resolve(null); });
-    req.write(payload);
-    req.end();
-  });
+  } catch (err) {
+    console.warn("[LearningEngine] Auto-reflection error:", err.message);
+  }
+  return null;
 }
 
 function getMemorySummary() {
@@ -204,3 +188,6 @@ module.exports = {
   autoReflectAndLearn,
   getMemorySummary
 };
+
+
+
