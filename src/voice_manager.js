@@ -43,6 +43,13 @@ const VOICE_PRESETS = {
 let currentEngine = process.env.VOICE_ENGINE || 'edge';
 let customVoiceName = process.env.VOICE_NAME || 'vi-VN-NamMinhNeural';
 
+// Voice state
+let currentConnection = null;
+let currentTextChannel = null;
+let audioPlayer = null;
+let isSpeaking = false;
+let speechQueue = [];
+
 function listAvailableVoices() {
   return Object.entries(VOICE_PRESETS).map(([key, info]) => ({
     key: key,
@@ -77,8 +84,12 @@ function normalizeForVietnameseSpeech(raw) {
     .replace(/https?:\/\/\S+/g, '')
     .replace(/\[.*?\]/g, '')
     .replace(/💡|🎙️|🔊|ℹ️|⚠️|❌|🟢|🔴|🤖|👤|🧠|👉|✨|🎮|📌|🛡️/g, '')
-    .replace(/\bJARVIS\b/gi, 'Gia Vít')
-    .replace(/\bJ\.A\.R\.V\.I\.S\b/gi, 'Gia Vít')
+    .replace(/\bNi-Oh\b/gi, 'Ni Ô')
+    .replace(/\bNioh\b/gi, 'Ni Ô')
+    .replace(/\bNi Oh\b/gi, 'Ni Ô')
+    .replace(/\bJARVIS\b/gi, 'Ni Ô')
+    .replace(/\bJ\.A\.R\.V\.I\.S\b/gi, 'Ni Ô')
+    .replace(/\bGia Vít\b/gi, 'Ni Ô')
     .replace(/\bAI\b/gi, 'A I')
     .replace(/\bDiscord\b/gi, 'Đít Coóc')
     .replace(/\bStream\b/gi, 'xì trim')
@@ -224,7 +235,7 @@ async function speak(text) {
     const cleanText = normalizeForVietnameseSpeech(text);
     if (!cleanText) return false;
 
-    const tempAudio = path.join(process.env.TEMP, `jarvis_speech_${Date.now()}.mp3`);
+    const tempAudio = path.join(process.env.TEMP, `nioh_speech_${Date.now()}.mp3`);
 
     if (currentEngine === 'vieneu') {
       try {
@@ -288,34 +299,65 @@ function convertPcmToMp3(pcmBuffer) {
   });
 }
 
-// STT: Transcribe audio with Gemini 3.6 Flash
+function getOpenRouterKey() {
+  try {
+    const keysPath = path.join(__dirname, 'api_keys.json');
+    if (fs.existsSync(keysPath)) {
+      const keys = JSON.parse(fs.readFileSync(keysPath, 'utf8'));
+      return keys.openrouter?.default || Object.values(keys.openrouter || {})[0] || '';
+    }
+  } catch (_) {}
+  return process.env.OPENROUTER_API_KEY || '';
+}
+
+// STT: Transcribe audio with Multi-Tier AI (OpenRouter Gemini 2.5 Flash 0-Leak Key)
 function transcribeAudioFile(audioFilePath) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
+    const openRouterKey = getOpenRouterKey();
+    if (!openRouterKey) {
+      console.warn('[VoiceManager] Không tìm thấy OpenRouter key cho STT.');
+      try { fs.unlinkSync(audioFilePath); } catch (_) {}
+      return resolve('');
+    }
+
     const base64Audio = fs.readFileSync(audioFilePath).toString('base64');
     const payload = JSON.stringify({
-      contents: [{
-        parts: [
-          { inline_data: { mime_type: 'audio/mp3', data: base64Audio } },
-          { text: 'Bạn là bộ chuyển giọng nói thành văn bản tiếng Việt. Hãy chép lại chính xác lời người nói. Nếu không có giọng nói con người rõ ràng hoặc chỉ là tiếng ồn/nhạc nền, trả về đúng từ: NO_SPEECH' }
+      model: 'google/gemini-2.5-flash',
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'text', text: 'Bạn là bộ chuyển giọng nói thành văn bản tiếng Việt. Hãy chép lại chính xác từng từ người nói. Nếu không có giọng nói con người rõ ràng hoặc chỉ là tiếng ồn/nhạc nền, trả về đúng từ: NO_SPEECH' },
+          { type: 'image_url', image_url: { url: `data:audio/mp3;base64,${base64Audio}` } }
         ]
-      }]
+      }],
+      max_tokens: 500,
+      temperature: 0.1
     });
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_KEY}`;
-    const req = https.request(url, {
+    const req = https.request('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      timeout: 10000
+      headers: {
+        'Authorization': 'Bearer ' + openRouterKey,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://antigravity.google.com',
+        'X-Title': 'Antigravity Voice Engine'
+      },
+      timeout: 15000
     }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
         try {
           const json = JSON.parse(data);
-          const transcript = json.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-          resolve(transcript);
+          const transcript = json.choices?.[0]?.message?.content?.trim() || '';
+          if (transcript === 'NO_SPEECH' || !transcript) {
+            resolve('');
+          } else {
+            console.log(`[VoiceManager:STT] ✅ Transcribed: "${transcript}"`);
+            resolve(transcript);
+          }
         } catch (e) {
-          reject(e);
+          resolve('');
         } finally {
           try { fs.unlinkSync(audioFilePath); } catch (_) {}
         }
@@ -323,13 +365,15 @@ function transcribeAudioFile(audioFilePath) {
     });
 
     req.on('error', (e) => {
+      console.warn('[VoiceManager:STT] Request error:', e.message);
       try { fs.unlinkSync(audioFilePath); } catch (_) {}
-      reject(e);
+      resolve('');
     });
     req.on('timeout', () => {
       req.destroy();
+      console.warn('[VoiceManager:STT] Request timeout');
       try { fs.unlinkSync(audioFilePath); } catch (_) {}
-      reject(new Error('STT Timeout'));
+      resolve('');
     });
     req.write(payload);
     req.end();
@@ -357,7 +401,7 @@ function joinVoice(voiceChannel, textChannel, onVoicePromptCallback) {
 
   currentConnection.on(VoiceConnectionStatus.Ready, () => {
     console.log(`[VoiceManager] Connected to voice channel: ${voiceChannel.name} (Engine: ${currentEngine} - Voice: ${customVoiceName})`);
-    speak("Thưa Sếp Neito. Em là Gia Vít, đã sẵn sàng hỗ trợ sếp!");
+    speak("Thưa Sếp Neito. Em là Ni-Oh, đã sẵn sàng hỗ trợ sếp!");
   });
 
   const receiver = currentConnection.receiver;
@@ -396,7 +440,7 @@ function joinVoice(voiceChannel, textChannel, onVoicePromptCallback) {
         console.log(`[VoiceManager] Heard speech: "${transcript}"`);
 
         const lower = transcript.toLowerCase();
-        if (lower.includes('jarvis') || lower.includes('gia vít') || lower.includes('hệ thống') || lower.includes('ravis') || lower.includes('travis') || lower.includes('za vít') || lower.includes('da vít')) {
+        if (lower.includes('ni-oh') || lower.includes('nioh') || lower.includes('ni oh') || lower.includes('ni ô') || lower.includes('hệ thống') || lower.includes('quản đốc') || lower.includes('đầu não')) {
           console.log(`[VoiceManager] Wake-word MATCHED! Forwarding to handler...`);
           if (onVoicePromptCallback) {
             onVoicePromptCallback(transcript, currentTextChannel);
@@ -458,13 +502,23 @@ function selectVoice(voiceKey) {
 }
 
 function listAvailableVoices() {
-  return VOICE_PRESETS;
+  return Object.entries(VOICE_PRESETS).map(([key, info]) => ({
+    key,
+    description: info.desc,
+    engine: info.engine,
+    voice: info.voice,
+    lang: info.lang
+  }));
 }
 
+function getCurrentVoiceName() {
+  return customVoiceName;
+}
 
 module.exports = {
   setCustomVoice,
   getCustomVoice: () => customVoiceName,
+  getCurrentVoiceName,
   joinVoice,
   leaveVoice,
   speak,
