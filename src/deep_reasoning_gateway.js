@@ -1,4 +1,4 @@
-﻿const https = require('https');
+const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -35,14 +35,31 @@ async function reasonDeep(systemPrompt, userPrompt, mediaItems = [], options = {
 
   // 1. Antigravity IPC Bridge (Google Gemini 3.6 Flash / Flash Lite)
   if (provider === 'antigravity') {
-    const ipc = require('../ipc/antigravity_ipc_bridge.js');
-    return await ipc.dispatchToAntigravity(
-      options.agentKey || 'default',
-      systemPrompt,
-      userPrompt,
-      mediaItems,
-      options.timeoutMs || 25000
-    );
+    try {
+      const ipc = require('../ipc/antigravity_ipc_bridge.js');
+      return await ipc.dispatchToAntigravity(
+        options.agentKey || 'default',
+        systemPrompt,
+        userPrompt,
+        mediaItems,
+        options.timeoutMs || 25000
+      );
+    } catch (_) {
+      // Fallback sang Direct Gemini API nếu không có Antigravity IPC bridge
+      const gKey = options.apiKey || (apiKeys.google && apiKeys.google[0]) || process.env.GEMINI_API_KEY;
+      if (gKey && !gKey.startsWith('AQ.')) {
+        return await callGeminiDirect(gKey, systemPrompt, userPrompt, mediaItems);
+      }
+      // Hoặc fallback sang Local Ollama nếu có
+      return await callOllamaLocal(systemPrompt, userPrompt);
+    }
+  }
+
+  // 1.1 Direct Gemini API (Dành cho cộng đồng dùng Gemini API Key miễn phí từ aistudio.google.com)
+  if (provider === 'gemini' || provider === 'google') {
+    const gKey = options.apiKey || (apiKeys.google && apiKeys.google[0]) || process.env.GEMINI_API_KEY;
+    if (!gKey) throw new Error('Chưa cấu hình GEMINI_API_KEY trong file .env');
+    return await callGeminiDirect(gKey, systemPrompt, userPrompt, mediaItems);
   }
 
   // 2. Local Ollama Engine (100% Offline - Hoàn toàn không tốn Token Cloud)
@@ -161,9 +178,102 @@ async function reasonDeep(systemPrompt, userPrompt, mediaItems = [], options = {
     });
   }
 
-  // Fallback sang Antigravity
-  const ipc = require('../ipc/antigravity_ipc_bridge.js');
-  return await ipc.dispatchToAntigravity(options.agentKey || 'default', systemPrompt, userPrompt, mediaItems);
+  // Fallback sang Antigravity hoặc Direct Gemini
+  try {
+    const ipc = require('../ipc/antigravity_ipc_bridge.js');
+    return await ipc.dispatchToAntigravity(options.agentKey || 'default', systemPrompt, userPrompt, mediaItems);
+  } catch (_) {
+    const gKey = options.apiKey || (apiKeys.google && apiKeys.google[0]) || process.env.GEMINI_API_KEY;
+    if (gKey && !gKey.startsWith('AQ.')) return await callGeminiDirect(gKey, systemPrompt, userPrompt, mediaItems);
+    return await callOllamaLocal(systemPrompt, userPrompt);
+  }
+}
+
+async function callOllamaLocal(systemPrompt, userPrompt, model = 'qwen2.5:7b') {
+  return new Promise((resolve) => {
+    const payload = JSON.stringify({
+      model: model,
+      prompt: `${systemPrompt}\n\n[YÊU CẦU]:\n${userPrompt}`,
+      stream: false
+    });
+    const req = http.request({
+      hostname: '127.0.0.1',
+      port: 11434,
+      path: '/api/generate',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 30000
+    }, (res) => {
+      let b = '';
+      res.on('data', c => b += c);
+      res.on('end', () => {
+        try {
+          const j = JSON.parse(b);
+          resolve(j.response ? j.response.trim() : 'Không có phản hồi từ Local Model');
+        } catch (_) { resolve('Lỗi parse phản hồi từ Local Model'); }
+      });
+    });
+    req.on('error', (e) => resolve(`Lỗi kết nối Local Ollama: ${e.message}`));
+    req.on('timeout', () => { req.destroy(); resolve('Timeout kết nối Local Model'); });
+    req.write(payload);
+    req.end();
+  });
+}
+
+async function callGeminiDirect(apiKey, systemPrompt, userPrompt, mediaItems = []) {
+  return new Promise((resolve) => {
+    const contents = [{
+      role: 'user',
+      parts: [{ text: systemPrompt ? `${systemPrompt}\n\n[YÊU CẦU]:\n${userPrompt}` : userPrompt }]
+    }];
+
+    if (Array.isArray(mediaItems) && mediaItems.length > 0) {
+      for (const m of mediaItems) {
+        if (m.inlineData) {
+          contents[0].parts.push({
+            inlineData: {
+              mimeType: m.inlineData.mimeType || 'image/png',
+              data: m.inlineData.data
+            }
+          });
+        }
+      }
+    }
+
+    const payload = JSON.stringify({ contents });
+    const req = https.request({
+      hostname: 'generativelanguage.googleapis.com',
+      path: `/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload)
+      },
+      timeout: 30000
+    }, (res) => {
+      let b = '';
+      res.on('data', c => b += c);
+      res.on('end', () => {
+        try {
+          const j = JSON.parse(b);
+          if (j.candidates && j.candidates[0]?.content?.parts?.[0]?.text) {
+            resolve(j.candidates[0].content.parts[0].text.trim());
+          } else if (j.error) {
+            resolve(`[Gemini Error] ${j.error.message}`);
+          } else {
+            resolve('Không có phản hồi từ Gemini API.');
+          }
+        } catch (e) {
+          resolve(`[Parse Error] ${b}`);
+        }
+      });
+    });
+
+    req.on('error', (e) => resolve(`[Network Error] ${e.message}`));
+    req.on('timeout', () => { req.destroy(); resolve('[Timeout] Hết thời gian chờ Gemini API.'); });
+    req.write(payload);
+    req.end();
+  });
 }
 
 module.exports = {
