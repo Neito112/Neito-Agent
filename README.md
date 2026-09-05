@@ -5,194 +5,169 @@
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6.svg)]()
 [![1-Click Setup](https://img.shields.io/badge/1--Click%20Setup-Zero--Config%20start.bat-brightgreen.svg)]()
 [![Zero-Token](https://img.shields.io/badge/Edge%20AI-0--Token%20Formula%20%26%20Vision-orange.svg)]()
+[![Anti-Ad AI](https://img.shields.io/badge/Anti--Ad%20Engine-100%25%20Clean%20Knowledge-success.svg)]()
 
-> **Ni-Oh** là một **Trợ Lý Chiến Lược Đa Năng** được phát triển bởi **Neito112**, đồng hành cùng bạn 24/7 trong cả **Công Việc, Học Tập, Nghiên Cứu, Xử Lý Dữ Liệu và Tác Chiến Game**.
+> **Ni-Oh** là một **Trợ Lý Chiến Lược Đa Năng Tự Trị** được sáng tạo và phát triển bởi **Neito112**, đồng hành cùng bạn 24/7 trong **Công Việc, Học Tập, Nghiên Cứu Chuyên Sâu, Xử Lý Bảng Tính Tự Động và Tác Chiến Màn Hình Thời Gian Thực**.
 > 
-> Khác với các chatbot AI thụ động thông thường chỉ biết trò chuyện, Ni-Oh sở hữu:
-> - ⚡ **Mắt nhìn cục bộ 0-Token**: Quét màn hình thời gian thực độ phân giải gốc 1080p/2K bằng Windows Native OCR và VLM Moondream.
-> - 🧠 **Bộ não bồi đắp tri thức 24/7**: Chạy ngầm liên tục cập nhật meta, tài liệu vào kho kiến thức vĩnh viễn không tốn token cloud.
-> - 📊 **Động cơ Bảng Tính 0-Token (Formula-Driven Engine)**: Tự động sinh công thức Google Sheets / Excel (`SUMIFS`, `XLOOKUP`, `ARRAYFORMULA`) để giải quyết các bài toán lớn mà không đốt token suy luận.
-> - 🚀 **Khởi động 1-Click (`start.bat`)**: Tự động hóa 100% môi trường, chạy được ngay cả trên **máy tính mới tinh vừa cài lại Windows**.
+> Khác biệt hoàn toàn với các chatbot AI thông thường:
+> - 💬 **100% Nhắn Tin Tự Nhiên (Zero `!` Commands)**: Không cần ghi nhớ bất kỳ cú pháp lệnh thô cứng nào. Toàn bộ tính năng được điều khiển mượt mà bằng hội thoại tự nhiên tiếng Việt.
+> - 📺 **Tự Học Đa Phương Thức Độc Lập & Chống Rác/Quảng Cáo (Anti-Ad Self-Learning)**: Tự động tra cứu video YouTube, đọc bài viết công nghệ, bóc tách phụ đề và bài học thực chiến. Tích hợp bộ lọc 100% Anti-Ad / Anti-Sponsor (chặn toàn bộ quảng cáo, tài trợ, VPN, mời chào mua hàng).
+> - ⚡ **Mắt Nhìn Cục Bộ 0-Token**: Quét màn hình thời gian thực độ phân giải gốc 1080p/2K bằng Windows Native OCR và mô hình thị giác VLM Moondream cục bộ.
+> - 📊 **Động Cơ Bảng Tính 0-Token**: Tự động sinh công thức Google Sheets / Excel (`SUMIFS`, `XLOOKUP`, `ARRAYFORMULA`) với độ chính xác số học 100%, tiết kiệm 99.9% token.
+> - 🚀 **Khởi Động 1-Click (`start.bat`)**: Tự động hóa 100% môi trường, chạy ngay lập tức trên máy tính mới tinh vừa cài lại Windows.
+
+---
+
+## 💬 Điều Khiển Bằng Nhắn Tin Tự Nhiên (Không Dùng Tiền Tố `!`)
+
+Hệ thống đã **loại bỏ hoàn toàn các tiền tố lệnh `!`**. Bạn chỉ cần trò chuyện, nhắn tin hoặc tag Ni-Oh trên Discord/Terminal như một người đồng đội thực thụ:
+
+| Nhu cầu của bạn | Ví dụ tin nhắn tự nhiên (Gõ trực tiếp) | Hành động của Ni-Oh |
+| :--- | :--- | :--- |
+| **Bật soi màn hình** | *"Ni-Oh soi màn hình giúp tôi với"*, *"Bắt đầu theo dõi màn hình"* | Bật OCR & VLM cục bộ, phân tích giao diện và chiến thuật. |
+| **Dừng soi màn hình** | *"Dừng theo dõi màn hình nhé"*, *"Tắt chế độ live đi"* | Dừng quét màn hình, tổng kết nhật ký phiên làm việc. |
+| **Kiểm tra trạng thái** | *"Tình hình màn hình thế nào rồi?"*, *"Báo cáo trạng thái"* | Báo cáo giao thức đang chạy, độ tự tin và khuyến nghị. |
+| **Tự học kiến thức mới** | *"Hãy tự học cách tối ưu Blender Geometry Nodes"*, *"Nghiên cứu kiến thức về AI Agent"* | Tự tra cứu video/bài viết, bóc tách phụ đề, lọc sạch quảng cáo và lưu vào kho nhớ độc lập. |
+| **Lập bảng tính Excel** | *"Tạo cho tôi bảng tính tính lương KPI nhân viên"*, *"Làm file excel theo dõi chi phí"* | Sinh file `.xlsx` nạp sẵn công thức tự động tính toán. |
+| **Đổi giọng đọc Voice** | *"Đổi sang giọng Hoài My nhé"*, *"Chuyển giọng Nam Minh"* | Chuyển đổi giọng đọc AI Edge-TTS mượt mà tức thì. |
+| **Nghe thử giọng đọc** | *"Nói thử câu này bằng giọng mới đi"* | Phát âm thanh demo trực tiếp qua Voice Channel / Loa. |
+| **Hỏi đáp chiến lược** | *"Phần mềm này có phím tắt gì tối ưu không?"*, *"Phân tích case này"* | Phân tích chuyên sâu dựa trên kho tri thức đã tích lũy. |
+
+---
+
+## 📺 Cơ Chế Tự Học Đa Phương Thức & Chống Quảng Cáo (Anti-Ad Engine)
+
+Khi được giao nhiệm vụ tự học một chủ đề mới, hệ thống kích hoạt chuỗi tác vụ tự trị hoàn toàn:
+
+```
+[Chủ đề tự học] 
+       │
+       ├──► 1. Tự tìm kiếm tài liệu & video hướng dẫn (DuckDuckGo + YouTube Search)
+       ├──► 2. Tự động bóc tách video nhúng (Embedded iframes/links trong bài viết)
+       ├──► 3. Trích xuất phụ đề chi tiết kèm mốc thời gian (Timestamps)
+       ├──► 4. Bộ lọc Chống Quảng Cáo & Tài Trợ (Anti-Ad / Anti-Sponsor Filter)
+       │         └── Loại bỏ 100%: Nhà tài trợ, Mã giảm giá, Quảng cáo VPN, 
+       │                           Kêu gọi Like/Subscribe, Link cờ bạc & Spam
+       ├──► 5. Mô hình cục bộ (Local LLM trên RTX 3060) đúc kết bài học kỹ thuật
+       └──► 6. Ghi chép vào Kho Tri Thức Độc Lập của Agent (0 pha trộn, 0 rò rỉ)
+```
+
+### Điểm cốt lõi về Độc lập Tri thức:
+- **Kiến thức của Agent nào thuộc về Agent đó**: Không có việc gộp chung hay phân chia lẫn lộn. Agent kiến trúc lưu vào kho kiến trúc, Agent thiết kế lưu vào kho thiết kế.
+- **0 Token Cloud**: Toàn bộ quá trình tổng hợp và trích xuất tri thức sử dụng mô hình AI cục bộ chạy trực tiếp trên GPU máy bạn, bảo mật 100% dữ liệu.
+
+---
+
+## 📊 Bảng Thống Kê Tổng Thể Hệ Thống
+
+### 1. Bảng Nhiệm Vụ & Tiến Trình Đang Vận Hành
+
+| Tiến trình / Dịch vụ | Tệp thực thi | Vai trò & Cơ chế vận hành | Trạng thái |
+| :--- | :--- | :--- | :--- |
+| **Master Orchestrator** | `server.js` | Quản lý vòng đời toàn bộ 6 Agent, phân luồng tin nhắn và API Webhook. | 🟢 Online 24/7 |
+| **Live Screen Companion** | `strategic_live_companion.js` | Chụp màn hình, OCR nhận diện văn bản, phân tích ngữ cảnh cửa sổ làm việc. | 🟢 Sẵn sàng |
+| **Autonomous Video Learner** | `local_video_learner.js` | Tự tìm video, bóc tách phụ đề, lọc sạch quảng cáo, tổng hợp bài học. | 🟢 Sẵn sàng |
+| **Knowledge Daemon** | `knowledge_daemon.js` | Chạy ngầm bồi đắp tri thức vào giao thức và kho nhớ vĩnh viễn. | 🟢 Chạy nền |
+| **Computation Engine** | `computation_sheet_engine.js` | Sinh công thức Excel/Google Sheets chuẩn xác, kết xuất file bảng tính. | 🟢 Sẵn sàng |
+| **Robotics Gateway** | `src/robotics_bridge/robot_gateway.js` | Cổng HTTP/WebSocket/ROS 2 kết nối cảm biến và điều khiển robot thế giới thực. | 🟢 Sẵn sàng |
+| **Desktop Overlay HUD** | `src/desktop_overlay/overlay_server.js` | Giao diện HUD nổi đè lên màn hình, phím tắt Alt+Space gọi trợ lý nhanh. | 🟢 Sẵn sàng |
+| **Dual Vault Sync** | `scratch/sync_vault.cjs` | Tự động sao lưu toàn bộ mã nguồn, dữ liệu, bộ nhớ lên GitHub Vault. | 🟢 Đã cấu hình |
+
+### 2. Bảng Danh Mục Công Cụ (Tools Sẵn Có)
+
+| Nhóm công cụ | Tên công cụ | Mô tả chức năng |
+| :--- | :--- | :--- |
+| **Học tập & Thu thập** | `self_study` | Tự nghiên cứu đề tài qua văn bản, bài viết kỹ thuật và video YouTube sạch bóng quảng cáo. |
+| | `read_document` | Đọc và bóc tách nội dung tệp văn bản, code, markdown, tài liệu kỹ thuật. |
+| | `analyze_design_file` | Bóc tách hình ảnh xem trước và cấu trúc tệp thiết kế (`.cdr`, `.skp`, `.max`, `.psd`...). |
+| **Xử lý Dữ liệu** | `create_spreadsheet` | Tạo bảng tính Excel với công thức động (`SUMIFS`, `XLOOKUP`, `ARRAYFORMULA`). |
+| | `create_document` | Xuất file Word (`.docx`), Slide thuyết trình (`.pptx`), tệp PDF tiếng Việt. |
+| **Thị giác & Giám sát** | `capture_screen` | Chụp màn hình hiện tại để phân tích cửa sổ phần mềm và tác vụ. |
+| | `ocr_screen` | Nhận diện chữ viết trên màn hình bằng Windows Native OCR (0 token). |
+| | `vlm_describe` | Phân tích chi tiết hình ảnh bằng mô hình thị giác Moondream cục bộ. |
+| **Giao tiếp & Tương tác** | `natural_chat` | Phản hồi ngôn ngữ tự nhiên, giải quyết vấn đề và đề xuất chiến thuật. |
+| | `text_to_speech` | Phát âm thanh giọng đọc tiếng Việt/Anh/Nhật tự nhiên qua Edge-TTS. |
+| | `discord_bridge` | Tương tác 2 chiều trong server Discord (kênh chat text & voice). |
+
+### 3. Bảng Đội Ngũ Agent & Chuyên Môn Cốt Lõi
+
+| Tên Agent | Định danh | Chuyên môn cốt lõi | Thư mục bộ nhớ độc lập |
+| :--- | :--- | :--- | :--- |
+| 🛡️ **Ni-Oh** | `nioh` | Trợ lý chiến lược toàn năng, chỉ huy tác chiến, tương tác chính với người dùng. | `protocols/*_memory.json` |
+| 🏛️ **Khung** | `architect` | Kiến trúc sư phần mềm, thiết kế hệ thống, phân tích cấu trúc giải pháp. | `workspaces/architect/memory/` |
+| 🎨 **Nét** | `designer` | Thiết kế đồ họa, UI/UX, xử lý tệp thiết kế (CAD, 3D, CDR, PSD). | `workspaces/designer/memory/` |
+| 📰 **Tin** | `journalist` | Biên tập nội dung, phân tích tin tức thị trường, viết báo cáo tài liệu. | `workspaces/journalist/memory/` |
+| 💻 **Kim** | `engineer` | Kỹ sư lập trình, phát triển module, gỡ lỗi và tối ưu hiệu năng mã nguồn. | `workspaces/engineer/memory/` |
+| 🏠 **Cư** | `resident` | Quản gia số, theo dõi lịch trình, tự động hóa tác vụ gia đình và thiết bị IoT. | `workspaces/resident/memory/` |
 
 ---
 
 ## 🚀 Hướng Dẫn Cài Đặt 1-Click (Dành Cho Máy Mới Cài Win)
 
-Ngay cả khi máy tính của bạn vừa mới cài lại Windows 10 hoặc Windows 11, **chưa cài đặt bất kỳ phần mềm lập trình nào** (chưa có Node.js, chưa có Git, chưa có Python), bạn chỉ cần làm đúng 2 bước:
+Ngay cả khi máy tính của bạn vừa mới cài lại Windows 10 hoặc Windows 11, **chưa cài đặt bất kỳ công cụ lập trình nào** (chưa có Node.js, chưa có Git, chưa có Python), bạn chỉ cần làm đúng 2 bước:
 
 ### Bước 1: Tải mã nguồn về máy
-* Bấm vào nút màu xanh **`Code`** ở đầu trang GitHub này ➔ Chọn **`Download ZIP`**.
-* Hoặc tải nhanh bằng Git (nếu máy bạn đã có Git):
+* Bấm nút **`Code`** ở đầu trang GitHub này ➔ Chọn **`Download ZIP`**.
+* Hoặc tải bằng Git nếu đã có sẵn:
   ```cmd
   git clone https://github.com/Neito112/Neito-Agent.git
   ```
-* Giải nén file ZIP vừa tải vào một thư mục bất kỳ trên máy (Ví dụ: `D:\Neito-Agent` hoặc ngoài Desktop).
+* Giải nén file ZIP vào một thư mục bất kỳ (ví dụ `D:\Neito-Agent`).
 
-### Bước 2: Nhấp đúp chuột vào file `start.bat`
-* Vào thư mục vừa giải nén, nhấp đúp vào file **`start.bat`**.
-* Hệ thống sẽ tự động làm toàn bộ mọi việc từ A đến Z!
-
----
-
-## ⚙️ Cơ Chế Tự Động Hóa Của `start.bat`
-
-Khi bạn nhấp vào `start.bat`, script sẽ tự động thực hiện các tác vụ sau mà bạn không cần gõ bất kỳ câu lệnh nào:
-
-1. **Tự động tải Node.js LTS Portable**:
-   - Nếu máy bạn chưa có Node.js, `start.bat` sẽ tự động dùng công cụ có sẵn của Windows để tải bản **Node.js v20 LTS Portable chính thức từ nodejs.org** (~29MB).
-   - Tự giải nén vào thư mục độc lập `.runtime\`.
-   - **Ưu điểm**: Không cần quyền Administrator, không cài đè lên hệ thống, không tạo rác Registry, xóa project là sạch máy 100%.
-2. **Tự động cài đặt thư viện (`npm install`)**:
-   - Tự động tải và thiết lập toàn bộ các thư viện cần thiết (`discord.js`, `exceljs`, `docx`, `pptxgenjs`, `pdf-lib`, `node-edge-tts`...).
-3. **Tự động kiểm tra phần cứng & GPU**:
-   - Nhận diện card đồ họa trên máy (Intel / AMD / NVIDIA).
-   - Kiểm tra xem driver CUDA của NVIDIA đã sẵn sàng cho AI tăng tốc hay chưa.
-4. **Tự động hỗ trợ tải Local AI Engine (Ollama)**:
-   - Nếu bạn muốn chạy AI hoàn toàn Offline không tốn 1 đồng tiền token nào, `start.bat` có sẵn tùy chọn 1-click tải bộ cài Ollama chính thức.
-5. **Kích hoạt chế độ Trò Chuyện Trực Tiếp (Interactive CLI)**:
-   - Ngay cả khi bạn chưa cấu hình Discord Bot, `start.bat` vẫn không bao giờ bị văng hay tắt đột ngột. Nó sẽ tự bật khung chat ngay trên cửa sổ đen (Terminal) để bạn trò chuyện và nhờ Ni-Oh giải toán/làm việc ngay lập tức!
+### Bước 2: Nhấp đúp vào file `start.bat`
+* Vào thư mục vừa giải nén, nhấp đúp chuột vào file **`start.bat`**.
+* Hệ thống sẽ tự động:
+  1. Tải bản **Node.js LTS Portable chính thức từ nodejs.org** và giải nén vào thư mục độc lập (không cần quyền Admin, không ghi rác Registry).
+  2. Tự động cài đặt 100% thư viện phụ thuộc (`npm install`).
+  3. Kiểm tra GPU và driver CUDA NVIDIA.
+  4. Hỗ trợ tải bộ cài Local AI Ollama nếu bạn muốn chạy Offline 100%.
+  5. Mở khung chat trực tiếp trên màn hình để bạn trò chuyện cùng Ni-Oh ngay lập tức!
 
 ---
 
-## ⚠️ Những Thứ `start.bat` Không Thể Tự Cài (Cần Người Dùng Cung Cấp)
+## ⚠️ Những Thứ Cần Người Dùng Cung Cấp
 
-Có những thông tin mang tính **bảo mật và riêng tư cá nhân** mà hệ thống không thể tự tạo thay cho bạn. Dưới đây là những thứ bạn cần chuẩn bị (Hệ thống sẽ tự động thông báo và hướng dẫn ngay trên màn hình khi cần):
+Vì lý do **bảo mật và riêng tư**, hệ thống không thể tự tạo các thông tin này thay cho bạn:
 
-### 1. Token Discord Bot (Để đưa Ni-Oh vào Discord của bạn)
-* **Vì sao không thể tự cài**: Discord Bot Token là tài khoản bảo mật của riêng bạn, chỉ bạn mới có quyền tạo và quản lý.
-* **Cách lấy miễn phí trong 1 phút**:
-  1. Truy cập trang nhà phát triển Discord: [https://discord.com/developers/applications](https://discord.com/developers/applications)
-  2. Bấm nút **`New Application`** ở góc trên bên phải ➔ Đặt tên cho bot (Ví dụ: `Ni-Oh`).
-  3. Chọn menu **`Bot`** ở cột bên trái ➔ Bấm **`Reset Token`** (hoặc `Copy Token`) để lấy Token.
-  4. Kéo xuống phần **`Privileged Gateway Intents`**, bật xanh cả 3 mục:
-     - ✅ **`PRESENCE INTENT`**
-     - ✅ **`SERVER MEMBERS INTENT`**
-     - ✅ **`MESSAGE CONTENT INTENT`**
-  5. Mở file `.env` (hoặc `tokens.json`) và dán token vào dòng:
-     ```env
-     DISCORD_TOKEN=dán_token_của_bạn_vào_đây
-     ```
-  6. Vào mục **`OAuth2`** ➔ **`URL Generator`** ➔ Tích chọn `bot` và `Administrator` ➔ Copy đường link hiện ra dán vào trình duyệt để mời Bot vào Discord Server của bạn.
+1. **Token Discord Bot** (Nếu muốn trò chuyện qua Discord):
+   - Tạo bot miễn phí tại: [Discord Developer Portal](https://discord.com/developers/applications).
+   - Bật cả 3 mục **Privileged Gateway Intents** (`Presence`, `Server Members`, `Message Content`).
+   - Dán token vào file `.env`: `DISCORD_TOKEN=dán_token_của_bạn_vào_đây`.
+2. **Google Gemini API Key** (Nếu dùng Cloud AI - Miễn phí):
+   - Lấy key trong 30 giây tại: [Google AI Studio](https://aistudio.google.com).
+   - Dán vào `.env`: `GEMINI_API_KEY=dán_key_vào_đây`.
+3. **Driver NVIDIA Game Ready / Studio** (Nếu máy có card rời NVIDIA):
+   - Cài đặt driver mới nhất tại [nvidia.com](https://www.nvidia.com/download/index.aspx) để kích hoạt nhân CUDA giúp AI chạy nhanh gấp 15-20 lần.
+4. **Bấm "Allow access" khi Windows Firewall hỏi**:
+   - Tích chọn cả **Private networks** và **Public networks** khi tường lửa hiện thông báo để bot kết nối mạng ra ngoài.
 
 ---
 
-### 2. Google Gemini API Key (Nếu dùng chế độ Cloud AI - Hoàn toàn MIỄN PHÍ)
-* **Vì sao không thể tự cài**: Cần liên kết với tài khoản Google của bạn để nhận hạn mức miễn phí.
-* **Cách lấy miễn phí trong 30 giây**:
-  1. Truy cập Google AI Studio: [https://aistudio.google.com](https://aistudio.google.com)
-  2. Đăng nhập tài khoản Google ➔ Bấm **`Get API Key`** ➔ Bấm **`Create API Key`**.
-  3. Dán key vào file `.env`:
-     ```env
-     GEMINI_API_KEY=dán_gemini_key_vào_đây
-     ```
+## 🔒 Kiến Trúc Đồng Bộ GitHub Hai Tầng (Dual-Repo Backup)
+
+Hệ thống được thiết kế cơ chế bảo vệ mã nguồn và dữ liệu đa tầng:
+
+1. **`Neito112/Neito-Agent` (Public Release)**:
+   - Bản phân phối thương mại cho cộng đồng sử dụng.
+   - Chứa mã nguồn sạch của Ni-Oh, tài liệu hướng dẫn, file khởi chạy 1-click và các công cụ thực thi chuẩn.
+2. **`Neito112/Neito-Agent-Vault` (Private Full Backup)**:
+   - Kho lưu trữ bảo mật toàn diện 100% hệ thống.
+   - Sao lưu toàn bộ không gian làm việc của tất cả các Agent (`architect`, `designer`, `engineer`, `journalist`, `resident`), toàn bộ nhật ký giấc mơ, tri thức đã học và các giao thức vận hành.
 
 ---
 
-### 3. Driver Card Đồ Họa NVIDIA (Nếu máy bạn có Card rời)
-* **Tình huống**: Trên máy tính mới cài lại Windows, Windows Update thường chỉ cài driver hiển thị cơ bản, thiếu bộ thư viện tính toán CUDA của NVIDIA.
-* **Khắc phục**:
-  - Truy cập trang chủ NVIDIA: [https://www.nvidia.com/download/index.aspx](https://www.nvidia.com/download/index.aspx)
-  - Chọn đúng dòng Card của bạn (GeForce RTX/GTX) và tải bản **Game Ready Driver** hoặc **Studio Driver** mới nhất về cài đặt.
-  - Sau khi cài, card của bạn sẽ chạy AI nhanh gấp 15 - 20 lần so với CPU.
+## 🤝 Đóng Góp Phát Triển & Mời Cà Phê
 
----
+Dự án được xây dựng và phát triển mã nguồn mở bởi **Neito112** dưới giấy phép **MIT License**.
 
-### 4. Bấm "Allow access" khi Windows Firewall hỏi quyền mạng
-* **Tình huống**: Lần đầu chạy trên Windows mới, hệ thống sẽ mở kết nối mạng ra ngoài để kết nối Discord và lắng nghe Webhook. Windows Defender Firewall có thể hiện một bảng thông báo: *"Windows Defender Firewall has blocked some features of this app"*.
-* **Khắc phục**: Tích chọn vào cả 2 ô **Private networks** và **Public networks**, sau đó bấm **`Allow access`** (Cho phép truy cập).
-
----
-
-## 🌟 Các Tính Năng Đột Phá Của Ni-Oh
-
-### 1. 📊 Động Cơ Tính Toán Bảng Tính 0-Token (`computation_sheet_engine.js`)
-* Thay vì để AI suy luận nhẩm số học rất dễ bị sai số và cực kỳ tốn token, Ni-Oh tự động dịch bài toán kinh doanh, tài chính, bảng lương của bạn thành **Công thức chuẩn của Google Sheets / Excel** (`SUMIFS`, `XLOOKUP`, `INDEX/MATCH`, `ARRAYFORMULA`).
-* Sau đó xuất ra file `.xlsx` hoặc hướng dẫn bạn nạp vào Google Sheet để máy tính tự động tính toán ra kết quả trong 1 mili-giây với **độ chính xác 100% và tiết kiệm 99.9% token**.
-
-### 2. 🎮 Trợ Lý Tác Chiến Màn Hình Trực Tiếp (`strategic_live_companion.js`)
-* Bật / Tắt phiên hỗ trợ trực tiếp bằng lệnh: `!live start` và `!live stop`.
-* Quét màn hình máy tính ở **độ phân giải gốc 1080p/2K** bằng Windows Native OCR kết hợp mô hình thị giác cục bộ Moondream (0 token cloud).
-* **Cơ chế hỏi xác nhận chủ động**: Khi phát hiện bạn bước vào một vùng đất mới hoặc gặp câu đố mới, Ni-Oh sẽ lịch sự hỏi bạn có cần hỗ trợ không. Nếu bạn bảo không cần, Ni-Oh lập tức giữ im lặng và không ghi log chi tiết để tránh làm phiền bạn.
-
-### 3. 🧠 Bộ Não Tri Thức Chạy Ngầm 24/7 (`knowledge_daemon.js`)
-* Chừng nào máy tính còn mở, một tiến trình siêu nhẹ sử dụng Model Local (Ollama Qwen/Gemma) sẽ quét cập nhật các thay đổi, bản cập nhật mới, tài liệu nghiên cứu và bồi đắp vào kho nhớ vĩnh viễn `protocols/`.
-
-### 4. 📁 Đọc & Tạo Đa Dạng Thể Loại Tệp
-* **Tạo file**: Bảng tính Excel có sẵn công thức, Tài liệu Word (`.docx`), Slide thuyết trình PowerPoint (`.pptx`), Tệp PDF chuẩn tiếng Việt có dấu, File ghi âm giọng nói tiếng Việt tự nhiên (`.mp3`).
-* **Đọc file chuyên biệt**: Bóc tách hình ảnh xem trước và cấu trúc của các tệp đồ họa và thiết kế kỹ thuật: CorelDRAW (`.cdr`), SketchUp (`.skp`), 3ds Max (`.max`), AutoCAD (`.dwg`, `.dxf`), Photoshop (`.psd`), Illustrator (`.ai`).
-
-### 5. 🎙️ Hệ Thống Voice Agent Nguồn Mở Đa Dạng (Tùy Chọn Giọng Đọc Đỉnh Cao)
-Ni-Oh được tích hợp sẵn các nguồn Voice AI mã nguồn mở chất lượng cao nhất hiện nay, hoạt động mượt mà và hoàn toàn không tốn token:
-* **Microsoft Edge Neural TTS (Tích hợp sẵn - 0 Cấu hình - 100% Miễn phí)**:
-  - 🇻🇳 `vi-VN-HoaiMyNeural` (Nữ Việt: Ấm áp, tự nhiên, truyền cảm)
-  - 🇻🇳 `vi-VN-NamMinhNeural` (Nam Việt: Chuẩn giọng miền Bắc, dứt khoát, chuyên nghiệp)
-  - 🇺🇸 `en-US-JennyNeural`, `en-US-GuyNeural` (Tiếng Anh Mỹ tự nhiên)
-  - 🇯🇵 `ja-JP-NanamiNeural` (Tiếng Nhật phong cách Anime)
-* **Liên kết các nguồn mở Voice SOTA hàng đầu thế giới**:
-  - [**Kokoro-82M**](https://github.com/hexgrad/kokoro): Mô hình Neural TTS mã nguồn mở nhẹ nhất (82M params) đạt chất lượng âm thanh sánh ngang các dịch vụ thương mại hàng đầu thế giới.
-  - [**Piper TTS**](https://github.com/rhasspy/piper): Hệ thống phát âm thanh thần kinh siêu tốc, chạy 100% offline trên CPU/GPU, hỗ trợ model tiếng Việt Vivos.
-  - [**ChatTTS**](https://github.com/2noise/ChatTTS): Mô hình âm thanh đàm thoại chuyên biệt cho AI Agent, tự động mô phỏng tiếng thở, ngắt nghỉ và tiếng cười tự nhiên.
-  - [**F5-TTS**](https://github.com/SWivid/F5-TTS): Mô hình nhân bản giọng nói (Zero-Shot Voice Cloning) nhanh và chân thực chỉ từ vài giây audio mẫu.
-
-👉 **Cách chọn giọng cực nhanh**:
-- Trên Discord: Gõ `!voice list` để xem toàn bộ giọng có sẵn, hoặc gõ `!voice set hoaimy` (Nữ) / `!voice set namminh` (Nam).
-- Trong file `.env`: Thay đổi giá trị `VOICE_NAME=vi-VN-HoaiMyNeural`.
-
-### 6. 🖥️ Nhánh Phát Triển 1: Desktop Overlay & Floating Companion (Cảm Hứng Hakko AI)
-> Không chỉ dừng lại ở Discord, Ni-Oh đang mở rộng thành một **Trợ Lý Màn Hình Trực Tiếp (Desktop Overlay HUD)** chạy độc lập:
-* **Avatar Nổi Trên Màn Hình (Always-on-Top / Draggable)**: Biểu tượng chiến thuật phát sáng tinh tế ở góc màn hình, có hoạt ảnh nhịp đập và phản ứng theo trạng thái.
-* **Triệu Hồi Nhanh Bằng Phím Tắt (Alt + Space)**: Bật tức thì thanh nhập lệnh chiến thuật đè lên mọi cửa sổ ứng dụng (Game, Excel, Trình duyệt, IDE) mà không cần Alt-Tab.
-* **Bong Bóng Hội Thoại & Đọc Giọng Nói Tự Động**: Ni-Oh trả lời bằng bong bóng thoại hoạt ảnh mượt mà kèm phát âm thanh qua Edge-TTS.
-* **Mã nguồn khởi chạy**: Nằm tại thư mục `src/desktop_overlay/` (chạy qua lệnh `node src/desktop_overlay/overlay_server.js` và truy cập `http://localhost:7890`).
-
----
-
-### 7. 🦾 Nhánh Phát Triển 2: Embodied AI & Robotics Bridge (Đưa Ni-Oh Vào Robot Ngoài Đời Thực)
-> **Tham vọng lớn**: Mang tư duy chiến lược và thị giác của Ni-Oh vượt ra ngoài màn hình máy tính để **nhập thể vào các Robot thực thể ngoài đời thực** (Robot để bàn, xe tự hành, chó robot bốn chân, cánh tay robot):
-* **Cổng giao tiếp Robot chuyên dụng (`src/robotics_bridge/robot_gateway.js`)**: Tiếp nhận dữ liệu cảm biến (Camera USB/CSI, khoảng cách siêu âm HC-SR04, mức pin, IMU) qua giao thức HTTP REST / WebSocket / ROS 2.
-* **Thị giác không gian & Quyết định hành vi**: Ni-Oh phân tích ảnh môi trường thực tế từ robot, nhận diện vật cản và sinh lệnh điều hướng chuyển động (`/cmd_vel`), quay servo góc nhìn và phát giọng nói ra loa ngoài của robot.
-* **Hỗ trợ phần cứng đa dạng**: Tương thích từ vi điều khiển giá rẻ (ESP32, Arduino) đến các máy tính nhúng mạnh mẽ (Raspberry Pi 5, NVIDIA Jetson Orin Nano) và hệ điều hành Robot chuyên dụng (ROS 2).
-* **Tài liệu hướng dẫn phần cứng**: Xem chi tiết tại `src/robotics_bridge/hardware_specs.md`.
-
----
-
-## 🕹️ Bảng Lệnh Nhanh Trên Discord & Terminal
-
-| Lệnh | Ý nghĩa & Hành động |
-| :--- | :--- |
-| `!live start` | Khởi động phiên Trợ lý Tác chiến Màn hình Trực tiếp (Native OCR + VLM). |
-| `!live stop` | Dừng quét màn hình và tổng kết dữ liệu phiên làm việc / tác chiến. |
-| `!live status` | Xem trạng thái quét màn hình và nhật ký phân cấp hiện tại. |
-| `!sheet [mô tả bài toán]` | Yêu cầu Ni-Oh tạo file Excel mẫu kèm công thức tính toán tự động. |
-| `!voice list` | Xem danh sách tất cả các giọng Voice Agent nguồn mở sẵn có. |
-| `!voice set [mã]` | Đổi giọng nhanh (vd: `!voice set hoaimy` hoặc `!voice set namminh`). |
-| `!voice test [câu]` | Nghe thử giọng đọc trực tiếp trong phòng thoại Voice Channel. |
-| `!ask [câu hỏi]` | Đặt câu hỏi chiến lược cho Ni-Oh (hoặc tag `@Ni-Oh` trong Discord). |
-| `exit` | Thoát khỏi chế độ Interactive CLI Terminal. |
-
----
-
-## 🤝 Lời Kêu Gọi Cộng Đồng Cùng Chung Tay Phát Triển
-
-> *"Toàn bộ hệ thống Agent này được xây dựng và sinh mã hoàn toàn bằng trợ lý AI **Google Antigravity**, bản thân tôi (người sở hữu) chỉ đưa ra tư duy chiến lược, kiến trúc luồng dữ liệu và phương thức hoạt động. Tôi biết tham vọng đưa Ni-Oh thành Desktop Companion hoàn chỉnh cũng như nạp vào Robot thế giới thực là những bài toán rất lớn và đầy thách thức. Bản thân dự án chắc chắn còn nhiều thiếu sót, bug hay những chỗ chưa tối ưu. Tôi rất hy vọng và tha thiết kêu gọi cộng đồng các lập trình viên, các bạn đam mê AI, UI/UX, cũng như anh em kỹ sư phần cứng & robotics hãy cùng nhau đóng góp, mở rộng và hoàn thiện dự án này ngày một mạnh mẽ hơn!"*
-
-### 🛠️ Các mảng đang rất cần sự đóng góp từ bạn:
-1. **Desktop GUI & Overlay**: Xây dựng client Electron / Tauri hoàn chỉnh cho Desktop Overlay HUD (icon khay hệ thống, bong bóng chat xuyên thấu game).
-2. **Robotics & ROS 2**: Viết package ROS 2 chính thức kết nối camera & motor robot với Ni-Oh Robotics Bridge.
-3. **Local AI & Optimization**: Tối ưu hóa thêm các mô hình VLM cục bộ nhẹ hơn và chạy nhanh hơn trên nhiều cấu hình máy.
-
----
-
-## ☕ Mời Tác Giả 1 Tách Cà Phê (Buy Me A Coffee)
-
-Nếu **Ni-Oh** và hệ sinh thái Agent này mang lại giá trị hữu ích hay nguồn cảm hứng cho công việc, học tập và đam mê công nghệ của bạn, bạn có thể ủng hộ tác giả một tách cà phê để tiếp thêm năng lượng duy trì dự án nhé! ☕
+Mọi đóng góp (Pull Request, Báo lỗi, Góp ý tính năng) từ cộng đồng đều được chào đón nồng nhiệt!
 
 <details>
-<summary><b>👉 Nhấp vào đây để xem thông tin ủng hộ (VietQR)</b></summary>
+<summary><b>👉 Nhấp vào đây để ủng hộ tác giả 1 tách cà phê (VietQR)</b></summary>
 <br/>
 
 <p align="center">
-  <img src="assets/donate_qr_clean.png" alt="Ủng hộ tác giả 1 tách cà phê" width="260" style="border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.12);" />
+  <img src="assets/donate_qr_clean.png" alt="Ủng hộ tác giả" width="260" style="border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.12);" />
 </p>
 
 <p align="center">
@@ -202,10 +177,3 @@ Nếu **Ni-Oh** và hệ sinh thái Agent này mang lại giá trị hữu ích 
 </p>
 
 </details>
-
----
-
-## 📜 Bản Quyền & Giấy Phép Mã Nguồn Mở
-* Dự án được khởi xướng và phát triển bởi **Neito112**.
-* Phát hành mã nguồn mở hoàn toàn theo giấy phép **MIT License**.
-* Mọi đóng góp (Pull Request, Issue, đề xuất tính năng) từ cộng đồng đều được trân trọng và chào đón nồng nhiệt!
