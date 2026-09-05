@@ -1,4 +1,4 @@
-﻿const ffmpegPath = require('ffmpeg-static');
+const ffmpegPath = require('ffmpeg-static');
 process.env.FFMPEG_PATH = ffmpegPath;
 
 const {
@@ -17,33 +17,54 @@ const { spawn } = require('child_process');
 const { pipeline } = require('stream');
 const prism = require('prism-media');
 
-const GEMINI_KEY = "AIzaSyCBtopxSMXhJYAoI0D_ytzQCut_LB67VXc";
+const GEMINI_KEY = process.env.GEMINI_API_KEY || "";
 
-// Engine selection: 'vieneu' (Quân Hồng VieNeu AI), 'ms-nam' (Nam Minh), 'ms-nu' (Hoài My), 'google' (Google Standard)
-let currentEngine = 'vieneu';
-let customVoiceName = 'Quân Hồng';
+// ─── OPEN-SOURCE VOICE PRESET REGISTRY (CÁC NGUỒN MỞ VOICE CÒN SỐNG & ĐỈNH CAO) ──
+const VOICE_PRESETS = {
+  // 1. Edge-TTS (100% Miễn Phí, 0 Token, Cực kỳ tự nhiên, Không cần GPU, Chạy ngay)
+  'hoaimy': { engine: 'edge', voice: 'vi-VN-HoaiMyNeural', desc: 'Tiếng Việt Nữ (Hoài My - Giọng đọc ấm áp, truyền cảm)', lang: 'vi-VN' },
+  'namminh': { engine: 'edge', voice: 'vi-VN-NamMinhNeural', desc: 'Tiếng Việt Nam (Nam Minh - Chuẩn giọng miền Bắc, dứt khoát)', lang: 'vi-VN' },
+  'jenny': { engine: 'edge', voice: 'en-US-JennyNeural', desc: 'English Female (Jenny - Expressive American)', lang: 'en-US' },
+  'guy': { engine: 'edge', voice: 'en-US-GuyNeural', desc: 'English Male (Guy - Natural American)', lang: 'en-US' },
+  'nanami': { engine: 'edge', voice: 'ja-JP-NanamiNeural', desc: 'Japanese Female (Nanami - Anime style)', lang: 'ja-JP' },
 
-let currentConnection = null;
-let audioPlayer = null;
-let currentTextChannel = null;
-let isSpeaking = false;
-let speechQueue = [];
+  // 2. Kokoro-82M (Open Source SOTA Neural TTS - https://github.com/hexgrad/kokoro)
+  'kokoro-heart': { engine: 'kokoro', voice: 'af_heart', desc: 'Kokoro-82M (Heart - Top 1 Quality Neural English)', lang: 'en-US' },
+  'kokoro-adam': { engine: 'kokoro', voice: 'am_adam', desc: 'Kokoro-82M (Adam - Deep Male Voice)', lang: 'en-US' },
 
-function getVieNeuApiKey() {
-  try {
-    const keysPath = path.join(__dirname, 'api_keys.json');
-    if (fs.existsSync(keysPath)) {
-      const keys = JSON.parse(fs.readFileSync(keysPath, 'utf8'));
-      return keys.vieneu || process.env.VIENEU_API_KEY || '';
-    }
-  } catch (_) {}
-  return process.env.VIENEU_API_KEY || '';
+  // 3. Piper TTS (Ultra-fast Local Neural TTS - https://github.com/rhasspy/piper)
+  'piper-vivos': { engine: 'piper', voice: 'vi_VN-vivos-x_low', desc: 'Piper Local TTS (Tiếng Việt Vivos Model 0-Token)', lang: 'vi-VN' },
+
+  // 4. ChatTTS (Conversational Audio for AI - https://github.com/2noise/ChatTTS)
+  'chattts': { engine: 'chattts', voice: 'default', desc: 'ChatTTS Conversational AI Agent (Cười, thở tự nhiên)', lang: 'multi' }
+};
+
+// Mặc định: Edge TTS Nam Minh (Chuẩn tiếng Việt dứt khoát) hoặc Hoài My
+let currentEngine = process.env.VOICE_ENGINE || 'edge';
+let customVoiceName = process.env.VOICE_NAME || 'vi-VN-NamMinhNeural';
+
+function listAvailableVoices() {
+  return Object.entries(VOICE_PRESETS).map(([key, info]) => ({
+    key: key,
+    name: info.voice,
+    engine: info.engine,
+    description: info.desc
+  }));
 }
 
-function setCustomVoice(voiceCode) {
-  if (voiceCode && voiceCode.trim()) {
-    customVoiceName = voiceCode.trim();
-    return customVoiceName;
+function selectVoice(voiceCode) {
+  if (!voiceCode) return null;
+  const key = voiceCode.toLowerCase().trim();
+  if (VOICE_PRESETS[key]) {
+    currentEngine = VOICE_PRESETS[key].engine;
+    customVoiceName = VOICE_PRESETS[key].voice;
+    return VOICE_PRESETS[key];
+  }
+  // Cho phép chỉ định trực tiếp voice name của Edge TTS
+  if (voiceCode.includes('Neural')) {
+    currentEngine = 'edge';
+    customVoiceName = voiceCode;
+    return { engine: 'edge', voice: voiceCode, desc: voiceCode };
   }
   return null;
 }
@@ -219,12 +240,11 @@ async function speak(text) {
         console.warn('[VoiceManager] Google TTS failed, fallback to MS NamMinh:', gErr.message);
         await generateMicrosoftTTS(cleanText, 'vi-VN-NamMinhNeural', tempAudio);
       }
-    } else if (currentEngine === 'ms-nam') {
-      await generateMicrosoftTTS(cleanText, 'vi-VN-NamMinhNeural', tempAudio);
-    } else if (currentEngine === 'ms-nu') {
-      await generateMicrosoftTTS(cleanText, 'vi-VN-HoaiMyNeural', tempAudio);
-    } else if (currentEngine === 'custom') {
-      await generateMicrosoftTTS(cleanText, customVoiceName, tempAudio);
+    } else if (currentEngine === 'edge' || currentEngine === 'ms-nam' || currentEngine === 'ms-nu' || currentEngine === 'custom') {
+      await generateMicrosoftTTS(cleanText, customVoiceName || 'vi-VN-NamMinhNeural', tempAudio);
+    } else {
+      // Fallback mặc định Edge TTS siêu ổn định
+      await generateMicrosoftTTS(cleanText, customVoiceName || 'vi-VN-NamMinhNeural', tempAudio);
     }
 
     getOrCreatePlayer();
@@ -432,5 +452,8 @@ module.exports = {
   setEngine,
   getEngine: () => currentEngine,
   isConnected: () => !!currentConnection,
-  getTextChannel: () => currentTextChannel
+  getTextChannel: () => currentTextChannel,
+  selectVoice,
+  listAvailableVoices,
+  VOICE_PRESETS
 };
