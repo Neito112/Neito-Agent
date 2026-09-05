@@ -7,27 +7,27 @@
 [![Zero-Token](https://img.shields.io/badge/Edge%20AI-0--Token%20Formula%20%26%20Vision-orange.svg)]()
 [![Anti-Ad AI](https://img.shields.io/badge/Anti--Ad%20Engine-100%25%20Clean%20Knowledge-success.svg)]()
 
-> **Ni-Oh** là một **Trợ Lý Chiến Lược Đa Năng Tự Trị** được sáng tạo và phát triển bởi **Neito112**, đồng hành cùng bạn 24/7 trong **Công Việc, Học Tập, Nghiên Cứu Chuyên Sâu, Xử Lý Bảng Tính Tự Động và Tác Chiến Màn Hình Thời Gian Thực**.
+> **Ni-Oh** là một **Trợ Lý Chiến Lược Đa Năng Tự Trị** được sáng tạo và phát triển bởi **Neito112**, đồng hành cùng bạn 24/7 trong **Công Việc, Học Tập, Nghiên Cứu, Xử Lý Bảng Tính Tự Động và Tác Chiến Màn Hình Thời Gian Thực**.
 > 
-> Khác biệt hoàn toàn với các chatbot AI thông thường:
+> Khác biệt hoàn toàn với các chatbot AI thụ động thông thường:
 > - 💬 **100% Nhắn Tin Tự Nhiên (Zero `!` Commands)**: Không cần ghi nhớ bất kỳ cú pháp lệnh thô cứng nào. Toàn bộ tính năng được điều khiển mượt mà bằng hội thoại tự nhiên tiếng Việt.
-> - 📺 **Tự Học Đa Phương Thức Độc Lập & Chống Rác/Quảng Cáo (Anti-Ad Self-Learning)**: Tự động tra cứu video YouTube, đọc bài viết công nghệ, bóc tách phụ đề và bài học thực chiến. Tích hợp bộ lọc 100% Anti-Ad / Anti-Sponsor (chặn toàn bộ quảng cáo, tài trợ, VPN, mời chào mua hàng).
+> - 📺 **Tự Học Đa Phương Thức & Chống Quảng Cáo (Anti-Ad Engine)**: Khi được yêu cầu tìm hiểu game hoặc phần mềm mới, Ni-Oh tự động tra cứu video YouTube, bóc tách phụ đề và bài học thực chiến, lọc sạch 100% quảng cáo, tài trợ, mã giảm giá, VPN và spam.
 > - ⚡ **Mắt Nhìn Cục Bộ 0-Token**: Quét màn hình thời gian thực độ phân giải gốc 1080p/2K bằng Windows Native OCR và mô hình thị giác VLM Moondream cục bộ.
 > - 📊 **Động Cơ Bảng Tính 0-Token**: Tự động sinh công thức Google Sheets / Excel (`SUMIFS`, `XLOOKUP`, `ARRAYFORMULA`) với độ chính xác số học 100%, tiết kiệm 99.9% token.
 > - 🚀 **Khởi Động 1-Click (`start.bat`)**: Tự động hóa 100% môi trường, chạy ngay lập tức trên máy tính mới tinh vừa cài lại Windows.
 
 ---
 
-## 💬 Điều Khiển Bằng Nhắn Tin Tự Nhiên (Không Dùng Tiền Tố `!`)
+## 💬 Điều Khiển Bằng Nhắn Tin Tự Nhiên (Không Cần Tiền Tố `!`)
 
-Hệ thống đã **loại bỏ hoàn toàn các tiền tố lệnh `!`**. Bạn chỉ cần trò chuyện, nhắn tin hoặc tag Ni-Oh trên Discord/Terminal như một người đồng đội thực thụ:
+Bạn chỉ cần trò chuyện, nhắn tin hoặc tag Ni-Oh trên Discord/Terminal như một người đồng đội thực thụ:
 
 | Nhu cầu của bạn | Ví dụ tin nhắn tự nhiên (Gõ trực tiếp) | Hành động của Ni-Oh |
 | :--- | :--- | :--- |
-| **Bật soi màn hình** | *"Ni-Oh soi màn hình giúp tôi với"*, *"Bắt đầu theo dõi màn hình"* | Bật OCR & VLM cục bộ, phân tích giao diện và chiến thuật. |
+| **Bật soi màn hình** | *"Ni-Oh soi màn hình giúp tôi với"*, *"Bắt đầu theo dõi màn hình"* | Bật OCR & VLM cục bộ, nhận diện giao diện và chiến thuật. |
 | **Dừng soi màn hình** | *"Dừng theo dõi màn hình nhé"*, *"Tắt chế độ live đi"* | Dừng quét màn hình, tổng kết nhật ký phiên làm việc. |
 | **Kiểm tra trạng thái** | *"Tình hình màn hình thế nào rồi?"*, *"Báo cáo trạng thái"* | Báo cáo giao thức đang chạy, độ tự tin và khuyến nghị. |
-| **Tự học kiến thức mới** | *"Hãy tự học cách tối ưu Blender Geometry Nodes"*, *"Nghiên cứu kiến thức về AI Agent"* | Tự tra cứu video/bài viết, bóc tách phụ đề, lọc sạch quảng cáo và lưu vào kho nhớ độc lập. |
+| **Tự học phần mềm/game mới** | *"Hãy tự tìm hiểu cách chơi Black Myth Wukong"*, *"Nghiên cứu phím tắt AutoCAD"* | Tự tìm video/bài viết, bóc tách phụ đề, lọc sạch quảng cáo và lưu vào kho nhớ giao thức. |
 | **Lập bảng tính Excel** | *"Tạo cho tôi bảng tính tính lương KPI nhân viên"*, *"Làm file excel theo dõi chi phí"* | Sinh file `.xlsx` nạp sẵn công thức tự động tính toán. |
 | **Đổi giọng đọc Voice** | *"Đổi sang giọng Hoài My nhé"*, *"Chuyển giọng Nam Minh"* | Chuyển đổi giọng đọc AI Edge-TTS mượt mà tức thì. |
 | **Nghe thử giọng đọc** | *"Nói thử câu này bằng giọng mới đi"* | Phát âm thanh demo trực tiếp qua Voice Channel / Loa. |
@@ -35,70 +35,33 @@ Hệ thống đã **loại bỏ hoàn toàn các tiền tố lệnh `!`**. Bạn
 
 ---
 
-## 📺 Cơ Chế Tự Học Đa Phương Thức & Chống Quảng Cáo (Anti-Ad Engine)
+## 🌟 Các Tính Năng Đột Phá Của Ni-Oh
 
-Khi được giao nhiệm vụ tự học một chủ đề mới, hệ thống kích hoạt chuỗi tác vụ tự trị hoàn toàn:
+### 1. 📊 Động Cơ Tính Toán Bảng Tính 0-Token (`computation_sheet_engine.js`)
+* Thay vì để AI suy luận nhẩm số học rất dễ bị sai số và cực kỳ tốn token, Ni-Oh tự động dịch bài toán kinh doanh, tài chính, bảng lương của bạn thành **Công thức chuẩn của Google Sheets / Excel** (`SUMIFS`, `XLOOKUP`, `INDEX/MATCH`, `ARRAYFORMULA`).
+* Kết xuất file `.xlsx` hoàn chỉnh với độ chính xác 100% và tiết kiệm 99.9% token.
 
-```
-[Chủ đề tự học] 
-       │
-       ├──► 1. Tự tìm kiếm tài liệu & video hướng dẫn (DuckDuckGo + YouTube Search)
-       ├──► 2. Tự động bóc tách video nhúng (Embedded iframes/links trong bài viết)
-       ├──► 3. Trích xuất phụ đề chi tiết kèm mốc thời gian (Timestamps)
-       ├──► 4. Bộ lọc Chống Quảng Cáo & Tài Trợ (Anti-Ad / Anti-Sponsor Filter)
-       │         └── Loại bỏ 100%: Nhà tài trợ, Mã giảm giá, Quảng cáo VPN, 
-       │                           Kêu gọi Like/Subscribe, Link cờ bạc & Spam
-       ├──► 5. Mô hình cục bộ (Local LLM trên RTX 3060) đúc kết bài học kỹ thuật
-       └──► 6. Ghi chép vào Kho Tri Thức Độc Lập của Agent (0 pha trộn, 0 rò rỉ)
-```
+### 2. 🎮 Trợ Lý Tác Chiến Màn Hình Trực Tiếp (`strategic_live_companion.js`)
+* Quét màn hình máy tính ở **độ phân giải gốc 1080p/2K** bằng Windows Native OCR kết hợp mô hình thị giác cục bộ Moondream (0 token cloud).
+* **Cơ chế hỏi xác nhận chủ động**: Khi phát hiện bạn bước vào một vùng đất mới hoặc gặp câu đố mới, Ni-Oh sẽ lịch sự hỏi bạn có cần hỗ trợ không. Nếu bạn bảo không cần, Ni-Oh lập tức giữ im lặng.
 
-### Điểm cốt lõi về Độc lập Tri thức:
-- **Kiến thức của Agent nào thuộc về Agent đó**: Không có việc gộp chung hay phân chia lẫn lộn. Agent kiến trúc lưu vào kho kiến trúc, Agent thiết kế lưu vào kho thiết kế.
-- **0 Token Cloud**: Toàn bộ quá trình tổng hợp và trích xuất tri thức sử dụng mô hình AI cục bộ chạy trực tiếp trên GPU máy bạn, bảo mật 100% dữ liệu.
+### 3. 📺 Hệ Thống Tự Học Đa Phương Thức & Chống Quảng Cáo (Anti-Ad Engine)
+* Tự động tra cứu video YouTube và tài liệu khi gặp tựa game hoặc ứng dụng mới.
+* Tự động bóc tách video nhúng trong bài viết công nghệ.
+* **Bộ lọc Chống Quảng Cáo 100%**: Loại bỏ hoàn toàn nhà tài trợ, mã giảm giá, quảng cáo VPN, lời kêu gọi Like/Subscribe, link cờ bạc và tin rác.
+* Đúc kết bài học kỹ thuật vào kho giao thức vĩnh viễn `protocols/`.
 
----
+### 4. 🎙️ Hệ Thống Voice Agent Nguồn Mở Đa Dạng
+* Tích hợp sẵn **Microsoft Edge Neural TTS (Miễn phí 100%)**:
+  - 🇻🇳 `vi-VN-HoaiMyNeural` (Nữ Việt: Ấm áp, tự nhiên, truyền cảm)
+  - 🇻🇳 `vi-VN-NamMinhNeural` (Nam Việt: Chuẩn giọng miền Bắc, dứt khoát, chuyên nghiệp)
+  - 🇺🇸 `en-US-JennyNeural`, `en-US-GuyNeural` (Tiếng Anh tự nhiên)
+  - 🇯🇵 `ja-JP-NanamiNeural` (Tiếng Nhật Anime)
+* Liên kết các mô hình Voice SOTA: **Kokoro-82M**, **Piper TTS**, **ChatTTS**, **F5-TTS**.
 
-## 📊 Bảng Thống Kê Tổng Thể Hệ Thống
-
-### 1. Bảng Nhiệm Vụ & Tiến Trình Đang Vận Hành
-
-| Tiến trình / Dịch vụ | Tệp thực thi | Vai trò & Cơ chế vận hành | Trạng thái |
-| :--- | :--- | :--- | :--- |
-| **Master Orchestrator** | `server.js` | Quản lý vòng đời toàn bộ 6 Agent, phân luồng tin nhắn và API Webhook. | 🟢 Online 24/7 |
-| **Live Screen Companion** | `strategic_live_companion.js` | Chụp màn hình, OCR nhận diện văn bản, phân tích ngữ cảnh cửa sổ làm việc. | 🟢 Sẵn sàng |
-| **Autonomous Video Learner** | `local_video_learner.js` | Tự tìm video, bóc tách phụ đề, lọc sạch quảng cáo, tổng hợp bài học. | 🟢 Sẵn sàng |
-| **Knowledge Daemon** | `knowledge_daemon.js` | Chạy ngầm bồi đắp tri thức vào giao thức và kho nhớ vĩnh viễn. | 🟢 Chạy nền |
-| **Computation Engine** | `computation_sheet_engine.js` | Sinh công thức Excel/Google Sheets chuẩn xác, kết xuất file bảng tính. | 🟢 Sẵn sàng |
-| **Robotics Gateway** | `src/robotics_bridge/robot_gateway.js` | Cổng HTTP/WebSocket/ROS 2 kết nối cảm biến và điều khiển robot thế giới thực. | 🟢 Sẵn sàng |
-| **Desktop Overlay HUD** | `src/desktop_overlay/overlay_server.js` | Giao diện HUD nổi đè lên màn hình, phím tắt Alt+Space gọi trợ lý nhanh. | 🟢 Sẵn sàng |
-| **Dual Vault Sync** | `scratch/sync_vault.cjs` | Tự động sao lưu toàn bộ mã nguồn, dữ liệu, bộ nhớ lên GitHub Vault. | 🟢 Đã cấu hình |
-
-### 2. Bảng Danh Mục Công Cụ (Tools Sẵn Có)
-
-| Nhóm công cụ | Tên công cụ | Mô tả chức năng |
-| :--- | :--- | :--- |
-| **Học tập & Thu thập** | `self_study` | Tự nghiên cứu đề tài qua văn bản, bài viết kỹ thuật và video YouTube sạch bóng quảng cáo. |
-| | `read_document` | Đọc và bóc tách nội dung tệp văn bản, code, markdown, tài liệu kỹ thuật. |
-| | `analyze_design_file` | Bóc tách hình ảnh xem trước và cấu trúc tệp thiết kế (`.cdr`, `.skp`, `.max`, `.psd`...). |
-| **Xử lý Dữ liệu** | `create_spreadsheet` | Tạo bảng tính Excel với công thức động (`SUMIFS`, `XLOOKUP`, `ARRAYFORMULA`). |
-| | `create_document` | Xuất file Word (`.docx`), Slide thuyết trình (`.pptx`), tệp PDF tiếng Việt. |
-| **Thị giác & Giám sát** | `capture_screen` | Chụp màn hình hiện tại để phân tích cửa sổ phần mềm và tác vụ. |
-| | `ocr_screen` | Nhận diện chữ viết trên màn hình bằng Windows Native OCR (0 token). |
-| | `vlm_describe` | Phân tích chi tiết hình ảnh bằng mô hình thị giác Moondream cục bộ. |
-| **Giao tiếp & Tương tác** | `natural_chat` | Phản hồi ngôn ngữ tự nhiên, giải quyết vấn đề và đề xuất chiến thuật. |
-| | `text_to_speech` | Phát âm thanh giọng đọc tiếng Việt/Anh/Nhật tự nhiên qua Edge-TTS. |
-| | `discord_bridge` | Tương tác 2 chiều trong server Discord (kênh chat text & voice). |
-
-### 3. Bảng Đội Ngũ 6 Agent Chuyên Trách & Nhiệm Vụ Tự Học Cốt Lõi
-
-| Tên Agent | Định danh & Thư mục | Nhiệm Vụ Nghiệp Vụ & Tác Nghiệp Cốt Lõi | Lộ Trình Tự Học & Tự Động Hóa Chuyên Sâu |
-| :--- | :--- | :--- | :--- |
-| 🛡️ **Ni-Oh** | `nioh` / `protocols/` | **Trợ lý Chiến lược Toàn năng & Quản đốc Điều phối**: Tác chiến trực tiếp cùng Sếp, quan sát màn hình 0-token (1080p/2K), quản lý giao thức game/app (Genshin, LoL, Valorant, Work), tổng hợp tiến độ ngày gửi Zalo 22:00. | Tự học meta game, bản cập nhật phần mềm mới qua VLM & OCR; bồi đắp tri thức vào `protocols/<id>_memory.json`. |
-| 🏛️ **Khung** | `architect` / `workspaces/architect/` | **Kiến Trúc Sư Hệ Thống, Kết Cấu 3D & Lập Trình Cao Cấp**: Thiết kế kiến trúc không gian, quy hoạch mặt bằng, 4 trụ cột kiến trúc (Công năng, Thẩm mỹ, Kết cấu, Bối cảnh). Quản lý 7 Python script tự động hóa Blender (`orchestrate.py`, `build_placeholder_scene.py`, `apply_style.py`, `import_layout.py`, `setup_camera.py`, `export_render_spec.py`, `render_from_spec.py`). | **05:00 Sáng**: Tự học chuyên đề *"Nguyên lý Cấu tạo & Vật liệu Nội thất trong Kiến trúc"* kết hợp tự động hóa Blender 3D procedural; **22:00 Tối**: Báo cáo chuyên môn vào `#projects`. |
-| 🎨 **Nét** | `designer` / `workspaces/designer/` | **Giám Đốc Nghệ Thuật & Visual Artist**: Thiết kế đồ họa học thuật, visual content cao cấp. Kim chỉ nam: *"Phần mềm chỉ là công cụ hỗ trợ — nền tảng thẩm mỹ và tư duy thị giác mới là cốt lõi"*. Vận hành ComfyUI Local AI trên RTX 3060, xử lý vector/bitmap (Affinity, Corel, Photoshop, Illustrator). | **05:30 Sáng**: Tự học 4 Module đồ họa chuyên sâu: Module 1 (Lý thuyết màu sắc 60-30-10, WCAG AA tương phản 4.5:1, Palette Modern Minimalist / Cyberpunk Vibrant), Module 2 (Nguyên lý thị giác, Contrast, Balance, Visual Hierarchy, Tỷ lệ vàng, Lưới 12 cột), Module 3 (Quy trình sáng tạo), Module 4 (Nhận diện thương hiệu); **22:00 Tối**: Báo cáo chuyên môn vào `#projects`. |
-| 📰 **Tin** | `researcher` / `workspaces/researcher/` | **Tổng Biên Tập 24/7 & Trạm Quan Trắc / Điểm Tin Cấp Báo**: Bản tin thời tiết Hà Nội chi tiết, săn deal công nghệ/khuyến mãi, điểm tin AI/DevTools. Cảnh báo khẩn cấp bão lũ thiên tai 24/7. Bộ lọc chống trùng tin 7 ngày (`news/log_tin_da_bao.md`). Quy tắc: *"Im thì im hẳn, chỉ lên tiếng khi tin thực sự mới và giá trị cao"*. | **06:00 Sáng**: Báo cáo thời tiết Hà Nội & điểm tin sáng; **06:30 Sáng**: Tự học & nghiên cứu sâu đột phá AI Agent, GitHub trending; **12:00 Trưa**: Quét tin công nghệ AI, GitHub repo trending & deal khuyến mãi. |
-| 💰 **Kim** | `earner` / `workspaces/earner/` | **Trợ Lý Nghiên Cứu & Phát Triển Dòng Tiền Online (MMO/Web3)**: Săn lùng và thẩm định các mô hình tạo dòng tiền tự động bền vững. Vận hành 2 nhiệm vụ tự động hóa (`run_automation.py`, `email-monitor.py`): (1) Tự động săn Crypto Airdrop & Retroactive (Testnet 0 vốn, faucet token, swap thử nghiệm), (2) Tự động hóa nội dung chuẩn SEO & Affiliate Marketing. | **07:00 Sáng**: Tự học chuyên sâu các dự án Testnet mới ra mắt, cơ chế retroactive 0 vốn và mô hình MMO; **08:00 Sáng**: Báo cáo tiến độ automation; **10:00 Sáng & 16:00 Chiều**: Săn kèo kiếm tiền MMO/Web3 khả thi nhất trong ngày. |
-| 🏠 **Cư** | `housing` / `workspaces/housing/` | **Trợ Lý Bất Động Sản & Săn Nhà Thuê Hà Nội 4-6 Triệu VNĐ**: Chuyên gia săn lùng và sàng lọc phòng trọ/căn hộ thuê tại Cầu Giấy, Đống Đa, Ba Đình, Nam Từ Liêm, Thanh Xuân. Bộ lọc khắt khe: Lọc tin ảo/môi giới chăn dắt, thẩm định nghiêm ngặt an toàn PCCC (bắt buộc lối thoát hiểm thứ 2, ban công thoáng/thang dây), minh bạch chi phí điện nước và pháp lý hợp đồng. | **07:30 Sáng**: Tự học phân tích dữ liệu quy hoạch, biến động giá thuê trọ Hà Nội và cập nhật quy chuẩn an toàn PCCC; **09:00 Sáng & 15:00 Chiều**: Rà soát nguồn tin nhà thuê mới lên thị trường phân khúc 4-6 triệu VNĐ, đối chiếu thực tế. |
+### 5. 🖥️ Desktop Overlay HUD & 🦾 Robotics Bridge
+* **Desktop Overlay (`src/desktop_overlay/`)**: Avatar nổi Always-on-Top, phím tắt Alt+Space gọi nhanh trợ lý đè lên màn hình game và ứng dụng.
+* **Robotics Bridge (`src/robotics_bridge/`)**: Cổng giao tiếp cảm biến & motor (HTTP REST / WebSocket / ROS 2) đưa Ni-Oh nhập thể vào robot thực tế.
 
 ---
 
@@ -143,31 +106,16 @@ Vì lý do **bảo mật và riêng tư**, hệ thống không thể tự tạo 
 
 ---
 
-## 🔒 Kiến Trúc Đồng Bộ GitHub Hai Tầng (Dual-Repo Backup)
+## ☕ Mời Tác Giả 1 Tách Cà Phê (Buy Me A Coffee)
 
-Hệ thống được thiết kế cơ chế bảo vệ mã nguồn và dữ liệu đa tầng:
-
-1. **`Neito112/Neito-Agent` (Public Release)**:
-   - Bản phân phối thương mại cho cộng đồng sử dụng.
-   - Chứa mã nguồn sạch của Ni-Oh, tài liệu hướng dẫn, file khởi chạy 1-click và các công cụ thực thi chuẩn.
-2. **`Neito112/Neito-Agent-Vault` (Private Full Backup)**:
-   - Kho lưu trữ bảo mật toàn diện 100% hệ thống.
-   - Sao lưu toàn bộ không gian làm việc của tất cả các Agent (`architect`, `designer`, `engineer`, `journalist`, `resident`), toàn bộ nhật ký giấc mơ, tri thức đã học và các giao thức vận hành.
-
----
-
-## 🤝 Đóng Góp Phát Triển & Mời Cà Phê
-
-Dự án được xây dựng và phát triển mã nguồn mở bởi **Neito112** dưới giấy phép **MIT License**.
-
-Mọi đóng góp (Pull Request, Báo lỗi, Góp ý tính năng) từ cộng đồng đều được chào đón nồng nhiệt!
+Nếu **Ni-Oh** mang lại giá trị hữu ích hay nguồn cảm hứng cho công việc, học tập và giải trí của bạn, bạn có thể ủng hộ tác giả một tách cà phê để tiếp thêm năng lượng duy trì dự án nhé! ☕
 
 <details>
-<summary><b>👉 Nhấp vào đây để ủng hộ tác giả 1 tách cà phê (VietQR)</b></summary>
+<summary><b>👉 Nhấp vào đây để xem thông tin ủng hộ (VietQR)</b></summary>
 <br/>
 
 <p align="center">
-  <img src="assets/donate_qr_clean.png" alt="Ủng hộ tác giả" width="260" style="border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.12);" />
+  <img src="assets/donate_qr_clean.png" alt="Ủng hộ tác giả 1 tách cà phê" width="260" style="border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.12);" />
 </p>
 
 <p align="center">
@@ -177,3 +125,9 @@ Mọi đóng góp (Pull Request, Báo lỗi, Góp ý tính năng) từ cộng đ
 </p>
 
 </details>
+
+---
+
+## 📜 Bản Quyền & Giấy Phép Mã Nguồn Mở
+* Dự án được khởi xướng và phát triển bởi **Neito112**.
+* Phát hành mã nguồn mở hoàn toàn theo giấy phép **MIT License**.
