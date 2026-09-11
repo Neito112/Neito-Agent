@@ -1,0 +1,299 @@
+{
+  "topicName": "Du Lịch & Du Học",
+  "last_updated": "2026-09-10T22:36:41.964851+00:00",
+  "sources": [
+    "travel_protocol"
+  ],
+  "entries": [
+    {
+      "type": "update",
+      "topic": "旅游与旅行",
+      "content": "2025年经济独立旅行：香港（安全、双语、优秀地铁系统—每天10-12次探险可能）、巴塞罗那（Erasmus群组、高迪建筑、 hop on hop off巴士）、柏林（优秀宿舍/派对氛围）、冰岛（昂贵但值得—有预算指南）。Reddit预算：阿鲁巴$240、摩洛哥$540、西班牙$580（机票）。",
+      "source": "travel_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "5b864deaadaaf8abc0526630f9199195"
+    },
+    {
+      "type": "update",
+      "topic": "旅行・観光",
+      "content": "予算ソロ旅行2025：香港（安全、バイリンガル、優れたメトロシステム—10-12冒険/日可能）、Barcelona（Erasmusグループ、ガウディ建築、Hop On Hop Offバス）、Berlin（優れたホステル/パーティシーン）、Iceland（高価だが価値あり—予算ガイド可用）。Reddit予算：Aruba$240、Morocco$540、Spain$580（航空券）。",
+      "source": "travel_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "5203153c509b8c102887427edb8ee1c2"
+    },
+    {
+      "type": "update",
+      "topic": "Travel & Tourism",
+      "content": "Budget solo travel 2025: Hong Kong (safe, bilingual, excellent metro system—10-12 adventures/day possible), Barcelona (Erasmus groups, Gaudi architecture, Hop On Hop Off bus), Berlin (excellent hostel/party scene), Iceland (expensive but worth it—budget guide available). Reddit budget: Aruba $240, Morocco $540, Spain $580 (flight).",
+      "source": "travel_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "0fb23261fec2a62d7f69f33bd3bcebcf"
+    },
+    {
+      "type": "update",
+      "topic": "Du Lịch & Du Học",
+      "content": "Budget solo travel 2025: Hong Kong (安全, bilingual, metro 시스템 excellent—10-12 adventure/日可), Barcelona (Erasmus groups, Gaudi architecture, Hop On Hop Off bus), Berlin (hostel/party scene excellent), Iceland (expensive nhưng worth it—budget guide可用). Reddit budget: Aruba $240, Morocco $540, Spain $580 (flight).",
+      "source": "travel_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "c51352e100b35eb85c7636c39f9ded78"
+    },
+    {
+      "type": "update",
+      "topic": "旅游与旅行",
+      "content": "独自旅行专家建议：6个喜欢的目的地—哥斯达黎加（Pura vida，安全级别2，冲浪小镇Nosara/Santa Teresa，Selina共享办公宿舍$24）、不丹（必须导游，全球和平指数排名21，将1日费用从$200减半到$100）。5个建议：不要犹豫、提前研究、灵活性。",
+      "source": "travel_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "ac0fe5514391776d0692c835186d23a4"
+    },
+    {
+      "type": "update",
+      "topic": "旅行・観光",
+      "content": "ソロ旅行エキスパートアドバイス：6の好きなdestination—コスタリカ（Pura vida、安全レベル2、サーフタウンNosara/Santa Teresa、Selinaコワーキング$24相部屋）、ブータン（ガイド必須21 Global Peace Indexランク、1日 fees $200→$100半減）。5アドバイス：ためらわない、事前調査、柔軟性。",
+      "source": "travel_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "36a778722b061190aab20a076997914a"
+    },
+    {
+      "type": "update",
+      "topic": "Du Lịch & Du Học",
+      "content": "Solo travel expert tips: 6 favorite destinations—Costa Rica (Pura vida, safe Level 2, surf towns Nosara/Santa Teresa, Selina coworking $24 shared dorm), Bhutan (mandatory guide, ranked 21 Global Peace Index, halved daily fee $200→$100). 5 tips: don't second-guess, research beforehand, flexibility.",
+      "source": "travel_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "b50ecc8c4cee387a604d5f6125b70e5f"
+    },
+    {
+      "type": "update",
+      "topic": "旅游与旅行",
+      "content": "评论区摘要：YouTube '真正有用的旅行技巧' — 用户分享个人经验、警告诈骗、讨论旅行黑客伦理。共同主题：'相信直觉，预订前调查'。",
+      "source": "travel_protocol",
+      "lang": "zh",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "43f72012c4ca0544884ff667d30652ee"
+    },
+    {
+      "type": "update",
+      "topic": "旅行・観光",
+      "content": "コメント欄要約：YouTube '本当に効果的なトラベルハック' — ユーザーは個人的な経験を共有、詐欺について警告、トラベルハッキング倫理について議論。共通テーマ：'本能を信頼し、予約前調査する'。",
+      "source": "travel_protocol",
+      "lang": "ja",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "25d975190b14f1f1d713caaadaaafdae"
+    },
+    {
+      "type": "update",
+      "topic": "Du Lịch & Du Học",
+      "content": "Comment summary: YouTube 'Travel hacks that actually work' — users share personal experience, warn about scams, debate travel hacking ethics. Common theme: 'trust your instincts, research before book'.",
+      "source": "travel_protocol",
+      "lang": "en",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "86ad49f45e33160d3d405b4b2dd82f92"
+    },
+    {
+      "type": "update",
+      "topic": "Du Lịch & Du Học",
+      "content": "Comment section tóm tắt: YouTube 'Travel hacks that actually work' — users share personal experience, warn about scams, debate travel hacking ethics. Common theme: 'trust your instincts, research before book'.",
+      "source": "travel_protocol",
+      "lang": "vi",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "632ad0dd69496142f7351fca927f008f"
+    },
+    {
+      "type": "update",
+      "topic": "旅游与旅行",
+      "content": "论坛帖子摘要：r/travel '女性独自旅行最佳目的地' — 日本（安全、便利）、冰岛（适合独自、 自然）、新西兰（背包客文化）、葡萄牙（便宜、安全）。建议：调查安全、学习基础当地语言。",
+      "source": "travel_protocol",
+      "lang": "zh",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "0dce45d11ce31d6d0cbfc1b38ea59384"
+    },
+    {
+      "type": "update",
+      "topic": "旅行・観光",
+      "content": "フォーラムスレッド要約：r/travel '女性一人旅行ベスト destinations' — 日本（安全、便利）、アイスランド（ソロフレンドリー、自然）、ニュージーランド（バックパッカーカルチャー）、ポルトガル（安い、安全）。アドバイス：安全調査、基本的な現地語を学ぶ。",
+      "source": "travel_protocol",
+      "lang": "ja",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "9e6bf6b74850b52667141e9508c27bb5"
+    },
+    {
+      "type": "update",
+      "topic": "Du Lịch & Du Học",
+      "content": "Forum summary: r/travel 'Best solo female travel destinations' — Japan (safe, convenient), Iceland (solo friendly, nature), New Zealand (backpacker culture), Portugal (cheap, safe). Advice: research safety, learn basic local language.",
+      "source": "travel_protocol",
+      "lang": "en",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "55f27ec966ab5de4f5a6fcc1b974e98e"
+    },
+    {
+      "type": "update",
+      "topic": "Du Lịch & Du Học",
+      "content": "Forum thread tóm tắt: r/travel 'Best solo female travel destinations' — Japan (safe, convenient), Iceland (solo friendly, nature), New Zealand (backpacker culture), Portugal (cheap, safe). Advice: research safety, learn basic local language.",
+      "source": "travel_protocol",
+      "lang": "vi",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "a5cd02fe811acfa801c9bea62c25a26b"
+    },
+    {
+      "type": "update",
+      "topic": "旅游与旅行",
+      "content": "视频博客摘要：'Lost LeBlanc - 每天50美元旅行' — 宿舍10美元、当地餐3美元、公共交通2美元、免费步行 tour、自助餐Sometimes。关键：灵活性、提前研究。",
+      "source": "travel_protocol",
+      "lang": "zh",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "535d39ff37489933a400c0eef1cad297"
+    },
+    {
+      "type": "update",
+      "topic": "旅行・観光",
+      "content": "動画ヴログ要約：'Lost LeBlanc - 1日50ドルで旅行' — ホステル10ドル、地元食事3ドル、公共交通2ドル、無料ウォーキングツアー、時々自炊。鍵：柔軟性、事前調査。",
+      "source": "travel_protocol",
+      "lang": "ja",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "bf440922338428b947a1bef875289e7f"
+    },
+    {
+      "type": "update",
+      "topic": "Du Lịch & Du Học",
+      "content": "Video vlog summary: 'Lost LeBlanc - Travel on $50/day' — hostel $10, local meal $3, public transport $2, free walking tour, cook own meal sometimes. Key: flexibility, research beforehand.",
+      "source": "travel_protocol",
+      "lang": "en",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "584185c8548aa1fbc004743600dea0c1"
+    },
+    {
+      "type": "update",
+      "topic": "Du Lịch & Du Học",
+      "content": "Video vlog tóm tắt: 'Lost LeBlanc - Travel on $50/day' — hostel $10, local meal $3, public transport $2, free walking tour, cook own meal sometimes. Key: flexibility, research beforehand.",
+      "source": "travel_protocol",
+      "lang": "vi",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "5a10a85af44101129bb30fae01bfaccb"
+    },
+    {
+      "type": "update",
+      "topic": "旅游与旅行",
+      "content": "旅游基础：经济旅行 — 宿舍/民宿、当地食物、公共交通、免费活动、旅行技巧。便宜但体验丰富。",
+      "source": "travel_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "0ab0d7f3482b5c461739ed775bd4228f"
+    },
+    {
+      "type": "update",
+      "topic": "旅行・観光",
+      "content": "旅行基礎：予算旅行 — ホステル/ゲストハウス、現地フード、公共交通機関、無料アクティビティ、トラベルハック。安いが豊かな体験。",
+      "source": "travel_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "a1c18874ff6e17451cd8c71da703ded3"
+    },
+    {
+      "type": "update",
+      "topic": "Du Lịch & Du Học",
+      "content": "Travel basics: Budget travel — hostel/guesthouse, local food, public transport, free activities, travel hacks. Cheap but rich experience.",
+      "source": "travel_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "39863e923e05a2102c742ea6b360e77d"
+    },
+    {
+      "type": "update",
+      "topic": "Du Lịch & Du Học",
+      "content": "Du lịch cơ bản: Budget travel — hostel/guesthouse, local food, public transport, free activities, travel hacks. Cơ chất nhưng trải nghiệm đích.",
+      "source": "travel_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "f08fec1d8766d15e2491e6d941762ab1"
+    },
+    {
+      "type": "update",
+      "topic": "旅游与旅行",
+      "content": "旅游基础：旅行计划 — 研究目的地、签证要求、预算、行程、打包。80%计划，20%享受。",
+      "source": "travel_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "f06c868ff9a510a4e15b21a4bcd37db9"
+    },
+    {
+      "type": "update",
+      "topic": "旅行・観光",
+      "content": "旅行基礎：旅行計画 — 観光地調査、ビザ要件、予算、行程、荷造り。80%計画、20%楽しむ。",
+      "source": "travel_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "b7831dccf1aa7933196fba8460a94171"
+    },
+    {
+      "type": "update",
+      "topic": "Du Lịch & Du Học",
+      "content": "Travel basics: Travel planning — research destination, visa requirements, budget, itinerary, packing. 80% planning, 20% enjoying.",
+      "source": "travel_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "90c4ffdc35eaccde83f2ae82796f18ce"
+    },
+    {
+      "type": "update",
+      "topic": "Du Lịch & Du Học",
+      "content": "Du lịch cơ bản: Travel planning — research destination, visa requirements, budget, itinerary, packing. 80% planning, 20% enjoying.",
+      "source": "travel_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "c25b50e9e342ebb73927618cf23504a6"
+    }
+  ]
+}

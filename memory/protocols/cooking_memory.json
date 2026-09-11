@@ -1,0 +1,349 @@
+{
+  "topicName": "Nấu Ăn & Đồ Ăn",
+  "last_updated": "2026-09-10T22:36:41.961340+00:00",
+  "sources": [
+    "cooking_protocol"
+  ],
+  "entries": [
+    {
+      "type": "update",
+      "topic": "烹饪与食物",
+      "content": "视频摘要：戈登·拉姆齐'完美炒蛋'—3步：鸡蛋+黄油+低温、始终搅拌、提早取出。关键：不要煮过头，蛋离火后仍会继续熟化。",
+      "source": "cooking_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "9cfdb38b4220a54d5802ecde6465e17a"
+    },
+    {
+      "type": "update",
+      "topic": "料理・レシピ",
+      "content": "動画要約：ゴードン・ラムジー'完璧なスクランブルエッグ'—3ステップ：卵＋バター＋低温、常にかき混ぜ、早く取り出す。ポイント：過調理しない、卵は熱源から外した後も調理が続く。",
+      "source": "cooking_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "88f40bc6e7c7e624f7501962cef59d84"
+    },
+    {
+      "type": "update",
+      "topic": "Cooking & Food",
+      "content": "Video summary: Gordon Ramsay 'Perfect Scrambled Eggs' — 3 steps: eggs+butter+low heat, stir constantly, remove early. Key: don't overcook, eggs continue cooking after removing from heat.",
+      "source": "cooking_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "eab76c79f71475f00bcf52ac8fa8d817"
+    },
+    {
+      "type": "update",
+      "topic": "Nấu Ăn & Đồ Ăn",
+      "content": "Video tóm tắt: Gordon Ramsay 'Perfect Scrambled Eggs' — 3 bước: eggs+butter+low heat, stir constantly, remove early. Key: don't overcook, eggs continue cooking sau khi tụt lửa.",
+      "source": "cooking_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "03b897a4040d4761168e0e138446abf7"
+    },
+    {
+      "type": "update",
+      "topic": "烹饪与食物",
+      "content": "传热：3种方式—导热（接触）、对流（流体）、辐射（热源）。水煮100°C、油炸160-190°C金褐色、空气炸200°C快速、烤箱180-220°C通用。",
+      "source": "cooking_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "db9310e2a6c0620966bd650985d9ff77"
+    },
+    {
+      "type": "update",
+      "topic": "料理・レシピ",
+      "content": "伝熱：3方式—伝導（接触）、対流（流体）、放射（熱源）。水沸騰100°C、油揚げ160-190°C金褐色、空気揚げ200°C高速、オーブン180-220°C一般。",
+      "source": "cooking_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "1149999144e2a0d20369db28c2b6f90a"
+    },
+    {
+      "type": "update",
+      "topic": "Cooking & Food",
+      "content": "Heat transfer: 3 methods — conduction (contact), convection (fluid flow), radiation (heat source). Water boil 100°C, oil fry 160-190°C golden brown, air fry 200°C fast, oven 180-220°C general.",
+      "source": "cooking_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "6d8d4e94fc1571c0b170cd75696f0ad7"
+    },
+    {
+      "type": "update",
+      "topic": "Nấu Ăn & Đồ Ăn",
+      "content": "Heat transfer: 3方式—conduction (接触), convection (对流/流体), radiation (辐射/热源). 水煮100°C, 油炸160-190°C golden brown, 空气炸200°C快速, 烤箱180-220°C通用.",
+      "source": "cooking_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "cec42bac9622bb6c1a1e75c61af54ef4"
+    },
+    {
+      "type": "update",
+      "topic": "烹饪与食物",
+      "content": "刀工技能：正确握持，刀刃角度15-20度，远离身体切割。90%厨房任务使用厨师刀。保持刀锋利—钝刀比锋利刀危险，因需更大力量。",
+      "source": "cooking_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "39949b4a836b558076113b8ae21c8668"
+    },
+    {
+      "type": "update",
+      "topic": "料理・レシピ",
+      "content": "ナイフスキル：正しいグリップ、刃角度15-20度、体から離して切る。キッチン作業の90%にシェフナイフを使用。刃をsharpに保つ—dull knifeはより大きな力が必要なのでsharp knifeより危険。",
+      "source": "cooking_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "ea414705d323c261295f8914be6e3a0f"
+    },
+    {
+      "type": "update",
+      "topic": "Cooking & Food",
+      "content": "Knife skills: Grip correctly, blade angle 15-20 degrees, cut away from body. Use chef knife for 90% of kitchen tasks. Keep knife sharp — dull knife is more dangerous than sharp knife due to higher force needed.",
+      "source": "cooking_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "bd24c17d8bbc2c2062529d8d20dbb120"
+    },
+    {
+      "type": "update",
+      "topic": "Nấu Ăn & Đồ Ăn",
+      "content": "Knife skills: Grip đúng cách, áng dao 15-20 độ, cắt xa tubuh. Dùng chef knife cho 90% việc nhà. Giữ dao sắc — dull knife nguy hiểm hơn sharp knife vì lực nhấn lớn hơn.",
+      "source": "cooking_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "661507f017efa26187a79e9d3f91a53c"
+    },
+    {
+      "type": "update",
+      "topic": "烹饪与食物",
+      "content": "评论区摘要：YouTube '如何煮牛排' — 评论里的顶级提示：回室温肉、热煎锅、只翻一次、休息5分钟。用户反馈：'这改变了我的烹饪'。",
+      "source": "cooking_protocol",
+      "lang": "zh",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "c2b216823844c281446d46df2e051eb5"
+    },
+    {
+      "type": "update",
+      "topic": "料理・レシピ",
+      "content": "コメント欄要約：YouTube 'ステーキの焼き方' — コメントからのトップヒント：常温の肉、熱いフライパン、1回だけ返す、5分休ませる。ユーザーのフィードバック：'これで料理が変わった'。",
+      "source": "cooking_protocol",
+      "lang": "ja",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "b23c01e529d8159b60f4472591ecf2b0"
+    },
+    {
+      "type": "update",
+      "topic": "Nấu Ăn & Đồ Ăn",
+      "content": "Comment summary: YouTube 'How to cook steak' — top tip from comments: room temperature meat, pan hot, flip once, rest 5 minutes. User feedback: 'this changed my cooking'.",
+      "source": "cooking_protocol",
+      "lang": "en",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "b22260f2f27af41c411ada9564f4b831"
+    },
+    {
+      "type": "update",
+      "topic": "Nấu Ăn & Đồ Ăn",
+      "content": "Comment section tóm tắt: YouTube 'How to cook steak' — top tip từ comments: room temperature meat, pan hot, flip once, rest 5 phút. User feedback: 'this changed my cooking'.",
+      "source": "cooking_protocol",
+      "lang": "vi",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "760a42af18b27256a5afd042d239ad14"
+    },
+    {
+      "type": "update",
+      "topic": "烹饪与食物",
+      "content": "论坛帖子摘要：r/Cooking '初学者最大错误' — 前3：烹饪中不尝味、放罐子里太挤、肉不晾娇。解决：每步都尝一下。",
+      "source": "cooking_protocol",
+      "lang": "zh",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "9af355803492a103717ad825d951747a"
+    },
+    {
+      "type": "update",
+      "topic": "料理・レシピ",
+      "content": "フォーラムスレッド要約：r/Cooking '初心者の最大の間違い' — トップ3：調理中に味見しない、鍋に詰めすぎる、肉を休ませない。修正：各ステップで味見テスト。",
+      "source": "cooking_protocol",
+      "lang": "ja",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "628ae4bd898a027dc9ced62082111ff6"
+    },
+    {
+      "type": "update",
+      "topic": "Nấu Ăn & Đồ Ăn",
+      "content": "Forum summary: r/Cooking 'Best beginner mistakes' — top 3: not tasting during cooking, overcrowding pan, not resting meat. Fix: taste test each step.",
+      "source": "cooking_protocol",
+      "lang": "en",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "01e99c94603c048a922751655dd866f6"
+    },
+    {
+      "type": "update",
+      "topic": "Nấu Ăn & Đồ Ăn",
+      "content": "Forum thread tóm tắt: r/Cooking 'Best beginner mistakes' — top 3: not tasting during cooking, overcrowding pan, not resting meat. Fix: taste test 각 step.",
+      "source": "cooking_protocol",
+      "lang": "vi",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "23e13962638f8b8c343fa9d0b48ea916"
+    },
+    {
+      "type": "update",
+      "topic": "烹饪与食物",
+      "content": "视频教程摘要：'戈登·拉姆齐 - 完美炒蛋' — 3步：鸡蛋+黄油+低温、始终搅拌、提早取出。关键：不要煮过头。",
+      "source": "cooking_protocol",
+      "lang": "zh",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "00e60090208723200dd76627c314106f"
+    },
+    {
+      "type": "update",
+      "topic": "料理・レシピ",
+      "content": "動画チュートリアル要約：'ゴードン・ラムジー - 完璧なスクランブルエッグ' — 3ステップ：卵＋バター＋低温、常にかき混ぜ、早く取り出す。ポイント：過調理しない。",
+      "source": "cooking_protocol",
+      "lang": "ja",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "cab83222f3f74c617ad61facb2635c04"
+    },
+    {
+      "type": "update",
+      "topic": "Nấu Ăn & Đồ Ăn",
+      "content": "Video summary: 'Gordon Ramsay - Perfect Scrambled Eggs' — 3 steps: eggs + butter + low heat, stir constantly, remove early. Key: don't overcook.",
+      "source": "cooking_protocol",
+      "lang": "en",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "51d1d42a0302db002fa68ba26f7e5a77"
+    },
+    {
+      "type": "update",
+      "topic": "Nấu Ăn & Đồ Ăn",
+      "content": "Video tutorial tóm tắt: 'Gordon Ramsay - Perfect Scrambled Eggs' — 3 bước: eggs + butter + low heat, stir constantly, remove early. Key: don't overcook.",
+      "source": "cooking_protocol",
+      "lang": "vi",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "de17257d0b6423cb1f4958d414f46d86"
+    },
+    {
+      "type": "update",
+      "topic": "烹饪与食物",
+      "content": "烹饪基础：热控制 — 了解传热方式。水煮：100°C沸腾，油炸：160-190°C金黄，空气炸：200°C快速。",
+      "source": "cooking_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "8eaf5c6a0fb4ad75762cde1d0d6e171d"
+    },
+    {
+      "type": "update",
+      "topic": "料理・レシピ",
+      "content": "料理基礎：熱制御 — 伝熱方式を理解する。水沸騰：100°C、油揚げ：160-190°C金黄、空気揚げ：200°C速い。",
+      "source": "cooking_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "a94b668a6ae4a7391f50c688fe988535"
+    },
+    {
+      "type": "update",
+      "topic": "Nấu Ăn & Đồ Ăn",
+      "content": "Cooking basics: Heat control — understand heat transfer. Water boil: 100°C, oil fry: 160-190°C golden, air fry: 200°C fast.",
+      "source": "cooking_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "f0c91ea3743e413fb2394eee705dd827"
+    },
+    {
+      "type": "update",
+      "topic": "Nấu Ăn & Đồ Ăn",
+      "content": "Nấu ăn cơ bản: Heat control — hiểu传热方式. 水煮：100°C沸腾, 油炸：160-190°C golden, 空气炸：200°C快速.",
+      "source": "cooking_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "80656ada6133f48791abcd8c6633c387"
+    },
+    {
+      "type": "update",
+      "topic": "烹饪与食物",
+      "content": "烹饪基础：刀工技能 — 正确握持，刀刃角度15-20度，远离身体切割。保持食材，确保安全。",
+      "source": "cooking_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "e2866b880042d65b50434e04b42e1e9e"
+    },
+    {
+      "type": "update",
+      "topic": "料理・レシピ",
+      "content": "料理基礎：ナイフスキル — 正しいグリップ、刃角度15-20度、体から離して切る。食材を保ち、安全を確保する。",
+      "source": "cooking_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "965e4161c8f0644f05be8746319bd1df"
+    },
+    {
+      "type": "update",
+      "topic": "Nấu Ăn & Đồ Ăn",
+      "content": "Cooking basics: Knife skills — grip correctly, blade angle 15-20 degrees, cut away from body. Preserve ingredients, ensure safety.",
+      "source": "cooking_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "096329eb2a2ea3129a435b80deafef0d"
+    },
+    {
+      "type": "update",
+      "topic": "Nấu Ăn & Đồ Ăn",
+      "content": "Nấu ăn cơ bản: Knife skills — grip đúng cách, áng dao 15-20 độ, cắt xa tubuh. Bảo toàn nguyên liệu, đảm bảo an toàn.",
+      "source": "cooking_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "5f5db0b606b3beb82e42c60275ebe9c4"
+    }
+  ]
+}

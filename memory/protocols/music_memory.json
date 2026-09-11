@@ -1,0 +1,339 @@
+{
+  "topicName": "Âm Nhạc",
+  "last_updated": "2026-09-10T22:36:41.962340+00:00",
+  "sources": [
+    "music_protocol"
+  ],
+  "entries": [
+    {
+      "type": "update",
+      "topic": "音乐",
+      "content": "视频：里克·比亚托'像制作人一样听音乐'—3层：节奏（groove/节拍）、和声（feel/情感）、旋律（soul/承载）。训练耳朵一次关注1层。例子：'Redbone' Childish Gambino—鼓+贝斯节奏、吉他旋律、钢琴和声。",
+      "source": "music_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "a79b957e65a7694fb1ed0eea515fa4b9"
+    },
+    {
+      "type": "update",
+      "topic": "音楽",
+      "content": "動画：リック・ベアトー'プロデューサーのように音楽を聴く方法'—3レイヤー：リズム（グルーヴ/ビート）、ハーモニー（感じ/感情）、メロディー（ソウル/運ぶ）。耳を1レイヤーずつ集中して訓練。例：'Redbone' Childish Gambino—ドラム+ベースリズム、ギター メロディー、ピアノハーモニー。",
+      "source": "music_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "3bc833dd5cc807a2317aa3f647339b38"
+    },
+    {
+      "type": "update",
+      "topic": "Âm Nhạc",
+      "content": "Video: Rick Beato 'How to listen to music like a producer' — 3 layers: rhythm (groove/beat), harmony (feel/emotion), melody (soul/carry). Train ear focus 1 layer at a time. Example: 'Redbone' Childish Gambino — drum+bass rhythm, guitar melody, piano harmony.",
+      "source": "music_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "d3d0b0142caa5ce87d97031aeea8c459"
+    },
+    {
+      "type": "update",
+      "topic": "音乐",
+      "content": "调号与五度相生圈：从C开始（无升降号），向上完全5度→G（1个升F#）、→D（2个升F# C#）。连续降号键每个增加1个降。调性中心基于音阶，大调明亮，小调悲伤/黑暗。",
+      "source": "music_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "02625579f9e409d95787b4695318f957"
+    },
+    {
+      "type": "update",
+      "topic": "音楽",
+      "content": "調号と5度圏：Cから開始（シャープ/フラットなし）、完全5度上→G（シャープ1つF#）、→D（シャープ2つF# C#）。連続フラットキーはフラット1つずつ増。調の中心基于音阶、メジャー明るい、マイナー悲しみ/ダーク。",
+      "source": "music_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "95a08279c7b0e983756a808106a64bd8"
+    },
+    {
+      "type": "update",
+      "topic": "Music",
+      "content": "Key signatures & circle of fifths: Start C (no sharps/flats), move up perfect 5th → G (1 sharp F#), → D (2 sharps F# C#). Each consecutive flat key gains 1 flat. Tonal center based on scale, major happy, minor sad/dark.",
+      "source": "music_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "00c7a9bfd81215190a49c7b4ec5ce8ec"
+    },
+    {
+      "type": "update",
+      "topic": "Âm Nhạc",
+      "content": "Key signatures & circle of fifths: Start C (no sharps/flats), move up perfect 5th → G (1 sharp F#), → D (2 sharps F# C#). Each consecutive flat key gains 1 flat. Tonal center dựa trên scale, major happy, minor sad/dark.",
+      "source": "music_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "e0b438208799b91a6cc77c997c958d1f"
+    },
+    {
+      "type": "update",
+      "topic": "音乐",
+      "content": "音乐理论3个基本：旋律（连续单音，传达情感）、和声（2个以上音同时，弦进行创造紧张/解决）、节奏（规则重复声音模式，保持时间）。没有节奏→没有音乐。",
+      "source": "music_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "787f8f7f11cbe95f679da38297eb7d65"
+    },
+    {
+      "type": "update",
+      "topic": "音楽",
+      "content": "音楽理論3基礎：メロディー（連続単音、感情伝達）、ハーモニー（2つ以上の音同時、コード進行が緊張/解決を作成）、リズム（規則的反復音パターン、時間維持）。リズムなし→音楽なし。",
+      "source": "music_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "edfb665bf9ae42bfa43164d0f235e632"
+    },
+    {
+      "type": "update",
+      "topic": "Music",
+      "content": "Music theory 3 fundamentals: Melody (sequence single notes, convey emotion), Harmony (2+ notes simultaneous, chord progressions create tension/resolution), Rhythm (regular repetitive sound patterns, keep time). No rhythm → no music.",
+      "source": "music_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "28ab2f5bd993e4cb4ddaf261f12a5a91"
+    },
+    {
+      "type": "update",
+      "topic": "Âm Nhạc",
+      "content": "Music theory 3 fundamentals: Melody (sequence single notes, convey emotion), Harmony (2+ notes simultaneous, chord progressions create tension/resolution), Rhythm (定期repetitive sound patterns, keep time). Không có rhythm → không có music.",
+      "source": "music_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "c32f91682c05e4147a77f65680e5d85b"
+    },
+    {
+      "type": "update",
+      "topic": "音乐",
+      "content": "评论区摘要：YouTube '最佳吉他独奏' — 顶级评论：'天阶'、'舒适地蒙蔽'、'自由鸟'。用户争论：'哪个才是真正最佳？' 评论讨论情感胜过技术。",
+      "source": "music_protocol",
+      "lang": "zh",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "977ed0dc15fd54c4aa562b1b0db5fd33"
+    },
+    {
+      "type": "update",
+      "topic": "音楽",
+      "content": "コメント欄要約：YouTube '最高のギターソロ' — トップコメント：'Stairway to Heaven'、'Comfortably Numb'、'Free Bird'。ユーザー議論：'本当にベストはどれ？' 技术に比べ感情議論。",
+      "source": "music_protocol",
+      "lang": "ja",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "2db8294c4ec1b89a1820c5aa0da32d17"
+    },
+    {
+      "type": "update",
+      "topic": "Âm Nhạc",
+      "content": "Comment summary: YouTube 'Best guitar solos' — top comments: 'Stairway to Heaven', 'Comfortably Numb', 'Free Bird'. Users debate: 'which is truly best?' Comments discuss emotion over technique.",
+      "source": "music_protocol",
+      "lang": "en",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "d685f7f2920d23cbcd34bdc7fd746cdf"
+    },
+    {
+      "type": "update",
+      "topic": "Âm Nhạc",
+      "content": "Comment section tóm tắt: YouTube 'Best guitar solos' — top comments: 'Stairway to Heaven', 'Comfortably Numb', 'Free Bird'. Users debate: 'which is truly best?' Comments discuss emotion over technique.",
+      "source": "music_protocol",
+      "lang": "vi",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "d95f317e13c7cabf140b04ea43c0aab0"
+    },
+    {
+      "type": "update",
+      "topic": "音乐",
+      "content": "论坛帖子摘要：r/WeAreTheMusicMakers '初学者最佳DAW' — Reaper（轻量、便宜）、FL Studio（直观）、Ableton（电子）、Logic Pro（Mac）。建议：先试免费试用。",
+      "source": "music_protocol",
+      "lang": "zh",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "63b6c4697cd20eace7635a8668caacf8"
+    },
+    {
+      "type": "update",
+      "topic": "音楽",
+      "content": "フォーラムスレッド要約：r/WeAreTheMusicMakers '初心者向けベストDAW' — Reaper（軽量、安価）、FL Studio（直感的）、Ableton（エレクトロニック）、Logic Pro（Mac）。アドバイス：まず無料トライアルを試す。",
+      "source": "music_protocol",
+      "lang": "ja",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "00212a89ae77f2eec743737030799749"
+    },
+    {
+      "type": "update",
+      "topic": "Âm Nhạc",
+      "content": "Forum summary: r/WeAreTheMusicMakers 'Best DAW for beginners' — Reaper (lightweight, cheap), FL Studio (intuitive), Ableton (electronic), Logic Pro (Mac). Advice: try free trials first.",
+      "source": "music_protocol",
+      "lang": "en",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "317eea58d604b8d0028d8dcdcb15abfd"
+    },
+    {
+      "type": "update",
+      "topic": "Âm Nhạc",
+      "content": "Forum thread tóm tắt: r/WeAreTheMusicMakers 'Best DAW for beginners' — Reaper (lightweight, cheap), FL Studio ( intuitive), Ableton (electronic), Logic Pro (Mac). Advice: try free trials first.",
+      "source": "music_protocol",
+      "lang": "vi",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "34c205505136d22fcc8528f01972d809"
+    },
+    {
+      "type": "update",
+      "topic": "音乐",
+      "content": "视频教程摘要：'里克·比亚托 - 像制作人一样听音乐' — 3层：节奏（groove）、和声（feel）、旋律（soul）。训练耳朵一次关注1层。",
+      "source": "music_protocol",
+      "lang": "zh",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "fbc3fb3cc866b086ab2186182871c1e0"
+    },
+    {
+      "type": "update",
+      "topic": "音楽",
+      "content": "動画チュートリアル要約：'リック・ベアトー - プロデューサーのように音楽を聴く方法' — 3つのレイヤー：リズム（グルーヴ）、ハーモニー（感じ）、メロディー（ソウル）。耳を1レイヤーずつ集中するように訓練する。",
+      "source": "music_protocol",
+      "lang": "ja",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "7e3c84cdf18148ea2fecbca18128adf9"
+    },
+    {
+      "type": "update",
+      "topic": "Âm Nhạc",
+      "content": "Video summary: 'Rick Beato - How to listen to music like a producer' — 3 layers: rhythm (groove), harmony (feel), melody (soul). Train ear focus 1 layer at a time.",
+      "source": "music_protocol",
+      "lang": "en",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "65a5252f236a462036285f3847b4c4b4"
+    },
+    {
+      "type": "update",
+      "topic": "Âm Nhạc",
+      "content": "Video tutorial tóm tắt: 'Rick Beato - How to listen to music like a producer' — 3 layers: rhythm (groove), harmony (feel), melody (soul). Train ear focus 1 layer at a time.",
+      "source": "music_protocol",
+      "lang": "vi",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "846f0c14f55f8d86a7ce359a80a1a7ff"
+    },
+    {
+      "type": "update",
+      "topic": "音乐",
+      "content": "音乐基础：和声 — 弦（3个以上音符）、音阶（音符系列）、调（调性中心）。和声创造情感、紧张感、解决。",
+      "source": "music_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "79b3cee7ee2351b65f79eea7bb06bdf1"
+    },
+    {
+      "type": "update",
+      "topic": "音楽",
+      "content": "音楽基礎：ハーモニー — コード（3つ以上の音）、スケール（音の並び）、キー（調の中心）。ハーモニーは感情、緊張、解決を生み出す。",
+      "source": "music_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "b14beed051c474123f7be0264a938208"
+    },
+    {
+      "type": "update",
+      "topic": "Âm Nhạc",
+      "content": "Music basics: Harmony — chord (3+ notes), scale (series of notes), key (tonal center). Harmony creates emotion, tension, resolution.",
+      "source": "music_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "7928a4211c6ac736e00885251774f5a9"
+    },
+    {
+      "type": "update",
+      "topic": "Âm Nhạc",
+      "content": "Nhạc cơ bản: Harmony — chord (3+ notes), scale (series of notes), key (tonal center). Harmony tạo emotion, tension, resolution.",
+      "source": "music_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "0f1e06e707429c6d042ea8ef2f93ee9d"
+    },
+    {
+      "type": "update",
+      "topic": "音乐",
+      "content": "音乐基础：节奏 — 节拍（主要脉搏）、速度（BPM）、节拍记号（4/4、3/4、6/8）。节奏是所有音乐的基础。",
+      "source": "music_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "f507678168e60c31ed4c8a0907b0d047"
+    },
+    {
+      "type": "update",
+      "topic": "音楽",
+      "content": "音楽基礎：リズム — ビート（主な拍子）、テンポ（BPM速度）、拍子記号（4/4、3/4、6/8）。リズムはすべての音楽の基礎である。",
+      "source": "music_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "2048f5aa762e64070eadee6f46bc696b"
+    },
+    {
+      "type": "update",
+      "topic": "Âm Nhạc",
+      "content": "Music basics: Rhythm — beat (main pulse), tempo (speed BPM), time signature (4/4, 3/4, 6/8). Rhythm is foundation of all music.",
+      "source": "music_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "9de80b7fe9c8705274acab46a10f1c5e"
+    },
+    {
+      "type": "update",
+      "topic": "Âm Nhạc",
+      "content": "Nhạc cơ bản: Rhythm — beat (nhịp chính), tempo (tốc độ BPM), time signature (4/4, 3/4, 6/8). Rhythm là nền tảng của mọi music.",
+      "source": "music_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "230531133cdde24da1af191b3b6da00a"
+    }
+  ]
+}

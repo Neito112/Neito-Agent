@@ -1,0 +1,329 @@
+{
+  "topicName": "Lập Trình & Coding",
+  "last_updated": "2026-09-10T22:36:41.964851+00:00",
+  "sources": [
+    "programming_protocol"
+  ],
+  "entries": [
+    {
+      "type": "update",
+      "topic": "编程与编码",
+      "content": "软件工程师一天（YouTube评论）：会议、编码、调试、协作、学习。共同主题：'不仅仅是编码，而是解决问题+沟通。' 职业早期指南：整洁代码让他人容易阅读/构建/调试/维护。",
+      "source": "programming_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "c764492a793590320e39817dae2ac010"
+    },
+    {
+      "type": "update",
+      "topic": "プログラミング・コーディング",
+      "content": "ソフトウェアエンジニア1日（YouTubeコメント）：会議、コーディング、デバッグ、コラボレーション、学習。共通テーマ：'コーディングだけでなく、問題解決＋コミュニケーション。' 初期キャリアガイド：クリーンコード他人が読んで構築、デバッグ、保守容易に。",
+      "source": "programming_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "50f11bbb37b80d61324659dc113c1537"
+    },
+    {
+      "type": "update",
+      "topic": "Lập Trình & Coding",
+      "content": "Software engineer day-in-life (YouTube comments): meetings, coding, debugging, collaboration, learning. Common theme: 'not just coding, it's problem solving + communication.' Early-career guide: clean code makes others read/build/debug/maintain easily.",
+      "source": "programming_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "51053179d3b4acb8e8c106ea2ffd6f39"
+    },
+    {
+      "type": "update",
+      "topic": "编程与编码",
+      "content": "按目标选择编程语言：网页（JavaScript/TypeScript）、数据科学/AI（Python）、系统/嵌入式（C/C++）、移动（Swift iOS/Kotlin Android）、企业（Java/C#）。Fireship：'编程就是告诉计算机做什么。' Reddit r/learnprogramming：追随目标，而非炒作。",
+      "source": "programming_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "1154ae95844f99b8542bbfad1cba9dbe"
+    },
+    {
+      "type": "update",
+      "topic": "プログラミング・コーディング",
+      "content": "プログラム言語選択目標別：ウェブ（JavaScript/TypeScript）、データサイエンス/AI（Python）、システム/組み込み（C/C++）、モバイル（Swift iOS/Kotlin Android）、エンタープライズ（Java/C#）。Fireship：'プログラミングはコンピュータに何をするか伝えること。' Reddit r/learnprogramming：目標を追う、ハイプではない。",
+      "source": "programming_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "783db519875c41a1b2fe72301bd35c5d"
+    },
+    {
+      "type": "update",
+      "topic": "Programming & Coding",
+      "content": "Programming language selection by goal: web (JavaScript/TypeScript), data science/AI (Python), systems/embedded (C/C++), mobile (Swift iOS / Kotlin Android), enterprise (Java/C#). Fireship: 'programming is telling computer what to do.' Reddit r/learnprogramming: follow goal, not hype.",
+      "source": "programming_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "a07eb6d2789811d5a56db60f6c501ca4"
+    },
+    {
+      "type": "update",
+      "topic": "Lập Trình & Coding",
+      "content": "Programming language selection by goal: web (JavaScript/TypeScript), data science/AI (Python), systems/embedded (C/C++), mobile (Swift iOS / Kotlin Android), enterprise (Java/C#). Fireship: 'programming là telling computer what to do.' Reddit r/learnprogramming: follow goal, not hype.",
+      "source": "programming_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "b0e7304229e6ebac615a4441a9b7bc91"
+    },
+    {
+      "type": "update",
+      "topic": "编程与编码",
+      "content": "2025年整洁代码原则：简单变量名、有序代码、注释解释WHY而非WHAT。Dave Farley（2026年1月）：'整洁代码是正确的...但不够'—还需要可测试性、持续交付、良好架构。现代最佳实践：版本控制、CI/CD、代码审查、自动化测试。",
+      "source": "programming_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "76a884598ccf2da0967c91ddd7d3f9fb"
+    },
+    {
+      "type": "update",
+      "topic": "プログラミング・コーディング",
+      "content": "クリーンコード原則2025：単純な変数名、整理されたコード、コメントはWHATではなくWHYを説明。Dave Farley（2026年1月）：'クリーンコードは正しい...しかし十分ではない'—テスト容易性、継続的デリバリー良いアーキテクチャも必要。現代ベストプラクティス：バージョン管理、CI/CD、コードレビュー、自動化テスト。",
+      "source": "programming_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "f95d2b69ffd8339a6db246ab567edfa4"
+    },
+    {
+      "type": "update",
+      "topic": "Lập Trình & Coding",
+      "content": "Clean code principles 2025: simple variable names, organized code, comments explain WHY not WHAT. Dave Farley (Jan 2026): 'Clean Code is right... but not enough'—need testability, continuous delivery, good architecture too. Modern best practices: version control, CI/CD, code review, automated tests.",
+      "source": "programming_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "32f4b263609e7044ccf7d3fe1e601247"
+    },
+    {
+      "type": "update",
+      "topic": "编程与编码",
+      "content": "评论区摘要：YouTube '软件工程师的一天' — 用户分享经验：会议、编码、调试、协作、学习。共同主题：'不仅仅是编码，而是解决问题和沟通'。",
+      "source": "programming_protocol",
+      "lang": "zh",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "79b8039bbe0ecf940a1081236d370ffe"
+    },
+    {
+      "type": "update",
+      "topic": "プログラミング・コーディング",
+      "content": "コメント欄要約：YouTube 'ソフトウェアエンジニアの1日' — ユーザーは経験を共有：会議、コーディング、デバッグ、コラボレーション、学習。共通テーマ：'コーディングだけでなく、問題解決とコミュニケーションである'。",
+      "source": "programming_protocol",
+      "lang": "ja",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "1fae42c0d068f0b8793f16b2d0ee91d3"
+    },
+    {
+      "type": "update",
+      "topic": "Lập Trình & Coding",
+      "content": "Comment summary: YouTube 'Day in the life of a software engineer' — users share experience: meetings, coding, debugging, collaboration, learning. Common theme: 'it's not just coding, it's problem solving and communication'.",
+      "source": "programming_protocol",
+      "lang": "en",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "ca725aa56e2dcd9b667ab695abbefef5"
+    },
+    {
+      "type": "update",
+      "topic": "Lập Trình & Coding",
+      "content": "Comment section tóm tắt: YouTube 'Day in the life of a software engineer' — users share experience: meetings, coding, debugging, collaboration, learning. Common theme: 'it's not just coding, it's problem solving and communication'.",
+      "source": "programming_protocol",
+      "lang": "vi",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "82add5c4564263b14c01dc41ea88b885"
+    },
+    {
+      "type": "update",
+      "topic": "编程与编码",
+      "content": "论坛帖子摘要：r/learnprogramming '最佳第一语言' — Python（简单、多用途）、JavaScript（网页、即时反馈）、Java（结构化、类型化）。建议：追随你的目标，而不是炒作。",
+      "source": "programming_protocol",
+      "lang": "zh",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "cfcb7a97424afdaa7369c145ced7d388"
+    },
+    {
+      "type": "update",
+      "topic": "プログラミング・コーディング",
+      "content": "フォーラムスレッド要約：r/learnprogramming '最初のベスト言語' — Python（簡単、多用途）、JavaScript（ウェブ、即時フィードバック）、Java（構造化、型付き）。アドバイス：目標を追う、 hypeではない。",
+      "source": "programming_protocol",
+      "lang": "ja",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "87fc61751cdcec6753a8a80d6af4d81e"
+    },
+    {
+      "type": "update",
+      "topic": "Lập Trình & Coding",
+      "content": "Forum summary: r/learnprogramming 'Best first language' — Python (easy, versatile), JavaScript (web, immediate feedback), Java (structured, typed). Advice: follow your goal, not hype.",
+      "source": "programming_protocol",
+      "lang": "en",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "26b55422eb8fd9057ee94bd562bf5052"
+    },
+    {
+      "type": "update",
+      "topic": "Lập Trình & Coding",
+      "content": "Forum thread tóm tắt: r/learnprogramming 'Best first language' — Python (easy, versatile), JavaScript (web, immediate feedback), Java (structured, typed). Advice: follow your goal, not hype.",
+      "source": "programming_protocol",
+      "lang": "vi",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "30ee95492bec669af9175cca1bfa0f89"
+    },
+    {
+      "type": "update",
+      "topic": "编程与编码",
+      "content": "视频教程摘要：'Fireship - 100秒学会编程' — 编程就是告诉计算机做什么。语言根据目标选择：网页（JavaScript）、数据（Python）、系统（C++）、移动（Swift/Kotlin）。",
+      "source": "programming_protocol",
+      "lang": "zh",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "05f9dbe200b46b768f86e944f9b87e82"
+    },
+    {
+      "type": "update",
+      "topic": "プログラミング・コーディング",
+      "content": "動画チュートリアル要約：'Fireship - 100秒でプログラミングを学ぶ' — プログラミングはコンピュータに何をするか伝えること。言語は目標に基づいて選択：ウェブ（JavaScript）、データ（Python）、システム（C++）、モバイル（Swift/Kotlin）。",
+      "source": "programming_protocol",
+      "lang": "ja",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "f003200ce1b8bddd223e4da9f63cd7e7"
+    },
+    {
+      "type": "update",
+      "topic": "Lập Trình & Coding",
+      "content": "Video summary: 'Fireship - Learn programming in 100 seconds' — programming is telling computer what to do. Language chọn dựa trên goal: web (JavaScript), data (Python), systems (C++), mobile (Swift/Kotlin).",
+      "source": "programming_protocol",
+      "lang": "en",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "aef151eec5f78a2257aaaf74a508faaa"
+    },
+    {
+      "type": "update",
+      "topic": "Lập Trình & Coding",
+      "content": "Video tutorial tóm tắt: 'Fireship - Learn programming in 100 seconds' — programming là telling computer what to do. Language chọn dựa trên goal: web (JavaScript), data (Python), systems (C++), mobile (Swift/Kotlin).",
+      "source": "programming_protocol",
+      "lang": "vi",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "423a08dcca29502274e780b7c256a80c"
+    },
+    {
+      "type": "update",
+      "topic": "编程与编码",
+      "content": "编程基础：控制流程 — if/else（决策）、for循环（重复N次）、while循环（重复直到条件）。程序=决策+重复。",
+      "source": "programming_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "c6296a7d9de02f0e832b77675bb4ccb2"
+    },
+    {
+      "type": "update",
+      "topic": "プログラミング・コーディング",
+      "content": "プログラミング基礎：制御フロー — if/else（分岐）、forループ（N回繰り返し）、whileループ（条件まで繰り返し）。プログラム＝分岐＋繰り返し。",
+      "source": "programming_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "8d0b3539e56a4e4d58c8fadef5d5e552"
+    },
+    {
+      "type": "update",
+      "topic": "Lập Trình & Coding",
+      "content": "Programming basics: Control flow — if/else (decision), for loop (repeat N times), while loop (repeat until condition). Program = decision + repetition.",
+      "source": "programming_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "3f91264ded7efab899de9d29e9096951"
+    },
+    {
+      "type": "update",
+      "topic": "Lập Trình & Coding",
+      "content": "Programming cơ bản: Control flow — if/else (decision), for loop (repeat N times), while loop (repeat until condition). Program = decision + repetition.",
+      "source": "programming_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "6eac3e2f18b1bd9c9cbfee348aafad2e"
+    },
+    {
+      "type": "update",
+      "topic": "编程与编码",
+      "content": "编程基础：变量与数据类型 — 存储信息。字符串（文本）、整数（整数）、浮点数（小数）、布尔（真/假）、数组（列表）。",
+      "source": "programming_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "845ad043d3ec3ba77e51d58b15572a2e"
+    },
+    {
+      "type": "update",
+      "topic": "プログラミング・コーディング",
+      "content": "プログラミング基礎：変数とデータ型 — 情報を保存する。文字列（テキスト）、整数（整数）、浮動小数点（小数）、ブール（真/偽）、配列（リスト）。",
+      "source": "programming_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "83c4744aa9c13ab383a15562e66e14c9"
+    },
+    {
+      "type": "update",
+      "topic": "Lập Trình & Coding",
+      "content": "Programming basics: Variables & data types — store information. String (text), integer (whole number), float (decimal), boolean (true/false), array (list).",
+      "source": "programming_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "b93bbc8e23bfd03928438644c857e43c"
+    },
+    {
+      "type": "update",
+      "topic": "Lập Trình & Coding",
+      "content": "Programming cơ bản: Variables & data types — store information. String (text), integer (whole number), float (decimal), boolean (true/false), array (list).",
+      "source": "programming_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "18dbd2234d596ee757c803be14ebf1e8"
+    }
+  ]
+}

@@ -1,0 +1,189 @@
+{
+  "topicName": "Windows Automation",
+  "last_updated": "2026-09-10T22:36:42.005478+00:00",
+  "sources": [
+    "windows_automation_protocol | web: netwrix, reddit r/PowerShell",
+    "windows_automation_protocol | web: netwrix, stackoverflow, superuser",
+    "windows_automation_protocol",
+    "windows_automation_protocol",
+    "windows_automation_protocol",
+    "windows_automation_protocol",
+    "windows_automation_protocol",
+    "windows_automation_protocol",
+    "windows_automation_protocol",
+    "windows_automation_protocol",
+    "windows_automation_protocol",
+    "windows_automation_protocol",
+    "windows_automation_protocol",
+    "windows_automation_protocol",
+    "windows_automation_protocol",
+    "windows_automation_protocol",
+    "windows_automation_protocol"
+  ],
+  "entries": [
+    {
+      "type": "update",
+      "topic": "Windows Automation",
+      "content": "PowerShell execution policy 2026: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser cho phép chạy local script không cần admin privileges. Bypass cho session riêng: powershell -ExecutionPolicy Bypass -File script.ps1. NonInteractive flag: ngăn PowerShell prompt trong background scripts. Kiểm tra policy hiện tại: Get-ExecutionPolicy -List. RemoteSigned: local scripts run без signature, downloaded scripts cần signature.",
+      "source": "windows_automation_protocol | web: netwrix, reddit r/PowerShell",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T22:36:04.731148+00:00",
+      "confidence": 1.0,
+      "content_hash": "3bcd786d8930779cf5cc39f5e0cf2855"
+    },
+    {
+      "type": "update",
+      "topic": "Windows Automation",
+      "content": "Task Scheduler 2026: chọn 'Run whether user is logged on or not' để script chạy background không cần người dùng login. Để chạy script .ps1: tạo task → Action 'Start a program' → program: powershell.exe, arguments: -ExecutionPolicy Bypass -File 'C:\\path\\script.ps1'. Trigger: time-based (daily/weekly) hoặc event-based (logon, system start, event ID từ Event Viewer). Điều kiện: uncheck 'Start only if on AC power' nếu dùng laptop.",
+      "source": "windows_automation_protocol | web: netwrix, stackoverflow, superuser",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T22:36:04.731148+00:00",
+      "confidence": 1.0,
+      "content_hash": "d1387495a545c1038669f114d99fbf00"
+    },
+    {
+      "type": "update",
+      "topic": "Windows自动化",
+      "content": "PowerShell执行策略：`Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`允许在不需管理员权限的情况下运行本地脚本。",
+      "source": "windows_automation_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "82a1462b55ac9c7c4bb03678209ee714"
+    },
+    {
+      "type": "update",
+      "topic": "Windows自動化",
+      "content": "PowerShell実行ポリシー：`Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`で、管理者権限なしでローカルスクリプトを実行できるようになる。",
+      "source": "windows_automation_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "11cf672d56712b06b1ff9f562ea2d63f"
+    },
+    {
+      "type": "update",
+      "topic": "Windows Automation",
+      "content": "PowerShell execution policy: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` allows running local scripts without admin privileges.",
+      "source": "windows_automation_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "aac09de7901f8fedb2dcd80f0a484a0a"
+    },
+    {
+      "type": "update",
+      "topic": "Windows自动化",
+      "content": "任务计划程序：创建任务时选择'无论用户是否登录都运行'，以便脚本在用户未登录时也能在后台运行。",
+      "source": "windows_automation_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "06d748e9e808d3a8aef9dbc963b64365"
+    },
+    {
+      "type": "update",
+      "topic": "Windows自動化",
+      "content": "タスクスケジューラ：タスク作成時に'ユーザーがログインしているかどうかにかかわらず実行する'を選択して、スクリプトをユーザーがログインしてない状態でもバックグラウンドで実行する。",
+      "source": "windows_automation_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "734d0eee7eb170424c9a74e7b5c6a6ec"
+    },
+    {
+      "type": "update",
+      "topic": "Windows Automation",
+      "content": "Task Scheduler: When creating task, select 'Run whether user is logged on or not' to run script in background without user logged in.",
+      "source": "windows_automation_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "01cc8bb403ed7ec17745baf7c211adc6"
+    },
+    {
+      "type": "update",
+      "topic": "Windows Automation",
+      "content": "Task Scheduler: Select 'Run whether user is logged on or not' to run script in background without user logged in.",
+      "source": "windows_automation_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "a41b673ed323f58090677c3e956fdc06"
+    },
+    {
+      "type": "update",
+      "topic": "Windows Automation",
+      "content": "磁盘清理自动化: 可以使用 `Cleanmgr.exe` 命令结合脚本来自动清理临时文件和系统缓存. 这样可以保持系统存储空间的健康.",
+      "source": "windows_automation_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "540009c071fe5c629c5bae2516fb7382"
+    },
+    {
+      "type": "update",
+      "topic": "Windows Automation",
+      "content": "权限提升: 在需要管理员权限的脚本中，可以使用 `Start-Process -Verb RunAs` 来请求提升权限. 这样可以避免因权限不足而导致的脚本失败.",
+      "source": "windows_automation_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "383824273abc8b8cfcd45446f2aa66f8"
+    },
+    {
+      "type": "update",
+      "topic": "Windows Automation",
+      "content": "日志记录最佳实践: 在自动化脚本中，应该记录详细的日志，包括时间戳、操作结果和错误信息. 使用 PowerShell 的 `Start-Transcript` 命令可以自动记录整个会话.",
+      "source": "windows_automation_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "40434730988b156ebae93b66d396dcd9"
+    },
+    {
+      "type": "update",
+      "topic": "Windows Automation",
+      "content": "批量文件重命名: 使用 `Rename-Item` 命令可以批量重命名文件. 结合 `-NewName` 参数和通配符，可以快速为一组文件添加前缀或后缀.",
+      "source": "windows_automation_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "5d235508d0fc55d2ce58cfda07e60f71"
+    },
+    {
+      "type": "update",
+      "topic": "Windows Automation",
+      "content": "快捷方式创建: 可以使用 `WScript.Shell` 对象在 Windows 中创建快捷方式. 这样可以将复杂的命令或脚本封装成一个简单的快捷方式，方便用户使用.",
+      "source": "windows_automation_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "636582a0b14097eb330bbea2d303b660"
+    },
+    {
+      "type": "update",
+      "topic": "Windows Automation",
+      "content": "进程管理: 使用 `Get-Process` 和 `Stop-Process` 命令可以管理 Windows 进程. 例如，如果某个程序无响应，可以通过脚本自动杀死并重新启动.",
+      "source": "windows_automation_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "8b28779478202ba52e773fd679c5ae7d"
+    },
+    {
+      "type": "update",
+      "topic": "Windows Automation",
+      "content": "环境变量管理: 可以在用户环境变量中添加自定义变量，以便在脚本中使用. 例如，添加 `NIOH_HOME` 指向项目目录，这样脚本就可以动态引用路径.",
+      "source": "windows_automation_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "3d569f2a6c7ed9c14c1af206effe01b3"
+    },
+    {
+      "type": "update",
+      "topic": "Windows Automation",
+      "content": "文件监控与自动处理: 使用 `FileSystemWatcher` 类可以监控文件系统的变化. 当文件创建、修改或删除时，可以触发自动处理脚本. 这在自动化工作流中非常有用.",
+      "source": "windows_automation_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "b410b769aa4b391025d5e363f1c0dd76"
+    }
+  ]
+}

@@ -1,0 +1,329 @@
+{
+  "topicName": "Tâm Lý & Phát Triển Bản Thân",
+  "last_updated": "2026-09-10T22:36:41.967280+00:00",
+  "sources": [
+    "psychology_protocol"
+  ],
+  "entries": [
+    {
+      "type": "update",
+      "topic": "心理学与自我发展",
+      "content": "2025年最佳心理学书籍（Reddit r/psychology）：'影响力'罗伯特·卡尼曼（说服原则）、'思考，快与慢'丹尼尔·卡尼曼（认知偏差系统1/2）、'习惯的力量'查尔斯·杜希格（习惯循环线索-routine-奖励）、'原子习惯'詹姆斯·清（微小变化复合）。建议：应用概念，而非仅阅读。",
+      "source": "psychology_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "70ca59001dce8935094b76183c657158"
+    },
+    {
+      "type": "update",
+      "topic": "心理学・自己開発",
+      "content": "ベスト心理学本2025（Reddit r/psychology）：'Influence' Robert Cialdini（説得原則）、'Thinking Fast and Slow' Daniel Kahneman（認知バイアスシステム1/2）、'The Power of Habit' Charles Duhigg（習慣ループ cue-routine-reward）、'Atomic Habits' James Clear（小さな変化が複合）。アドバイス：概念適用する、読むだけではない。",
+      "source": "psychology_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "b03485712cb0fae767adacdd0fd8ea0a"
+    },
+    {
+      "type": "update",
+      "topic": "Tâm Lý & Phát Triển Bản Thân",
+      "content": "Best psychology books 2025 (Reddit r/psychology): 'Influence' Robert Cialdini (persuasion principles), 'Thinking Fast and Slow' Daniel Kahneman (cognitive biases system 1/2), 'The Power of Habit' Charles Duhigg (habit loop cue-routine-reward), 'Atomic Habits' James Clear (tiny changes compound). Advice: apply concepts, not just read.",
+      "source": "psychology_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "d1d63c48d27669ca20987d1e4762fbd3"
+    },
+    {
+      "type": "update",
+      "topic": "心理学与自我发展",
+      "content": "情商（EQ）：自我意识（识别自身情绪）、自我调节（管理情绪）、同理心（理解他人）、社交技能（有效沟通）。许多情况下EQ > IQ—Neurofied领导决策。西蒙·辛格'从为什么开始'：目的驱动领导忠实追随。",
+      "source": "psychology_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "a5aa0c5c5f03e3d72be54c5526dbd990"
+    },
+    {
+      "type": "update",
+      "topic": "心理学・自己開発",
+      "content": "感情的知性（EQ）：自己認識（自身の感情認識）、自己調整（感情管理）、共感（他者理解）、社会的スキル（効果的コミュニケーション）。多くの状況でEQ > IQ—Neurofiedリーダーシップ意思決定。サイモン・シネック'なぜから始める'：目的主導リーダーシップ忠実フォロー。",
+      "source": "psychology_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "f808daec7e65dddb2caa45059514b42d"
+    },
+    {
+      "type": "update",
+      "topic": "Tâm Lý & Phát Triển Bản Thân",
+      "content": "Emotional intelligence (EQ): self-awareness (recognize own emotion), self-regulation (manage emotion), empathy (understand others), social skills (communicate effective). EQ > IQ in many situations—Neurofied leadership decision-making. Simon Sinek 'Start with Why': purpose-driven leadership loyal following.",
+      "source": "psychology_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "a85e27b78208c6850e47abaa69dca89f"
+    },
+    {
+      "type": "update",
+      "topic": "心理学与自我发展",
+      "content": "认知偏差2025：确认偏差（只接受符合信念的信息）、可得性启发（基于鲜明例子决策）、锚定效应（卡在第一个数字上）。Neurofied：减少偏差增强心理健康。Medium：用情商对抗偏差。",
+      "source": "psychology_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "afaf7234ee60c626161dc9a7166cb0b3"
+    },
+    {
+      "type": "update",
+      "topic": "心理学・自己開発",
+      "content": "認知バイアス2025：確認バイアス（信念に合う情報のみ受け入れ）、可用性ヒューリスティック（鮮明な例に基づき決定）、アンカリング（最初の数字に捕らわれる）。Neurofied：バイアス軽減心理学的健康向上。Medium：感情的知性でバイアスと闘う。",
+      "source": "psychology_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "dd948fdd96deeb41381edda048980fa4"
+    },
+    {
+      "type": "update",
+      "topic": "Psychology & Self-Development",
+      "content": "Cognitive biases 2025: confirmation bias (only accept info matching belief), availability heuristic (decide based on vivid examples), anchoring (stuck on first number). Neurofied: reducing biases enhance psychological health. Medium: battling bias with emotional intelligence.",
+      "source": "psychology_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "b6af9465a8b63bf797af7974e6c6f6b2"
+    },
+    {
+      "type": "update",
+      "topic": "Tâm Lý & Phát Triển Bản Thân",
+      "content": "Cognitive biases 2025: confirmation bias (chỉ chấp nhận info phù hợp belief), availability heuristic (quyết định based on vivid examples), anchoring (quấn vào first number). Neurofied: reducing biases enhance psychological health. Medium: battling bias with emotional intelligence.",
+      "source": "psychology_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "62ddce03b4b8c538dfeb31fce54bd68a"
+    },
+    {
+      "type": "update",
+      "topic": "心理学与自我发展",
+      "content": "评论区摘要：YouTube '有效的心理技巧' — 用户分享应用心理概念的个人故事，讨论操纵与说服的伦理。共同主题：'理解心理学有助于 navigating 人生，合乎伦理地使用'。",
+      "source": "psychology_protocol",
+      "lang": "zh",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "2ea5d2477bc7694f0e83cc562ee263f9"
+    },
+    {
+      "type": "update",
+      "topic": "心理学・自己開発",
+      "content": "コメント欄要約：YouTube '効果的な心理学トリック' — ユーザーは心理学的概念を適用した個人的な物語を共有、操作と説得の倫理について議論。共通テーマ：'心理学を理解することは人生を navigating するのに役立つ、倫理的に使う'。",
+      "source": "psychology_protocol",
+      "lang": "ja",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "b2c88b9076b661d48712ee3cb79def21"
+    },
+    {
+      "type": "update",
+      "topic": "Tâm Lý & Phát Triển Bản Thân",
+      "content": "Comment summary: YouTube 'Psychology tricks that work' — users share personal stories applying psychological concepts, debate ethics of manipulation vs persuasion. Common theme: 'understanding psychology helps navigate life, use ethically'.",
+      "source": "psychology_protocol",
+      "lang": "en",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "161df6347ce9ec47c1fcf8c574c7489d"
+    },
+    {
+      "type": "update",
+      "topic": "Tâm Lý & Phát Triển Bản Thân",
+      "content": "Comment section tóm tắt: YouTube 'Psychology tricks that work' — users share personal stories applying psychological concepts, debate ethics of manipulation vs persuasion. Common theme: 'understanding psychology helps navigate life, use ethically'.",
+      "source": "psychology_protocol",
+      "lang": "vi",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "ef952736e78bf46a93c4c886533aaf36"
+    },
+    {
+      "type": "update",
+      "topic": "心理学与自我发展",
+      "content": "论坛帖子摘要：r/psychology '理解人类行为的最佳书籍' — 卡尼曼的'思考，快与慢'、杜希格的'习惯的力量'、克莱尔的'原子习惯'。建议：不仅阅读，还要应用概念。",
+      "source": "psychology_protocol",
+      "lang": "zh",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "f342a5637b403aa909d7a2a555f66b27"
+    },
+    {
+      "type": "update",
+      "topic": "心理学・自己開発",
+      "content": "フォーラムスレッド要約：r/psychology '人間行動を理解するためのベスト本' — シアルディーニの'影響力'、カーネマンの'ファスト＆スロー'、デヒッグの'習慣の力'、クリアの'アトミックハビット'。アドバイス：読むだけでなく概念を適用する。",
+      "source": "psychology_protocol",
+      "lang": "ja",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "f2ca3164a1f5710d4ad68938c6bbfec7"
+    },
+    {
+      "type": "update",
+      "topic": "Tâm Lý & Phát Triển Bản Thân",
+      "content": "Forum summary: r/psychology 'Best books for understanding human behavior' — 'Influence' by Cialdini, 'Thinking Fast and Slow' by Kahneman, 'The Power of Habit' by Duhigg, 'Atomic Habits' by Clear. Advice: apply concepts, not just read.",
+      "source": "psychology_protocol",
+      "lang": "en",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "e98fc5abbe32cdfb2cc0a84f8cdfe97c"
+    },
+    {
+      "type": "update",
+      "topic": "Tâm Lý & Phát Triển Bản Thân",
+      "content": "Forum thread tóm tắt: r/psychology 'Best books for understanding human behavior' — 'Influence' by Cialdini, 'Thinking Fast and Slow' by Kahneman, 'The Power of Habit' by Duhigg, 'Atomic Habits' by Clear. Advice: apply concepts, not just read.",
+      "source": "psychology_protocol",
+      "lang": "vi",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "46fe581ed271050a1de9136c00ffd3e9"
+    },
+    {
+      "type": "update",
+      "topic": "心理学与自我发展",
+      "content": "视频摘要：'西蒙·辛格 - 从为什么开始' — 人们购买你为什么做，而不是你做什么。目的驱动的领导创造忠实的追随者。核心问题：'你的组织为什么存在？'",
+      "source": "psychology_protocol",
+      "lang": "zh",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "b3e94472c1c580892cf4c14c46a29bf2"
+    },
+    {
+      "type": "update",
+      "topic": "心理学・自己開発",
+      "content": "動画要約：'サイモン・シネック - なぜから始める' — 人々はあなたが何をするかではなく、なぜそれをするかを買う。目的主導のリーダーシップが忠実なフォローを生み出す。核心質問：'あなたの組織はなぜ存在するのか？'",
+      "source": "psychology_protocol",
+      "lang": "ja",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "3a5b35748b0f5e3c68ba300afc6af3d6"
+    },
+    {
+      "type": "update",
+      "topic": "Tâm Lý & Phát Triển Bản Thân",
+      "content": "Video summary: 'Simon Sinek - Start with Why' — people buy why you do it, not what you do. Purpose-driven leadership creates loyal following. Key question: 'why does your organization exist?'",
+      "source": "psychology_protocol",
+      "lang": "en",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "b760ef409831cfc87b9c1980ef093daa"
+    },
+    {
+      "type": "update",
+      "topic": "Tâm Lý & Phát Triển Bản Thân",
+      "content": "Video tóm tắt: 'Simon Sinek - Start with Why' — people buy why you do it, not what you do. Purpose-driven leadership creates loyal following. Key question: 'why does your organization exist?'",
+      "source": "psychology_protocol",
+      "lang": "vi",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "ab7a199e592bca54681d9baeecb83df0"
+    },
+    {
+      "type": "update",
+      "topic": "心理学与自我发展",
+      "content": "心理学基础：情商 — 自我意识（识别自身情绪）、自我调节（管理情绪）、同理心（理解他人）、社交技能（沟通）。许多情况下EQ > IQ。",
+      "source": "psychology_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "1f1502c6a8399036cfa024e4e7208af8"
+    },
+    {
+      "type": "update",
+      "topic": "心理学・自己開発",
+      "content": "心理学基礎：感情的知性 — 自己認識（自身の感情を認識）、自己調整（感情を管理）、共感（他者を理解）、社会的スキル（コミュニケーション）。多くの状況でEQ > IQ。",
+      "source": "psychology_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "4302045ab88eed5f2050624823385e83"
+    },
+    {
+      "type": "update",
+      "topic": "Tâm Lý & Phát Triển Bản Thân",
+      "content": "Psychology basics: Emotional intelligence — self-awareness (recognize own emotion), self-regulation (manage emotion), empathy (understand others), social skills (communicate). EQ > IQ in many situations.",
+      "source": "psychology_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "bc9af8996c24a7b3fea180bdbca6bbfd"
+    },
+    {
+      "type": "update",
+      "topic": "Tâm Lý & Phát Triển Bản Thân",
+      "content": "Psychology cơ bản: Emotional intelligence — self-awareness (recognize own emotion), self-regulation (manage emotion), empathy (understand others), social skills (communicate). EQ > IQ in many situations.",
+      "source": "psychology_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "717286335131fd8fb64ea3d54d08f699"
+    },
+    {
+      "type": "update",
+      "topic": "心理学与自我发展",
+      "content": "心理学基础：认知偏差 — 确认偏差（只接受符合信念的信息）、可得性启发（基于鲜明例子决策）、锚定效应（卡在第一个数字上）。",
+      "source": "psychology_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "b9f9f8c89c526e6fb9ada7c3979f9e68"
+    },
+    {
+      "type": "update",
+      "topic": "心理学・自己開発",
+      "content": "心理学基礎：認知バイアス — 確認バイアス（信念に合う情報のみ受け入れる）、可用性ヒューリスティック（鮮明な例に基づいて決定）、アンカリング（最初の数字に捕らわれる）。",
+      "source": "psychology_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "c8659780cd90bdbdf6d1e05c08e67e0f"
+    },
+    {
+      "type": "update",
+      "topic": "Tâm Lý & Phát Triển Bản Thân",
+      "content": "Psychology basics: Cognitive biases — confirmation bias (only accept info matching belief), availability heuristic (decide based on vivid examples), anchoring (stuck on first number).",
+      "source": "psychology_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "d4604289af76302c05e66364ab29fb56"
+    },
+    {
+      "type": "update",
+      "topic": "Tâm Lý & Phát Triển Bản Thân",
+      "content": "Psychology cơ bản: Cognitive biases — confirmation bias (chỉ chấp nhận info phù hợp belief), availability heuristic (quyết định based on vivid examples), anchoring (quấn vào first number).",
+      "source": "psychology_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "93c30d5e3cd888fc36924ffbfd0882bd"
+    }
+  ]
+}

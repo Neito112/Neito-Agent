@@ -1,0 +1,349 @@
+{
+  "topicName": "Tài Chính & Đầu Tư",
+  "last_updated": "2026-09-10T22:36:41.964851+00:00",
+  "sources": [
+    "finance_protocol"
+  ],
+  "entries": [
+    {
+      "type": "update",
+      "topic": "金融与投资",
+      "content": "视频：The Plain Bagel'应避免的投资错误'—追逐过去业绩、试图择时、没有分散、恐慌性抛售。关键：长期无聊的投资有效。从指数基金（VTI/VOO）开始、美元平均成本法、税收优惠账户最先。",
+      "source": "finance_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "2c1e1ad5158ddec7629a6c1e59d14a05"
+    },
+    {
+      "type": "update",
+      "topic": "金融・投資",
+      "content": "動画：The Plain Bagel'避けるべき投資の間違い'—過去パフォーマンス追従、市場タイミング試み、分散しない、パニック売り。鍵：長期退屈な投資が機能。インデックスファンド（VTI/VOO）から開始、ドルコスト平均法、税制優遇口座が先。",
+      "source": "finance_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "df85628583ec811aa401131aea0aea7f"
+    },
+    {
+      "type": "update",
+      "topic": "Finance & Investment",
+      "content": "Video: The Plain Bagel 'Investing mistakes to avoid' — chasing past performance, trying to time market, not diversifying, panic selling. Key: long-term boring investing works. Start index fund (VTI/VOO), dollar-cost averaging, tax-advantaged accounts first.",
+      "source": "finance_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "c872a0a8098c52bfee195573293f8b78"
+    },
+    {
+      "type": "update",
+      "topic": "Tài Chính & Đầu Tư",
+      "content": "Video: The Plain Bagel 'Investing mistakes to avoid' — chasing past performance, trying to time market, not diversifying, panic selling. Key: long-term boring investing works. Start index fund (VTI/VOO), dollar-cost averaging, tax-advantaged accounts trước.",
+      "source": "finance_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "6fa18d9eabaa5bcf912a5a2bcff4057d"
+    },
+    {
+      "type": "update",
+      "topic": "金融与投资",
+      "content": "资产配置：股票（增长）+债券（稳定）+现金（流动性）+房地产（价值）。分散投资降低风险。Investor.gov：再平衡—保持目标比例。白大褂投资者：成本重要—1%资产管理费几十年显著累积，复利也适用于成本。",
+      "source": "finance_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "0a1806a2de64bd940f813f48f3a35d5c"
+    },
+    {
+      "type": "update",
+      "topic": "金融・投資",
+      "content": "アセットアロケーション：株式（成長）+債券（安定）+現金（流動性）+不動産（価値）。分散投資リスク軽減。Investor.gov：リバランス—目標比率維持。White Coat Investor：コスト重要—1% AUMフィー何十年も significantly 累積、複利コストにも適用。",
+      "source": "finance_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "f30036b75970e27c66fc402dddc811b0"
+    },
+    {
+      "type": "update",
+      "topic": "Finance & Investment",
+      "content": "Asset allocation: stocks (growth) + bonds (stability) + cash (liquidity) + real estate (value). Diversification reduces risk. Investor.gov: rebalancing—maintain target ratio. White Coat Investor: cost matters—1% AUM fee accumulates significantly over decades, compounding applies to cost too.",
+      "source": "finance_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "4858a93947ee453f8778dba3ebfc2864"
+    },
+    {
+      "type": "update",
+      "topic": "Tài Chính & Đầu Tư",
+      "content": "Asset allocation: stocks (growth) + bonds (stability) + cash (liquidity) + real estate (value). Diversification giảm risk. Investor.gov: rebalancing—giữ целевой tỷ lệ. White Coat Investor: cost matters—1% AUM fee tích lũy lớn over decades, compounding applies to cả cost.",
+      "source": "finance_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "bf21e776685bdc4104383e8e62fae788"
+    },
+    {
+      "type": "update",
+      "topic": "金融与投资",
+      "content": "复利—利息生利息：$1000按10%年利→第一年$100利息，第二年$110（本息并算）。时间= money amplifier。尽早开始。伊利诺伊大学：在投资前偿还高息债务（>6%），应急基金3-6个月最先。",
+      "source": "finance_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "bfc94a76c7913f9b9f4e11f33f987ade"
+    },
+    {
+      "type": "update",
+      "topic": "金融・投資",
+      "content": "複利—利息が利息を生む：$1000 10%年利→1年目$100利息、2年目$110（元利併算）。時間＝お金増幅器。早期開始。Illinois U: 高金利負債（>6%）返済 investingの前に、緊急基金 3-6ヶ月分が先。",
+      "source": "finance_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "2830525fd16c62bcf3d93f65edb59287"
+    },
+    {
+      "type": "update",
+      "topic": "Finance & Investment",
+      "content": "Compound interest — interest earns interest: $1000 at 10% →$100 year 1, $110 year 2 (interest on principal + interest). Time = money multiplier. Start early. Illinois U: pay down high-interest debt (>6%) before investing, emergency fund 3-6 months first.",
+      "source": "finance_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "d83b778b64cfd289f9d184db2797dd09"
+    },
+    {
+      "type": "update",
+      "topic": "Tài Chính & Đầu Tư",
+      "content": "Compound interest — tiền lãi sinh tiền lãi: $1000 at 10% →$100 năm 1, $110 năm 2 (lãi cả gốc lẫn lãi). Time = money multiplier. Start early. Illinois U: pay down high-interest debt (>6%) trước investing, emergency fund 3-6 months trước.",
+      "source": "finance_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.147766+00:00",
+      "confidence": 1.0,
+      "content_hash": "eddd98492fc1a5c3d4a13ea0f7176aa7"
+    },
+    {
+      "type": "update",
+      "topic": "金融与投资",
+      "content": "评论区摘要：YouTube '沃伦·巴菲特建议' — 用户分享主要收获：'在他人贪婪时恐惧'、'时间是投资者的朋友'、'无事可做往往最好'。共同主题：简单胜出。",
+      "source": "finance_protocol",
+      "lang": "zh",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "d3e5fa02f02e9d08ff15c9cd7ef04bbf"
+    },
+    {
+      "type": "update",
+      "topic": "金融・投資",
+      "content": "コメント欄要約：YouTube 'ウォーレン・バフェットの助言' — ユーザーは主な教訓を共有：'他人が貪欲なときは恐れよ'、'時間は投資家の味方'、'何もしないことがしばしば最良'。共通テーマ：単純さが勝つ。",
+      "source": "finance_protocol",
+      "lang": "ja",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "b9903a7654b2cf4dc368cb5bb6157631"
+    },
+    {
+      "type": "update",
+      "topic": "Tài Chính & Đầu Tư",
+      "content": "Comment summary: YouTube 'Warren Buffett advice' — users share key takeaways: 'be fearful when others are greedy', 'time is friend of investor', 'do nothing often best'. Common theme: simplicity wins.",
+      "source": "finance_protocol",
+      "lang": "en",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "9624848e0c3d9516b46545a758501858"
+    },
+    {
+      "type": "update",
+      "topic": "Tài Chính & Đầu Tư",
+      "content": "Comment section tóm tắt: YouTube 'Warren Buffett advice' — users share key takeaways: 'be fearful when others are greedy', 'time is friend of investor', 'do nothing often best'. Common theme: simplicity wins.",
+      "source": "finance_protocol",
+      "lang": "vi",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "02c68d13adaa9a16ca3181ffe486fe0e"
+    },
+    {
+      "type": "update",
+      "topic": "金融与投资",
+      "content": "论坛帖子摘要：r/personalfinance '初学者最佳投资策略' — 低成本指数基金（VTI、VOO）、美元平均成本法、税收优惠账户（401k、IRA）、应急基金先。争论：ETF vs 共同基金。",
+      "source": "finance_protocol",
+      "lang": "zh",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "17219d15e0e7da880170c0cdb662ec22"
+    },
+    {
+      "type": "update",
+      "topic": "金融・投資",
+      "content": "フォーラムスレッド要約：r/personalfinance '初心者向けベスト投資戦略' — 低コストインデックスファンド（VTI、VOO）、ドルコスト平均法、税制優遇口座（401k、IRA）、緊急資金が先。議論：ETF vs 投資信託。",
+      "source": "finance_protocol",
+      "lang": "ja",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "f129618a7ae3c383868431082c1ede75"
+    },
+    {
+      "type": "update",
+      "topic": "Tài Chính & Đầu Tư",
+      "content": "Forum summary: r/personalfinance 'Best investing strategy for beginners' — low-cost index funds (VTI, VOO), dollar-cost averaging, tax-advantaged accounts (401k, IRA), emergency fund first. Debate: ETF vs mutual fund.",
+      "source": "finance_protocol",
+      "lang": "en",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "896cffb56587ae80d6f818b232ff99af"
+    },
+    {
+      "type": "update",
+      "topic": "Tài Chính & Đầu Tư",
+      "content": "Forum thread tóm tắt: r/personalfinance 'Best investing strategy for beginners' — low-cost index funds (VTI, VOO), dollar-cost averaging, tax-advantaged accounts (401k, IRA), emergency fund first. Debate: ETF vs mutual fund.",
+      "source": "finance_protocol",
+      "lang": "vi",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "3059ee17789d3a516916a9a5607c3069"
+    },
+    {
+      "type": "update",
+      "topic": "金融与投资",
+      "content": "视频摘要：'Plain Bagel - 应避免的投资错误' — 追逐过去业绩、试图择时、没有分散、恐慌性抛售。关键：长期、无聊的投资有效。",
+      "source": "finance_protocol",
+      "lang": "zh",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "76ca8ed5f3cb9f1ede883ff5d8524ca8"
+    },
+    {
+      "type": "update",
+      "topic": "金融・投資",
+      "content": "動画要約：'The Plain Bagel - 避けるべき投資の間違い' — 過去のパフォーマンスを追い求める、市場タイミングを試みる、分散しない、パニック売り。鍵：長期的、退屈な投資が機能する。",
+      "source": "finance_protocol",
+      "lang": "ja",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "bedf9c9683b93c7a6a0bffa240c483d8"
+    },
+    {
+      "type": "update",
+      "topic": "Tài Chính & Đầu Tư",
+      "content": "Video summary: 'The Plain Bagel - Investing mistakes to avoid' — chasing past performance, trying to time market, not diversifying, panic selling. Key: long-term, boring investing working.",
+      "source": "finance_protocol",
+      "lang": "en",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "e01398aea081a4aaf457f711d7bf347c"
+    },
+    {
+      "type": "update",
+      "topic": "Tài Chính & Đầu Tư",
+      "content": "Video tóm tắt: 'The Plain Bagel - Investing mistakes to avoid' — chasing past performance, trying to time market, not diversifying, panic selling. Key: long-term, boring investing working.",
+      "source": "finance_protocol",
+      "lang": "vi",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "6248182aed5df464d943ad733bb5c946"
+    },
+    {
+      "type": "update",
+      "topic": "金融与投资",
+      "content": "金融基础：资产配置 — 股票（增长）、债券（稳定）、现金（流动性）、房地产（价值）。分散投资降低风险。",
+      "source": "finance_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "1b21887c36c88b1fa3e1b92c18bb9a37"
+    },
+    {
+      "type": "update",
+      "topic": "金融・投資",
+      "content": "金融基礎：アセットアロケーション — 株式（成長）、債券（安定）、現金（流動性）、不動産（価値）。分散投資はリスクを減少させる。",
+      "source": "finance_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "038ef5dea1ee678387c6797ef164afee"
+    },
+    {
+      "type": "update",
+      "topic": "Tài Chính & Đầu Tư",
+      "content": "Finance basics: Asset allocation — stocks (growth), bonds (stability), cash (liquidity), real estate (value). Diversification reduces risk.",
+      "source": "finance_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "b0bf091f865ef289de063dd045039dad"
+    },
+    {
+      "type": "update",
+      "topic": "Tài Chính & Đầu Tư",
+      "content": "Finance cơ bản: Asset allocation — stocks (growth), bonds (stability), cash (liquidity), real estate (value). Diversification reduce risk.",
+      "source": "finance_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "2c8805fe97b2af7015ff1065b650b8e7"
+    },
+    {
+      "type": "update",
+      "topic": "金融与投资",
+      "content": "金融基础：复利 — 利息生利息。1000美元10%年利 → 第一年100美元利息，第二年110美元（本息并算）。时间= money amplifier。",
+      "source": "finance_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "6b1447df90f1b2ddca5d4156d2c72bef"
+    },
+    {
+      "type": "update",
+      "topic": "金融・投資",
+      "content": "金融基礎：複利 — 利息が利息を生む。$1000 10%年利 → 1年目$100利息、2年目$110（元利併算）。時間＝お金を増幅する。",
+      "source": "finance_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "5088d7f0d73006919e4ee7118ac8d8d3"
+    },
+    {
+      "type": "update",
+      "topic": "Tài Chính & Đầu Tư",
+      "content": "Finance basics: Compound interest — interest earns interest. $1000 at 10% annual → $100 interest year 1, $110 year 2 (interest on principal + interest). Time = money multiplier.",
+      "source": "finance_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "f3ebe6b70337da57dc316cd3609600c1"
+    },
+    {
+      "type": "update",
+      "topic": "Tài Chính & Đầu Tư",
+      "content": "Finance cơ bản: Compound interest — tiền lãi sinh tiền lãi. $1000 at 10% annual → $100 interest năm 1, $110 năm 2 (lãi gốc lẫn lãi). Time = money multiplier.",
+      "source": "finance_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "086162eb9d87964c786b9c00e99a6693"
+    }
+  ]
+}

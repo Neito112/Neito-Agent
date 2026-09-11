@@ -1,0 +1,284 @@
+{
+  "topicName": "AI Self-Learning",
+  "last_updated": "2026-09-10T22:36:42.006478+00:00",
+  "sources": [
+    "ai_selflearning_protocol | web: zylos.ai, reddit r/artificial",
+    "ai_selflearning_protocol | web: zylos.ai",
+    "ai_selflearning_protocol | web: nature, techrxiv, billionhopes.ai",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol",
+    "ai_selflearning_protocol"
+  ],
+  "entries": [
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "JIT-RL (Jan 2026): Continual learning không cần gradient updates — agents cải thiện bằng cách dynamically constructing experience-rich prompts từ accumulated interaction logs, đạt RL-like adaptation hoàn toàn qua context manipulation. Jan 2026 paper (arXiv 2601.18699): continual fine-tuning trên LRMs — catastrophic forgetting không giảm mà tăng. 2025-2026: catastrophic forgetting moved từ academic curiosity thành production engineering challenge khi agents graduate từ session-scoped chatbots thành persistent multi-month services.",
+      "source": "ai_selflearning_protocol | web: zylos.ai, reddit r/artificial",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T22:36:04.731148+00:00",
+      "confidence": 1.0,
+      "content_hash": "699022ef8dbcc954dfb568a2367dfe0f"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "A-MEM: Agentic Memory (Feb 2026) — memory operations (store, retrieve, update, summarize, discard) exposed như callable tools qua 3-stage RL pipeline với step-wise GRPO. Agent tự học memory strategies từ experience: preemptive summarization trước context overflow, selective forgetting redundant entries, proactive linking related concepts. Agentic memory pushing structured representations vào editable core memory — không còn append-then-summarize lossy approach.",
+      "source": "ai_selflearning_protocol | web: zylos.ai",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T22:36:04.731148+00:00",
+      "confidence": 1.0,
+      "content_hash": "2f6b3945ba3f92f7e5b542f8834d6d72"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "Continual/Lifelong learning 2026: Stability-plasticity dilemma là core challenge — model cần plasticity (học task mới) nhưng stability (không quên task cũ). 3 approach chính: (1) Replay-based: strategic rehearsal past experiences — borrow từ neuroscience, (2) Regularization: protect important weights (EWC, SI — synaptic intelligence) — penalize changes to crucial parameters, (3) Dynamic architectures: expand capacity cho new tasks không destroy old knowledge (progressive networks, dynamic expansion).",
+      "source": "ai_selflearning_protocol | web: nature, techrxiv, billionhopes.ai",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T22:36:04.731148+00:00",
+      "confidence": 1.0,
+      "content_hash": "c251e633b2711581e5c9bee4b3e62ab1"
+    },
+    {
+      "type": "update",
+      "topic": "AI自我学习",
+      "content": "集成学习：结合多个模型预测来提高整体性能。通过投票、平均或堆叠等方法减少方差和偏差。",
+      "source": "ai_selflearning_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "d3425ead46a690e73cd90ecb94a5ed98"
+    },
+    {
+      "type": "update",
+      "topic": "AI自己学習",
+      "content": "アンサンブル学習：複数のモデル予測を組み合わせて全体的な性能を向上させる。投票、平均化、またはスタッキング方法で分散とバイアスを減少させる。",
+      "source": "ai_selflearning_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "d7531de12aa39c1c211e36eef96fb2c8"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "Ensemble learning: Combine multiple model predictions to improve overall performance. Reduce variance and bias via voting, averaging, or stacking methods.",
+      "source": "ai_selflearning_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "0beaad21ea809772825a172a12de43e4"
+    },
+    {
+      "type": "update",
+      "topic": "AI自我学习",
+      "content": "对抗训练：通过生成对抗样本，提高模型鲁棒性。学会识别并抵抗恶意攻击，提高安全性。",
+      "source": "ai_selflearning_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "765b5c3288fae55a4f1930cb31424c35"
+    },
+    {
+      "type": "update",
+      "topic": "AI自己学習",
+      "content": "敵対的訓練：敵対的サンプルを生成することでモデルの堅牢性を向上させる。悪意のある攻撃を認識・抵抗する方法を学び、セキュリティを向上させる。",
+      "source": "ai_selflearning_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "49a4d6765a0725c58d20fbeaa555bc02"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "Adversarial training: Through generating adversarial examples, improve model robustness. Learn to recognize and resist malicious attacks, improving security.",
+      "source": "ai_selflearning_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "4b6571475590c74ce6a61bf5e08c68de"
+    },
+    {
+      "type": "update",
+      "topic": "AI自我学习",
+      "content": "终身学习：模型在多个任务上持续学习，避免遗忘旧知识。记忆管理+知识迁移是关键。这是一个长期研究目标。",
+      "source": "ai_selflearning_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "2f0c92f56bb95123961b498468f97830"
+    },
+    {
+      "type": "update",
+      "topic": "AI自己学習",
+      "content": "生涯学習：モデルが複数のタスクにまたがって継続的に学習し、古い知識を忘れないようにする。メモリ管理＋知識移転が鍵。これは長期的な研究目標である。",
+      "source": "ai_selflearning_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T16:02:30.225694+00:00",
+      "confidence": 1.0,
+      "content_hash": "93be486739ca075fe39c737990b67386"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "Lifelong learning: Model learns continuously across multiple tasks, avoiding forgetting old knowledge. Memory management + knowledge transfer are key. This is a long-term research goal.",
+      "source": "ai_selflearning_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T16:02:30.225694+00:00",
+      "confidence": 1.0,
+      "content_hash": "4a5cd20726a1ac5b7d1ff00c29cd8fcd"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "Lifelong learning: Model học liên tục multiple tasks, tránh quên kiến thức cũ. Memory management + knowledge transfer là key. Đây là long-term research goal.",
+      "source": "ai_selflearning_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T16:02:30.225694+00:00",
+      "confidence": 1.0,
+      "content_hash": "249ad36e0eeb53d548eeac4810a52d78"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "集成学习 (Ensemble Learning): 结合多个模型的预测来提高整体性能. 通过投票、平均或堆叠等方法，可以减少方差和偏差，提高泛化能力.",
+      "source": "ai_selflearning_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "7c7f299658233b4f4468e3471bca0464"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "对抗训练 (Adversarial Training): 通过生成对抗样本来提高模型的鲁棒性. 让模型学会识别和抵抗恶意攻击，提高安全性.",
+      "source": "ai_selflearning_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "0f0a9dd39a507b6e8c4a2dfbd98d924f"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "终身学习 (Lifelong Learning): 模型在多个任务上持续学习，同时避免遗忘旧知识. 这是一个长期的研究目标，涉及记忆管理和知识迁移等多个方面.",
+      "source": "ai_selflearning_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "079d2e1184fd456fbab52ae2b49faa6d"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "Few-shot Learning: 模型在只有少量标注样本的情况下进行学习. 通过利用先验知识或元学习，可以在新任务上取得良好的性能. 在医疗和罕见事件检测中很有用.",
+      "source": "ai_selflearning_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "bc9528a33cb4a263ae6e2071a9f25781"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "课程学习 (Curriculum Learning): 让模型按照从简单到困难的顺序学习数据. 这种方法可以加速收敛并提高最终性能. 类似于人类的学习过程.",
+      "source": "ai_selflearning_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "b59807544655ef815da8c32945401165"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "教师-学生模型 (Teacher-Student): 使用一个大型的教师模型来指导小型的学生模型的学习. 通过知识蒸馏，可以让学生模型逼近教师模型的性能.",
+      "source": "ai_selflearning_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "67d735e10f55ac359dedcfe1bef09eeb"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "在线学习 (Online Learning): 模型在数据流中实时更新参数. 适用于数据动态变化的场景，如推荐系统和欺诈检测. 需要处理概念漂移的问题.",
+      "source": "ai_selflearning_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "6a69b4f1e8c12bee8fc3c5cdb25c8c30"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "迁移学习 (Transfer Learning): 将从一个任务中学到的知识应用到另一个相关任务上. 预训练模型通常在大规模数据集上训练，然后在特定任务上进行微调.",
+      "source": "ai_selflearning_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "9c544623ce34d9fbbd1a29e767a1f93f"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "强化学习 (Reinforcement Learning): 智能体通过与环境交互来学习策略. 奖励信号指导智能体的行为. 在游戏 AI 和机器人控制中应用广泛.",
+      "source": "ai_selflearning_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "3e871b6f034dbc5bcb16cc4bb04b53ff"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "自监督学习 (Self-Supervised Learning): 利用数据本身的结构来生成标签，不需要人工标注. 例如，在自然语言处理中，可以通过预测缺失的单词来学习.",
+      "source": "ai_selflearning_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "87216e4e66b693e297b587a3d6f2378b"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "元学习 (Meta-Learning): 让模型学会如何学习. 通过在多个相关任务上训练，模型可以快速适应新的任务. 常见的方法有 MAML 和 Reptile.",
+      "source": "ai_selflearning_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "d1acafde9e06fd378866dd61b294bfef"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "主动学习 (Active Learning): 模型可以主动选择最有价值的样本进行学习，从而减少标注成本. 通常通过不确定性采样或多样性采样来选择样本.",
+      "source": "ai_selflearning_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "6fded5edf8fc63b4d6428c52d32d7f9f"
+    },
+    {
+      "type": "update",
+      "topic": "AI Self-Learning",
+      "content": "增量学习 (Incremental Learning): 模型在不忘记旧知识的前提下，逐步学习新知识. 通过使用正则化或记忆重放等技术，可以减少灾难性遗忘的问题.",
+      "source": "ai_selflearning_protocol",
+      "timestamp": "2026-09-10T15:37:30.731105+00:00",
+      "confidence": 1.0,
+      "content_hash": "3adb6dc53e938ff7b76f50e83ccb620d"
+    }
+  ]
+}

@@ -1,0 +1,349 @@
+{
+  "topicName": "Phim & Giải Trí",
+  "last_updated": "2026-09-10T22:36:41.962340+00:00",
+  "sources": [
+    "movies_protocol"
+  ],
+  "entries": [
+    {
+      "type": "update",
+      "topic": "电影与娱乐",
+      "content": "IMDb 2024隐藏精品电影：'All of You' (6.3 Metascore)、'Beating Hearts' (7.0)、'Bring Them' — 独立/小预算电影高质量，常被主流忽略。烂番茄2026最佳新片：'Paul McCartney: Man on the Run' 100%番茄指数。",
+      "source": "movies_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "040eaf3cefff06c670adf022c910ec5a"
+    },
+    {
+      "type": "update",
+      "topic": "映画・娯楽",
+      "content": "IMDb Hidden Gem Movies 2024: 'All of You' (6.3 Metascore), 'Beating Hearts' (7.0), 'Bring Them' — インディー/低予算映画高品質、しばしばメインストリーム見逃される。Rotten Tomatoes 2026ベスト新作：'Paul McCartney: Man on the Run' 100%トマトメーター。",
+      "source": "movies_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "8e1e0cee3e590074543d849a87c9be4c"
+    },
+    {
+      "type": "update",
+      "topic": "Movies & Entertainment",
+      "content": "IMDb Hidden Gem Movies 2024: 'All of You' (6.3 Metascore), 'Beating Hearts' (7.0), 'Bring Them' — indie/small budget films high quality, often overlooked by mainstream. Rotten Tomatoes Best New Movies 2026: 'Paul McCartney: Man on the Run' 100% Tomatometer.",
+      "source": "movies_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "e0152758f10b7807c4d83685cffab3ad"
+    },
+    {
+      "type": "update",
+      "topic": "Phim & Giải Trí",
+      "content": "IMDb Hidden Gem Movies 2024: 'All of You' (6.3 Metascore), 'Beating Hearts' (7.0), 'Bring Them' — phim indie/small budget chất lượng cao, thường bị mainstream bỏ qua. Rotten Tomatoes Best New Movies 2026: 'Paul McCartney: Man on the Run' 100% Tomatometer.",
+      "source": "movies_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "7274c6674a49b6be5114e04a27827e74"
+    },
+    {
+      "type": "update",
+      "topic": "电影与娱乐",
+      "content": "视频论文：'Every Frame a Painting - 吉卜力视觉语言'—吉卜力用安静的时刻、自然场景构建情感。不是动作兴奋，而是氛围。慢速摄影、黄金比构图创造沉浸式环境。",
+      "source": "movies_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "0bc5ee5611a4a47dcb1accc0c88f3c0e"
+    },
+    {
+      "type": "update",
+      "topic": "映画・娯楽",
+      "content": "動画エッセイ：'Every Frame a Painting - ジブリの視覚言語'—ジブリは静かな瞬間、自然场景を使って感情を構築する。アクションの興奮ではなく、大気。スローシネマトグラフィー、黄金比フレーミングが没入型環境を作成。",
+      "source": "movies_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "85fbd7968f3cedea56358cc283f29f1b"
+    },
+    {
+      "type": "update",
+      "topic": "Movies & Entertainment",
+      "content": "Video essay: 'Every Frame a Painting - Studio Ghibli visual language' — Ghibli uses quiet moments, natural scenes to build emotion. Not excitement action, but atmosphere. Slow cinematography, golden ratio framing creates immersive environment.",
+      "source": "movies_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "430f1ae4963d8589bf11cb4e1474c0ff"
+    },
+    {
+      "type": "update",
+      "topic": "Phim & Giải Trí",
+      "content": "Video essay: 'Every Frame a Painting - Studio Ghibli visual language' — Ghibli dùng quiet moments, 자연 scenes để build emotion. Không phấn khích action, mà atmosphere. Máy ảnh chậm, khung hình tỉ lệ 황금 gọi cảnh phùrescence.",
+      "source": "movies_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "0265219e7c14329f6839d03fcd1ab282"
+    },
+    {
+      "type": "update",
+      "topic": "电影与娱乐",
+      "content": "三幕结构：第一幕（Setup 25%）、第二幕（Confrontation 50%）、第三幕（Resolution 25%）。每幕有转折点。类型混合：并非所有电影只属于1个类型—喜剧戏剧、动作惊悚、恐怖喜剧创造独特风味。",
+      "source": "movies_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "6eef53d06c254ac5877440e4ada68e73"
+    },
+    {
+      "type": "update",
+      "topic": "映画・娯楽",
+      "content": "3幕構成：第1幕（設定25%）、第2幕（対立50%）、第3幕（解決25%）。各幕に転換点あり。ジャンル混合：すべての映画が1つのジャンルに属さない—コメディドラマ、アクションスリラー、ホラーコメディがユニークな風味を生む。",
+      "source": "movies_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "77f847a920f3266e8b63fe3a90e729ca"
+    },
+    {
+      "type": "update",
+      "topic": "Movies & Entertainment",
+      "content": "3-act structure: Act 1 (setup 25%), Act 2 (confrontation 50%), Act 3 (resolution 25%). Each act has turning point. Genre mixing: not all movies belong to 1 genre—comedic drama, action thriller, horror comedy create unique flavor.",
+      "source": "movies_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "247780cb4ea56c809d228c0421d425c7"
+    },
+    {
+      "type": "update",
+      "topic": "Phim & Giải Trí",
+      "content": "3-act structure: Act 1 (setup 25%), Act 2 (confrontation 50%), Act 3 (resolution 25%). Mỗi act có turning point. Genre mixing: không phải phim chỉ 1 genre—comedic drama, action thriller, horror comedy tạo unique flavor.",
+      "source": "movies_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.146263+00:00",
+      "confidence": 1.0,
+      "content_hash": "a73e3413aec8761a37b019b023d76946"
+    },
+    {
+      "type": "update",
+      "topic": "电影与娱乐",
+      "content": "评论区摘要：YouTube '2024最佳电影' — 用户评论建议：'过去的生命'、'胖 fema的解剖'、'利益区'。评论争论：'真的是最佳吗？'",
+      "source": "movies_protocol",
+      "lang": "zh",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "9bb20a78bc6606d14fa667fed4d2396d"
+    },
+    {
+      "type": "update",
+      "topic": "映画・娯楽",
+      "content": "コメント欄要約：YouTube '2024年ベスト映画' — ユーザーコメント提案：'Past Lives'、'Anatomy of a Fall'、'The Zone of Interest'。コメント議論：'本当にベスト？'",
+      "source": "movies_protocol",
+      "lang": "ja",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "b3ff20b0fc53710525ba90adc5ece02f"
+    },
+    {
+      "type": "update",
+      "topic": "Phim & Giải Trí",
+      "content": "Comment summary: YouTube 'Best films of 2024' — user comments suggest: 'Past Lives', 'Anatomy of a Fall', 'The Zone of Interest'. Comments debate: 'actually best?'",
+      "source": "movies_protocol",
+      "lang": "en",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "4a2f97e6cb346816c78a0e33526f278d"
+    },
+    {
+      "type": "update",
+      "topic": "Phim & Giải Trí",
+      "content": "Comment section tóm tắt: YouTube 'Best films of 2024' — user comments đề xuất: 'Past Lives', 'Anatomy of a Fall', 'The Zone of Interest'. Comments debate: 'actually best?'",
+      "source": "movies_protocol",
+      "lang": "vi",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "52c27c2af4227b677911e3bd14b3104a"
+    },
+    {
+      "type": "update",
+      "topic": "电影与娱乐",
+      "content": "论坛帖子摘要：r/movies '被低估的导演值得一看' — 顶级推荐：约尔戈斯·兰提莫斯（怪异）、凯利·莱赫特（安静）、阿皮查通·威拉塞克（梦幻）。",
+      "source": "movies_protocol",
+      "lang": "zh",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "b28958133abd8e1c3e3360bc05a04aef"
+    },
+    {
+      "type": "update",
+      "topic": "映画・娯楽",
+      "content": "フォーラムスレッド要約：r/movies '観るべき過小評価された監督' — トップおすすめ：ヨルゴス・ランティモス（特異）、ケリー・ライチャート（静か）、アピチャーポン・ワイラセタクン（夢幻）。",
+      "source": "movies_protocol",
+      "lang": "ja",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "4275e7ee15ba3b65d03200efed360468"
+    },
+    {
+      "type": "update",
+      "topic": "Phim & Giải Trí",
+      "content": "Forum summary: r/movies 'Underrated directors you should watch' — top recommendations: Yorgos Lanthimos (peculiar), Kelly Reichardt (quiet), Apichatpong Weerasethakul (dreamlike).",
+      "source": "movies_protocol",
+      "lang": "en",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "f8e97edffcad8d19ebc6e5db2ed2dcc4"
+    },
+    {
+      "type": "update",
+      "topic": "Phim & Giải Trí",
+      "content": "Forum thread tóm tắt: r/movies 'Underrated directors you should watch' — top recommendations: Yorgos Lanthimos (peculiar), Kelly Reichardt (quiet), Apichatpong Weerasethakul (dreamlike).",
+      "source": "movies_protocol",
+      "lang": "vi",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "4178c4fbc0c7a9f2b8c5f4e7ba649af6"
+    },
+    {
+      "type": "update",
+      "topic": "电影与娱乐",
+      "content": "视频论文摘要：'Every Frame a Painting - 吉卜力视觉语言' — 吉卜力用安静的时刻、自然场景来构建情感。不是动作的兴奋，而是氛围。",
+      "source": "movies_protocol",
+      "lang": "zh",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "196cd00790fd1d44ef8562bb2dcd2d93"
+    },
+    {
+      "type": "update",
+      "topic": "映画・娯楽",
+      "content": "動画エッセイ要約：'Every Frame a Painting - ジブリの視覚言語' — ジブリは静かな瞬間、自然场景を使って感情を構築する。アクションの興奋ではなく、大気。",
+      "source": "movies_protocol",
+      "lang": "ja",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "a515f69d04123d779188d64b5cc449aa"
+    },
+    {
+      "type": "update",
+      "topic": "Phim & Giải Trí",
+      "content": "Video essay summary: 'Every Frame a Painting - Studio Ghibli visual language' — Ghibli uses quiet moments, natural scenes to build emotion. Not excitement action, but atmosphere.",
+      "source": "movies_protocol",
+      "lang": "en",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "0ea743e6318e73c30769a36214b37f99"
+    },
+    {
+      "type": "update",
+      "topic": "Phim & Giải Trí",
+      "content": "Video essay tóm tắt: 'Every Frame a Painting - Studio Ghibli visual language' — Ghibli dùng quiet moments，自然 scenes để build emotion. Không phấn khích action, mà atmosphere.",
+      "source": "movies_protocol",
+      "lang": "vi",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "977151911a0b327d1f567fdbe55f6305"
+    },
+    {
+      "type": "update",
+      "topic": "电影与娱乐",
+      "content": "电影基础：类型混合 — 并非所有电影只属于1个类型。喜剧戏剧、动作惊悚、恐怖喜剧。类型融合创造独特风味。",
+      "source": "movies_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "41e79529e56357d0c0f4441d2322408f"
+    },
+    {
+      "type": "update",
+      "topic": "映画・娯楽",
+      "content": "映画基礎：ジャンル混合 — すべての映画が1つのジャンルに属しているわけではない。コメディドラマ、アクションスリラー、ホラーコメディ。ジャンルブレンドがユニークな風味を生む。",
+      "source": "movies_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "a76970fbdee4c65306b5013e9178dcdb"
+    },
+    {
+      "type": "update",
+      "topic": "Phim & Giải Trí",
+      "content": "Movies basics: Genre mixing — not all movies belong to 1 genre. Comedic drama, action thriller, horror comedy. Genre blend creates unique flavor.",
+      "source": "movies_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "71918d29b7c006f80f0dbd7a99653fe3"
+    },
+    {
+      "type": "update",
+      "topic": "Phim & Giải Trí",
+      "content": "Phim cơ bản: Genre mixing — không phải phim chỉ thuộc 1 genre. Comedic drama, action thriller, horror comedy. Genre blend tạo unique flavor.",
+      "source": "movies_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "f7aaeaf1695803cdc17f1207aa5c37b9"
+    },
+    {
+      "type": "update",
+      "topic": "电影与娱乐",
+      "content": "电影基础：三幕结构 — 第一幕（Setup 25%）、第二幕（Confrontation 50%）、第三幕（Resolution 25%）。每幕有转折点。",
+      "source": "movies_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "1d283ea77032f2351cae0a97a39dd4ad"
+    },
+    {
+      "type": "update",
+      "topic": "映画・娯楽",
+      "content": "映画基礎：3幕構成 — 第1幕（設定25%）、第2幕（対立50%）、第3幕（解決25%）。各幕に転換点がある。",
+      "source": "movies_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "129b0907536cb51173c2fd07a464d204"
+    },
+    {
+      "type": "update",
+      "topic": "Phim & Giải Trí",
+      "content": "Movies basics: 3-act structure — Act 1 (setup 25%), Act 2 (confrontation 50%), Act 3 (resolution 25%). Each act has turning point.",
+      "source": "movies_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "6a581b15e81ed3bee68693c9aae4c3a9"
+    },
+    {
+      "type": "update",
+      "topic": "Phim & Giải Trí",
+      "content": "Phim cơ bản: 3-act structure — Act 1 (setup 25%), Act 2 (confrontation 50%), Act 3 (resolution 25%). Mỗi act có turning point.",
+      "source": "movies_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "1ad89edbf7d2b874743d11036c64743c"
+    }
+  ]
+}

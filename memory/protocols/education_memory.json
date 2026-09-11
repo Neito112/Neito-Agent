@@ -1,0 +1,329 @@
+{
+  "topicName": "Giáo Dục & Học Tập",
+  "last_updated": "2026-09-10T22:36:41.966275+00:00",
+  "sources": [
+    "education_protocol"
+  ],
+  "entries": [
+    {
+      "type": "update",
+      "topic": "教育与学习",
+      "content": "视频Ali Abdaal'基于证据的学习技巧'：主动回忆（自测）、间隔重复（Anki闪卡）、番茄钟（25分钟专注）、睡眠（记忆巩固）。关键：持续性而非强度。GPA 4.0技巧：课程大纲周、笔记策略、办公时间、学习小组。",
+      "source": "education_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "8e0ca1d83d9426f08aad75990337e093"
+    },
+    {
+      "type": "update",
+      "topic": "教育・学習",
+      "content": "動画Ali Abdaal'根拠に基づく学習テクニック'：アクティブリコール（自己テスト）、間隔反復（Ankiフラッシュカード）、ポモドーロ（25分集中）、睡眠（記憶定着）。鍵：強度ではなく継続性。GPA 4.0ヒント：シラバス週、ノート戦略、オフィスアワー、勉強会。",
+      "source": "education_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "575f392d627dedee2c7aabcd988ab4d9"
+    },
+    {
+      "type": "update",
+      "topic": "Giáo Dục & Học Tập",
+      "content": "Video Ali Abdaal 'Evidence-based study techniques': active recall (test yourself), spaced repetition (Anki flashcards), pomodoro (25 mins focus), sleep (memory consolidation). Key: consistency not intensity. GPA 4.0 tips: syllabus week, note-taking strategies, office hours, study groups.",
+      "source": "education_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "bf74695eb51640afea640f3e777fe797"
+    },
+    {
+      "type": "update",
+      "topic": "教育与学习",
+      "content": "学习技巧 Reddit r/GetStudying：番茄钟（25分钟专注+5分钟休息）、主动回忆（不看笔记自测）、费曼技巧（简单解释）、思维导图、练习题。建议：根据科目调整，并非一刀切。",
+      "source": "education_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "a698ce1e622a5a61cbb63cd172c43832"
+    },
+    {
+      "type": "update",
+      "topic": "教育・学習",
+      "content": "学習テクニックReddit r/GetStudying：ポモドーロ（25分集中＋5分休憩）、アクティブリコール（メモなし自己テスト）、フェイマン技法（簡単に説明）、マインドマップ、練習問題。アドバイス：科目に基づいて修正、one-size-fits-allではない。",
+      "source": "education_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "f5add91ac507562690f0c69b8f3d8aa4"
+    },
+    {
+      "type": "update",
+      "topic": "Giáo Dục & Học Tập",
+      "content": "Study techniques Reddit r/GetStudying: Pomodoro (25 phút focus + 5 phút break), active recall (test yourself without notes), Feynman technique (explain simply), mind maps, practice problems. Advice: modify based on subject, no one-size-fits-all.",
+      "source": "education_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "b1bef419169076534cf02459a3ac14c1"
+    },
+    {
+      "type": "update",
+      "topic": "教育与学习",
+      "content": "主动回忆+间隔重复2025科学：2个最强有力的循证策略。BCU：2357法（初次学习后第1、3、5、7天复习）。ScienceDirect：药学生研究—间隔重复+主动回忆显著提升学业表现。记忆保留率比集中练习增加200-300%。",
+      "source": "education_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "7f72d5f12818a3daef04ca6d2cada4d2"
+    },
+    {
+      "type": "update",
+      "topic": "教育・学習",
+      "content": "アクティブリコール＋間隔反復2025科学：2つの最も強力な根拠に基づく戦略。BCU：2357法（初回学習後1日、3日、5日、7日レビュー）。ScienceDirect：薬学生研究—間隔反復＋アクティブリコール学業成績有意向上。記憶保持率一気練習比200-300%増加。",
+      "source": "education_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "10e445a0087a0f3c1833b55977e18f88"
+    },
+    {
+      "type": "update",
+      "topic": "Education & Learning",
+      "content": "Active recall + spaced repetition 2025 science: 2 most powerful evidence-based strategies. BCU: 2357 method (review days 1, 3, 5, 7... after initial learning). ScienceDirect: pharmacy students study—spaced repetition + active recall improves academic performance significantly. Memory retention increases 200-300% vs massed practice.",
+      "source": "education_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "47b8b4dca19e2056032651d74a39ad9d"
+    },
+    {
+      "type": "update",
+      "topic": "Giáo Dục & Học Tập",
+      "content": "Active recall + spaced repetition 2025 science: 2 most powerful evidence-based strategies. BCU: 2357 method (review ngày 1, 3, 5, 7... after initial learning). ScienceDirect: pharmacy students study—spaced repetition + active recall improves academic performance significant. Memory retention tăng 200-300% vs massed practice.",
+      "source": "education_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.148268+00:00",
+      "confidence": 1.0,
+      "content_hash": "4ae0cce2cb350b9048c1febcb8025020"
+    },
+    {
+      "type": "update",
+      "topic": "教育与学习",
+      "content": "评论区摘要：YouTube '如何获得4.0学绩' — 学生分享技巧：课程大纲周、笔记策略、办公时间、学习小组、时间管理。共同主题：'教授的期望=成功的关键'。",
+      "source": "education_protocol",
+      "lang": "zh",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "808e15824eb60c2c2813532c047eecee"
+    },
+    {
+      "type": "update",
+      "topic": "教育・学習",
+      "content": "コメント欄要約：YouTube '4.0 GPAを取った方法' — 学生はヒントを共有：シラバス週、ノートテイキング戦略、オフィスアワー、勉強会、時間管理。共通テーマ：'教授の期待＝成功の鍵'。",
+      "source": "education_protocol",
+      "lang": "ja",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "33f628e1275ab2e594f2fe81dcc725f2"
+    },
+    {
+      "type": "update",
+      "topic": "Giáo Dục & Học Tập",
+      "content": "Comment summary: YouTube 'How I got 4.0 GPA' — students share tips: syllabus week, note-taking strategies, office hours, study groups, time management. Common theme: 'professors' expectations = key to success'.",
+      "source": "education_protocol",
+      "lang": "en",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "b365e02269e5d2195e52eb6e8c71fb8d"
+    },
+    {
+      "type": "update",
+      "topic": "Giáo Dục & Học Tập",
+      "content": "Comment section tóm tắt: YouTube 'How I got 4.0 GPA' — students share tips: syllabus week, note-taking strategies, office hours, study groups, time management. Common theme: 'professors' expectations = key to success'.",
+      "source": "education_protocol",
+      "lang": "vi",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "3fd01d87f1708e2b04ed74421e8f8c59"
+    },
+    {
+      "type": "update",
+      "topic": "教育与学习",
+      "content": "论坛帖子摘要：r/GetStudying '最佳学习方法' — 番茄钟、主动回忆、费曼技巧（简单解释）、思维导图、练习题。建议：根据科目调整、并非一刀切。",
+      "source": "education_protocol",
+      "lang": "zh",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "9087068bbef3f0485f8d5c7a3d716a48"
+    },
+    {
+      "type": "update",
+      "topic": "教育・学習",
+      "content": "フォーラムスレッド要約：r/GetStudying 'ベスト学習方法' — ポモドーロ、アクティブリコール、フェイマン技法（簡単に説明）、マインドマップ、練習問題。アドバイス：科目に基づいて修正、one size doesn't fit all。",
+      "source": "education_protocol",
+      "lang": "ja",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "abcd2c3de92e1e102fecd7dd86783d9a"
+    },
+    {
+      "type": "update",
+      "topic": "Giáo Dục & Học Tập",
+      "content": "Forum summary: r/GetStudying 'Best study methods' — Pomodoro, active recall, Feynman technique (explain simply), mind maps, practice problems. Advice: modify based on subject, not one size fits all.",
+      "source": "education_protocol",
+      "lang": "en",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "b2d4652d3699baaa7f3c75eb94839a93"
+    },
+    {
+      "type": "update",
+      "topic": "Giáo Dục & Học Tập",
+      "content": "Forum thread tóm tắt: r/GetStudying 'Best study methods' — Pomodoro, active recall, Feynman technique (explain simply), mind maps, practice problems. Advice: modify based on subject, not one size fits all.",
+      "source": "education_protocol",
+      "lang": "vi",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "ad7974703304910d8a83ba7501cc97e4"
+    },
+    {
+      "type": "update",
+      "topic": "教育与学习",
+      "content": "视频摘要：'Ali Abdaal - 基于证据的学习技巧' — 主动回忆（自测）、间隔重复（Anki）、番茄钟（25分钟专注）、睡眠（巩固记忆）。关键：持续性，而非强度。",
+      "source": "education_protocol",
+      "lang": "zh",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "f86576ee6472886620ea7eb9d2bdcd94"
+    },
+    {
+      "type": "update",
+      "topic": "教育・学習",
+      "content": "動画要約：'Ali Abdaal - 根拠に基づく学習テクニック' — アクティブリコール（自己テスト）、間隔反復（Anki）、ポモドーロ（25分集中）、睡眠（記憶定着）。鍵：強さではなく継続性。",
+      "source": "education_protocol",
+      "lang": "ja",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "5c59cb7183728fc62c53a2f2e9126756"
+    },
+    {
+      "type": "update",
+      "topic": "Giáo Dục & Học Tập",
+      "content": "Video summary: 'Ali Abdaal - Evidence-based study techniques' — active recall (test yourself), spaced repetition (Anki), pomodoro (25 phút focus), sleep (consolidate memory). Key: consistency, not intensity.",
+      "source": "education_protocol",
+      "lang": "en",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "d536d28e880039dfadf3bea112184680"
+    },
+    {
+      "type": "update",
+      "topic": "Giáo Dục & Học Tập",
+      "content": "Video tóm tắt: 'Ali Abdaal - Evidence-based study techniques' — active recall (test yourself), spaced repetition (Anki), pomodoro (25 phút focus), sleep (consolidate memory). Key: consistency, not intensity.",
+      "source": "education_protocol",
+      "lang": "vi",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "f235de44ff4dd23a0f599a323eda83be"
+    },
+    {
+      "type": "update",
+      "topic": "教育与学习",
+      "content": "教育基础：间隔重复 — 在逐渐增加的时间间隔复习材料（1天、3天、1周、2周）。记忆保留率增加200-300%。",
+      "source": "education_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "72790ca5192fd4ded06da94d38c42e8c"
+    },
+    {
+      "type": "update",
+      "topic": "教育・学習",
+      "content": "教育基礎：間隔反復 — 増大する間隔で資料を復習する（1日、3日、1週間、2週間）。記憶保持率200-300%増加。",
+      "source": "education_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "a2122fe82d88af7850c7323ddc2737b3"
+    },
+    {
+      "type": "update",
+      "topic": "Giáo Dục & Học Tập",
+      "content": "Education basics: Spaced repetition — review material at increasing intervals (1 day, 3 days, 1 week, 2 weeks). Memory retention increases 200-300%.",
+      "source": "education_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "b4684bb14ce69fe6c3406e5c487ac141"
+    },
+    {
+      "type": "update",
+      "topic": "Giáo Dục & Học Tập",
+      "content": "Education cơ bản: Spaced repetition — review material at increasing intervals (1 day, 3 days, 1 week, 2 weeks). Memory retention tăng 200-300%.",
+      "source": "education_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "621777b1c613899f5200e13b54742878"
+    },
+    {
+      "type": "update",
+      "topic": "教育与学习",
+      "content": "教育基础：主动学习 — 不是被动阅读。记笔记、向他人解释、练习、自我测试。学习=行动，不是观看。",
+      "source": "education_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "37d92423e0e6ac127523171a5fba9994"
+    },
+    {
+      "type": "update",
+      "topic": "教育・学習",
+      "content": "教育基礎：能動的学習 — 受動的な読書ではない。メモを取る、他人に説明する、練習する、自己テスト。学習＝すること、見ているだけではない。",
+      "source": "education_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "2a2a636c8281ec5a171af549563b7f97"
+    },
+    {
+      "type": "update",
+      "topic": "Giáo Dục & Học Tập",
+      "content": "Education basics: Active learning — not passive reading. Take notes, explain to others, practice, test yourself. Learning = doing, not watching.",
+      "source": "education_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "8a1eccf4199176ac057f3822db51d6d6"
+    },
+    {
+      "type": "update",
+      "topic": "Giáo Dục & Học Tập",
+      "content": "Education cơ bản: Active learning — không đọc thụ động. Take notes, explain to others, practice, test yourself. Learning = doing, not watching.",
+      "source": "education_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.946625+00:00",
+      "confidence": 1.0,
+      "content_hash": "655e2f13bc5807674237744b3f1b67b9"
+    }
+  ]
+}

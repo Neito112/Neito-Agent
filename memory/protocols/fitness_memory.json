@@ -1,0 +1,393 @@
+{
+  "topicName": "Thể Dục & Sức Khỏe",
+  "last_updated": "2026-09-10T22:36:41.962340+00:00",
+  "sources": [
+    "fitness_protocol"
+  ],
+  "entries": [
+    {
+      "type": "update",
+      "topic": "健身与健康",
+      "content": "恢复科学：睡眠7-9小时（记忆巩固+肌肉修复）、蛋白质1.6-2.2g/kg/天、水35ml/kg、休息日每周1-2次。没有恢复无法训练—过度训练导致疲劳、免疫力下降、失眠。",
+      "source": "fitness_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "88c686a02ba743faf87da77f3107a70a"
+    },
+    {
+      "type": "update",
+      "topic": "フィットネス・健康",
+      "content": "回復科学：睡眠7-9時間（記憶定着+筋肉修復）、タンパク質1.6-2.2g/kg/日、水35ml/kg、休息日週1-2回。回復なしにトレーニングできない—オーバートレーニング疲労、免疫力低下、不眠症原因。",
+      "source": "fitness_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "41ff9850aebc2b37ec5f47db8c800914"
+    },
+    {
+      "type": "update",
+      "topic": "Fitness & Health",
+      "content": "Recovery science: sleep 7-9 hours (memory consolidation + muscle repair), protein 1.6-2.2g/kg/day, water 35ml/kg, rest day 1-2x/week. Cannot train without recovery — overtraining causes fatigue, reduced immunity, insomnia.",
+      "source": "fitness_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "f26747f8360ff34009bc3b9625b4abb8"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Dục & Sức Khỏe",
+      "content": "Recovery science: sleep 7-9 hours (memory consolidation + muscle repair), protein 1.6-2.2g/kg/ngày, nước 35ml/kg, rest day 1-2x/week. Không training without recovery — overtraining gây thể thống, giảm immunity, insomnia.",
+      "source": "fitness_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "5068ab4074ba778d3ba5d6439e783c35"
+    },
+    {
+      "type": "update",
+      "topic": "健身与健康",
+      "content": "复合动作：深蹲、硬拉、卧推、引体向上、俯卧撑、划船。多关节运动，建立基础力量，激素反应比孤立运动好。开始：Starting Strength（深蹲/卧推/硬拉每周3次）或StrongLifts 5x5。",
+      "source": "fitness_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "38f31301dc9951c81740529ac309fd9e"
+    },
+    {
+      "type": "update",
+      "topic": "フィットネス・健康",
+      "content": "複合運動：スクワット、デッドリフト、ベンチプレス、懸垂、腕立て伏せ、ロー。多関節運動、基礎筋力構築、ホルモン反応アイソレーションより良い。開始：Starting Strength（スクワット/ベンチ/デッドリフト週3回）またはStrongLifts 5x5。",
+      "source": "fitness_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "7426bff699f230d516a9867a43077905"
+    },
+    {
+      "type": "update",
+      "topic": "Fitness & Health",
+      "content": "Compound exercises: squat, deadlift, bench press, pull-up, push-up, rows. Multi-joint movements, build foundation strength, better hormone response than isolation. Starting: Starting Strength (Squat/Bench/Deadlift 3x/week) or StrongLifts 5x5.",
+      "source": "fitness_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "9a1434a141bb2aa39f762e15727f27d9"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Dục & Sức Khỏe",
+      "content": "Compound exercises: squat, deadlift, bench press, pull-up, push-up, rows. Multi-joint movements, build foundation strength, hormone response tốt hơn isolation. Bắt đầu: Starting Strength (Squat/Bench/Deadlift 3x/week) or StrongLifts 5x5.",
+      "source": "fitness_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "89a2dcc28b395cf0b54b00e46733ebfb"
+    },
+    {
+      "type": "update",
+      "topic": "健身与健康",
+      "content": "渐进超负荷：逐渐增加负荷（重量、次数、组数、强度）。每周5-10%。不要突然增加。方法：增加重量、增加次数、增加组数、减少休息时间、改善姿势。教训：一致性 > 强度。",
+      "source": "fitness_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "b1d19ee0ebf044c19451043ca682fb62"
+    },
+    {
+      "type": "update",
+      "topic": "フィットネス・健康",
+      "content": "進行性過負荷：徐々に負荷を増やす（重量、回数、セット、強度）。毎週5-10%。突然増やさない。方法：重量増加、回数増加、セット増加、休憩時間減少、フォーム改善。教訓：継続性＞強度。",
+      "source": "fitness_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "c1003e460902182d6a7f1ca8b5a5113b"
+    },
+    {
+      "type": "update",
+      "topic": "Fitness & Health",
+      "content": "Progressive overload: gradually increase load (weight, reps, sets, intensity). 5-10% each week. Don't increase suddenly. Methods: increase weight, increase reps, increase sets, reduce rest time, improve form. Lesson: consistency > intensity.",
+      "source": "fitness_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "83f362567b95cc0576d1a405d20e4af5"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Dục & Sức Khỏe",
+      "content": "Progressive overload: tăng dần load (weight, reps, sets, intensity). 5-10% mỗi tuần. Không tăng đột ngột. Phương pháp: tăng weight, tăng reps, tăng sets, giảm rest time, cải thiện form. Lesson: consistency > intensity.",
+      "source": "fitness_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "0a3544bd21bf7751d4eb2b17b6c09a9a"
+    },
+    {
+      "type": "update",
+      "topic": "健身与健康",
+      "content": "评论区摘要：YouTube '健身博主一日饮食' — 用户讨论蛋白质摄入、膳食准备、卡路里追踪。共同主题：'一致性胜过完美，追踪进展而非追求完美'。",
+      "source": "fitness_protocol",
+      "lang": "zh",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "50f0396e56a62808430f296ba3553a47"
+    },
+    {
+      "type": "update",
+      "topic": "フィットネス・健康",
+      "content": "コメント欄要約：YouTube 'フィットネスインフルエンサーの1日食事' — ユーザーはタンパク質摂取、食事準備、カロリートラッキングについて議論。共通テーマ：'完璧より継続、進捗を追跡、完璧を追跡するのではない'。",
+      "source": "fitness_protocol",
+      "lang": "ja",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "2f68694f5208fbb0b1935365d8605013"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Dục & Sức Khỏe",
+      "content": "Comment summary: YouTube 'What I eat in a day' fitness influencer — users discuss protein intake, meal prep, calorie tracking. Common theme: 'consistency over perfection, track progress not perfection'.",
+      "source": "fitness_protocol",
+      "lang": "en",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "5cea37a6dbb115a8c7ad7ae9f5bd09ea"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Dục & Sức Khỏe",
+      "content": "Comment section tóm tắt: YouTube 'What I eat in a day' fitness influencer — users discuss protein intake, meal prep, calorie tracking. Common theme: 'consistency over perfection, track progress not perfection'.",
+      "source": "fitness_protocol",
+      "lang": "vi",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "25cafff104ef152a6bdcabdf5f7e3c5e"
+    },
+    {
+      "type": "update",
+      "topic": "健身与健康",
+      "content": "论坛帖子摘要：r/Fitness '初学者最佳计划' — Starting Strength（深蹲、卧推、硬拉每周3次）、StrongLifts 5x5、推拉腿。建议：一致性 > 完美。",
+      "source": "fitness_protocol",
+      "lang": "zh",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "d1f1b6aea0f5067bc1b34b8efd41b5e9"
+    },
+    {
+      "type": "update",
+      "topic": "フィットネス・健康",
+      "content": "フォーラムスレッド要約：r/Fitness '初心者向けベストルーティン' — Starting Strength（スクワット、ベンチ、デッドリフト週3回）、StrongLifts 5x5、Push-Pull-Legs。アドバイス：完璧より継続。",
+      "source": "fitness_protocol",
+      "lang": "ja",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "7a5e75b8ea6fd8e450626cf7e42675e0"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Dục & Sức Khỏe",
+      "content": "Forum summary: r/Fitness 'Best beginner routine' — Starting Strength (Squat, Bench, Deadlift 3x/week), StrongLifts 5x5, Push-Pull-Legs. Advice: consistency > perfection.",
+      "source": "fitness_protocol",
+      "lang": "en",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "3f8ad66761f7c9edd8aabea1f8706d60"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Dục & Sức Khỏe",
+      "content": "Forum thread tóm tắt: r/Fitness 'Best beginner routine' — Starting Strength (Squat, Bench, Deadlift 3x/week), StrongLifts 5x5, Push-Pull-Legs. Advice: consistency > perfection.",
+      "source": "fitness_protocol",
+      "lang": "vi",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "96e72d69242b6e411e52fdea00f717f2"
+    },
+    {
+      "type": "update",
+      "topic": "健身与健康",
+      "content": "视频教程摘要：'杰里米·埃希尔 - 科学健身腿部训练' — 深蹲变化、RDL、腿举、腿弯举。关键：心脑肌肉连接、节奏控制。",
+      "source": "fitness_protocol",
+      "lang": "zh",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "b19e414a9b06b239a84882a9adff07d9"
+    },
+    {
+      "type": "update",
+      "topic": "フィットネス・健康",
+      "content": "動画チュートリアル要約：'ジェレミー・エシーア - 科学的ベースの脚の日' — スクワットバリエーション、RDL、レッグプレス、ハムストリングカール。ポイント：心筋接続、テンポコントロール。",
+      "source": "fitness_protocol",
+      "lang": "ja",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "e712861cb64c6f8614b8a196bc41ba81"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Dục & Sức Khỏe",
+      "content": "Video summary: 'Jeremy Ethier - Science-based leg day' — squat variation, RDL, leg press, hamstring curl. Key: mind-muscle connection, tempo control.",
+      "source": "fitness_protocol",
+      "lang": "en",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "376e9361acaf97220d617f547c282cc3"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Dục & Sức Khỏe",
+      "content": "Video tutorial tóm tắt: 'Jeremy Ethier - Science-based leg day' — squat variation, RDL, leg press, hamstring curl. Key: mind-muscle connection, tempo control.",
+      "source": "fitness_protocol",
+      "lang": "vi",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "8e6e890e4f4f5e819b1f82ecb93ae161"
+    },
+    {
+      "type": "update",
+      "topic": "健身与健康",
+      "content": "健身基础：恢复 — 睡眠7-9小时、蛋白质1.6-2.2g/kg、补水35ml/kg、休息日每周1-2次。没有恢复无法训练。",
+      "source": "fitness_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "3cd06f6124881d8f2087e645afd54973"
+    },
+    {
+      "type": "update",
+      "topic": "フィットネス・健康",
+      "content": "フィットネス基礎：回復 — 睡眠7-9小时、蛋白質1.6-2.2g/kg、水分35ml/kg、休息日週1-2回。回復なしにトレーニングできない。",
+      "source": "fitness_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "c6079e25a3cfed0f6ebbe7266b210b35"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Dục & Sức Khỏe",
+      "content": "Fitness basics: Recovery — sleep 7-9 hours, protein 1.6-2.2g/kg, hydration 35ml/kg, rest day 1-2x/week. Cannot train without recovery.",
+      "source": "fitness_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "3cb0ca1d15de17c6dca7bec3e6f2fc55"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Dục & Sức Khỏe",
+      "content": "Fitness cơ bản: Recovery — sleep 7-9 hours, protein 1.6-2.2g/kg, hydration 35ml/kg, rest day 1-2x/week. Khôngtraining without recovery.",
+      "source": "fitness_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "bb55681cad28e971c6e02dce6534423e"
+    },
+    {
+      "type": "update",
+      "topic": "健身与健康",
+      "content": "健身基础：复合动作 — 深蹲、硬拉、卧推、引体向上、俯卧撑。多关节运动，建立基础力量。",
+      "source": "fitness_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "6b4b08d7a98b5ee0a7454eed6d5e4aa2"
+    },
+    {
+      "type": "update",
+      "topic": "フィットネス・健康",
+      "content": "フィットネス基礎：複合運動 — スクワット、デッドリフト、ベンチプレス、懸垂、腕立て伏せ。多関節運動、基礎筋力を構築。",
+      "source": "fitness_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "d3bfd606d3796cbd1d3dca9182db3dbb"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Dục & Sức Khỏe",
+      "content": "Fitness basics: Compound exercises — squat, deadlift, bench press, pull-up, push-up. Multi-joint movements, build foundation strength.",
+      "source": "fitness_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948128+00:00",
+      "confidence": 1.0,
+      "content_hash": "b6f9467c13e76ee620e2808e03a51471"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Dục & Sức Khỏe",
+      "content": "Fitness cơ bản: Compound exercises — squat, deadlift, bench press, pull-up, push-up. Multi-joint movements, build foundation strength.",
+      "source": "fitness_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "ed5482520f1599907a8133c40a0800da"
+    },
+    {
+      "type": "update",
+      "topic": "健身与健康",
+      "content": "健身基础：渐进超负荷 — 逐渐增加负荷（重量、次数、组数、强度）。不是突然增加，每周5-10%。",
+      "source": "fitness_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "2f45add51f6bac923174155bcad89819"
+    },
+    {
+      "type": "update",
+      "topic": "フィットネス・健康",
+      "content": "フィットネス基礎：進行性過負荷 — 徐々に負荷を増やす（重量、回数、セット、強度）。突然ではなく、毎週5-10%ずつ。",
+      "source": "fitness_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "09479cdb6df7300ac4fa6fff20238dd7"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Dục & Sức Khỏe",
+      "content": "Fitness basics: Progressive overload — gradually increase load (weight, reps, sets, intensity). Not sudden, 5-10% each week.",
+      "source": "fitness_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "30aed59d2c53e81eab0281ef523bfbcb"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Dục & Sức Khỏe",
+      "content": "Fitness cơ bản: Progressive overload — tăng tải dần (weight, reps, sets, intensity). Không tăng đột ngột, 5-10% mỗi week.",
+      "source": "fitness_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.947625+00:00",
+      "confidence": 1.0,
+      "content_hash": "cbf9575949476c11dda24a6fac9c2089"
+    }
+  ]
+}

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ni-Oh Dashboard</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif; }
+body { background:#0d1117; color:#c9d1d9; min-height:100vh; display:flex; flex-direction:column; }
+.tabs { display:flex; background:#161b22; border-bottom:1px solid #30363d; padding:0 16px; }
+.tab { padding:12px 20px; cursor:pointer; color:#8b949e; border-bottom:2px solid transparent; transition:all 0.2s; }
+.tab:hover { color:#c9d1d9; }
+.tab.active { color:#58a6ff; border-bottom-color:#58a6ff; }
+.content { flex:1; padding:24px; overflow-y:auto; max-width:560px; margin:0 auto; width:100%; }
+.panel { display:none; }
+.panel.active { display:block; }
+.panel h2 { font-size:18px; margin-bottom:16px; color:#f0f6fc; }
+.panel p { font-size:14px; color:#8b949e; margin-bottom:16px; }
+.setting-group { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:16px; margin-bottom:16px; }
+.setting-group label { display:block; font-size:13px; color:#8b949e; margin-bottom:8px; }
+.setting-group select, .setting-group input[type="range"] { width:100%; padding:8px 12px; background:#0d1117; border:1px solid #30363d; border-radius:6px; color:#c9d1d9; font-size:14px; }
+.setting-group input[type="range"] { padding:0; accent-color:#58a6ff; }
+.setting-group .value-display { float:right; color:#58a6ff; font-size:13px; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 20px; border:none; border-radius:6px; cursor:pointer; font-size:14px; font-weight:500; transition:all 0.2s; }
+.btn-primary { background:#238636; color:white; }
+.btn-primary:hover { background:#2ea043; }
+.btn-secondary { background:#21262d; color:#c9d1d9; border:1px solid #30363d; }
+.btn-secondary:hover { background:#30363d; }
+.btn-danger { background:#da3633; color:white; }
+.btn-danger:hover { background:#f85149; }
+.btn-sm { padding:6px 12px; font-size:12px; }
+.feature-block { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:14px; margin-bottom:12px; }
+.feature-title { font-size:14px; font-weight:600; color:#58a6ff; margin-bottom:10px; }
+.feature-row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.feature-sub { font-size:12px; color:#8b949e; margin-top:8px; }
+.feature-actions { margin-top:10px; display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.characters-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); gap:12px; margin-top:12px; }
+.char-thumb { width:100%; aspect-ratio:1; border-radius:8px; overflow:hidden; border:2px solid #30363d; cursor:pointer; transition:all 0.2s; background:#0d1117; display:flex; align-items:center; justify-content:center; }
+.char-thumb:hover { border-color:#58a6ff; transform:scale(1.05); }
+.char-thumb.active { border-color:#58a6ff; box-shadow:0 0 8px rgba(88,166,255,0.4); }
+.char-thumb img { width:100%; height:100%; object-fit:cover; }
+.footer { padding:16px 24px; background:#161b22; border-top:1px solid #30363d; display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#8b949e; }
+.footer .version { color:#58a6ff; }
+.status-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:500; }
+.status-badge.online { background:#1f6f3f; color:#3fb950; }
+.status-badge.offline { background:#3d1f1f; color:#f85149; }
+</style>
+</head>
+<body>
+<div class="tabs">
+  <div class="tab active" data-tab="settings">⚙️ Cài đặt</div>
+  <div class="tab" data-tab="character">🧑 Nhân vật</div>
+  <div class="tab" data-tab="model">🤖 Model AI</div>
+  <div class="tab" data-tab="voice">🎤 Giọng nói</div>
+</div>
+<div class="content">
+  <!-- Tab: Settings -->
+  <div class="panel active" id="panel-settings">
+    <h2>🚀 Cài đặt tổng quát</h2>
+    <p>Quản lý cấu hình app Ni-Oh Companion</p>
+    <div class="setting-group">
+      <label>Hiển thị Overlay trên màn hình</label>
+      <select id="setting-overlay-visible">
+        <option value="true">Hiển thị (mặc định)</option>
+        <option value="false">Ẩn</option>
+      </select>
+    </div>
+    <div class="setting-group">
+      <label>Vị trí Overlay (tọa độ X, Y so với góc trái màn hình)</label>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <input type="number" id="setting-overlay-x" placeholder="X" style="width:80px; padding:8px; background:#0d1117; border:1px solid #30363d; border-radius:6px; color:#c9d1d9;">
+        <input type="number" id="setting-overlay-y" placeholder="Y" style="width:80px; padding:8px; background:#0d1117; border:1px solid #30363d; border-radius:6px; color:#c9d1d9;">
+      </div>
+    </div>
+    <div class="setting-group">
+      <label>Tự động trả lời khi có câu hỏi (Experimental)</label>
+      <select id="setting-auto-reply">
+        <option value="false">Tắt (mặc định)</option>
+        <option value="true">Bật</option>
+      </select>
+    </div>
+  </div>
+  <!-- Tab: Character -->
+  <div class="panel" id="panel-character">
+    <h2>🧑 Chọn nhân vật ảo</h2>
+    <p>Chọn hình ảnh nhân vật sẽ hiển thị trên overlay.<br>Hỗ trợ: PNG, JPG, JPEG, GIF, SVG, WebP</p>
+    <div class="setting-group">
+      <label>Nhân vật hiện tại</label>
+      <div id="current-character-display" style="margin-top:8px;">
+        <span class="status-badge offline">Chưa chọn</span>
+      </div>
+    </div>
+    <div class="setting-group">
+      <label>Danh sách nhân vật</label>
+      <div id="characters-list" class="characters-grid">
+        <div style="grid-column:1/-1; text-align:center; padding:24px; color:#8b949e;">Đang tải...</div>
+      </div>
+    </div>
+    <div class="setting-group">
+      <label>Thêm nhân vật mới (dành cho tương lai)</label>
+      <p style="font-size:12px; color:#8b949e;">Copy file hình ảnh vào: <code>D:\Ni-Oh\src\ni-oh-app\assets\characters\</code></p>
+      <button class="btn btn-secondary btn-sm" onclick="location.reload()">↻ Làm mới danh sách</button>
+    </div>
+  </div>
+  <!-- Tab: Model — 3 chức năng: Chat AI, Voice TTS, Self-Train -->
+  <div class="panel" id="panel-model">
+    <h2>🤖 Cài đặt cảm tính &amp; Tự học</h2>
+    <p>Mỗi dòng 1 chức năng. Nhà cung cấp · Key · Model chọn được.</p>
+    <!-- KHỐI 1: CHAT AI -->
+    <div class="feature-block">
+      <div class="feature-title">💬 Chat — trả lời câu hỏi (text + voice)</div>
+      <div class="feature-row">
+        <select id="setting-model-provider" onchange="onProviderChange()">
+          <option value="antigravity">Antigravity CLI (agy) — MẶC ĐỊNH, không cần key</option>
+          <option value="openrouter">OpenRouter (Cloud API)</option>
+          <option value="ollama">Ollama (Local, 0 token)</option>
+          <option value="gemini">Google Gemini (API Key)</option>
+        </select>
+        <div id="api-key-group" style="display:none;">
+          <input type="password" id="setting-api-key" placeholder="API Key (nếu cần)" style="width:160px; padding:8px 10px; background:#0d1117; border:1px solid #30363d; border-radius:6px; color:#c9d1d9; font-size:14px;">
+        </div>
+        <select id="setting-model-name"><!-- loaded by JS --></select>
+        <button class="btn btn-secondary btn-sm" onclick="saveModelSettings()" title="Lưu">💾</button>
+      </div>
+      <div class="feature-sub" id="model-hint">Model qua Antigravity CLI (agy).</div>
+    </div>
+    <!-- KHỐI 2: VOICE TTS -->
+    <div class="feature-block">
+      <div class="feature-title">🎤 Voice — đọc câu trả lời Thành giọng Việt</div>
+      <div class="feature-row">
+        <select id="setting-voice-provider" onchange="onVoiceProviderChange()">
+          <option value="edge-tts">Edge TTS (miễn phí, online)</option>
+          <option value="piper">Piper TTS (local, offline)</option>
+          <option value="vieneu">VieNeu TTS (VietnamAI, chuẩn Việt)</option>
+        </select>
+        <input type="text" id="setting-voice-name" placeholder="Tên voice (nếu cần)" style="width:160px; padding:8px 10px; background:#0d1117; border:1px solid #30363d; border-radius:6px; color:#c9d1d9; font-size:14px;">
+        <button class="btn btn-secondary btn-sm" onclick="saveVoiceSettings()" title="Lưu">💾</button>
+      </div>
+      <div class="feature-sub">Giọng mặc định: Hoài My (Trúc Ly). Voice nhận diện câu hỏi từ giọng nói tự động dùng Engine nói trên.</div>
+      <div class="feature-actions">
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('voice-sample').click()">🎧 Gửi file âm thanh mẫu</button>
+        <input type="file" id="voice-sample" accept="audio/*" style="display:none" onchange="onVoiceSampleSelected(this)">
+        <span id="voice-sample-status" style="margin-left:8px; font-size:13px; color:#8b949e;"></span>
+      </div>
+    </div>
+    <!-- KHỐI 3: SELF-TRAIN -->
+    <div class="feature-block">
+      <div class="feature-title">🧠 Self-Train — tự nạp kiến thức / huấn luyện từ file</div>
+      <div class="feature-row">
+        <select id="setting-train-provider" onchange="onTrainProviderChange()">
+          <option value="antigravity">Antigravity CLI (agy) — MẶC ĐỊNH</option>
+          <option value="ollama">Ollama (Local, 0 token)</option>
+          <option value="gemini">Google Gemini (API Key)</option>
+        </select>
+        <div id="train-key-group" style="display:none;">
+          <input type="password" id="setting-train-key" placeholder="API Key (nếu cần)" style="width:160px; padding:8px 10px; background:#0d1117; border:1px solid #30363d; border-radius:6px; color:#c9d1d9; font-size:14px;">
+        </div>
+        <select id="setting-train-model"><!-- loaded by JS --></select>
+        <button class="btn btn-secondary btn-sm" onclick="saveTrainSettings()" title="Lưu">💾</button>
+      </div>
+      <div class="feature-sub">Sinh prompt / trích xuất kiến thức từ file · Huấn luyện model local (Ollama) · Lưu vào memory của giao thức.</div>
+      <div class="feature-actions">
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('train-upload').click()">📁 Chọn file sinh prompt</button>
+        <input type="file" id="train-upload" accept=".txt,.md,.json,.csv" style="display:none" onchange="onTrainFileSelected(this)">
+        <button class="btn btn-secondary btn-sm" onclick="runSelfTrain()" style="margin-left:8px;">▶️ Chạy Self-Train</button>
+        <button class="btn btn-danger btn-sm" onclick="unlearnLastRule()">↩️ Undo lỗi học</button>
+        <span id="train-status" style="margin-left:12px; font-size:13px; color:#8b949e;"></span>
+      </div>
+    </div>
+    <!-- Tiến trình self-train -->
+    <div id="train-progress" style="margin-top:12px; display:none; background:#161b22; border:1px solid #30363a; border-radius:6px; padding:10px; font-size:13px; color:#c9d1d9;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+        <span style="color:#58a6ff; font-weight:600;">🔄 Đang tự train...</span>
+        <span id="train-progress-text" style="color:#8b949e;">Chưa bắt đầu</span>
+      </div>
+      <div style="height:4px; background:#30363a; border-radius:2px; overflow:hidden;">
+        <div id="train-progress-bar" style="height:100%; width:0%; background:#238636; transition:width 0.3s;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="footer">
+  <div>Ni-Oh Companion v1.0.0</div>
+  <div class="version">Made with ❤️ by Neito112</div>
+</div>
+<script>
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabName = tab.dataset.tab;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      const panel = document.getElementById(`panel-${tabName}`);
+      if (panel) panel.classList.add('active');
+      window.niOhAPI.onSwitchTab(tabName);
+    });
+  });
+  // Load initial config
+  window.niOhAPI.onInitConfig((config) => {
+    applyConfig(config);
+    loadCharacters();
+    loadModels();
+  });
+  // Listen for config updates
+  window.niOhAPI.onConfigUpdate((config) => {
+    applyConfig(config);
+    loadCharacters();
+  });
+  // Range slider display (voice speed)
+  const speedSlider = document.getElementById('setting-voice-speed');
+  const speedDisplay = speedSlider?.parentElement?.querySelector('.value-display');
+  if (speedSlider && speedDisplay) {
+    speedSlider.addEventListener('input', () => {
+      speedDisplay.textContent = `${speedSlider.value}x`;
+    });
+  }
+  // Voice sample file upload status
+  const voiceSampleInput = document.getElementById('voice-sample');
+  if (voiceSampleInput) {
+    voiceSampleInput.addEventListener('change', () => {
+      const status = document.getElementById('voice-sample-status');
+      if (voiceSampleInput.files.length > 0) {
+        status.textContent = `✅ File: ${voiceSampleInput.files[0].name}`;
+        status.style.color = '#3fb950';
+      } else {
+        status.textContent = '';
+      }
+    });
+  }
+});
+
+// ─── Config apply ───
+function applyConfig(config) {
+  // Settings tab
+  document.getElementById('setting-overlay-visible').value = config.overlayVisible;
+  document.getElementById('setting-overlay-x').value = config.overlayPosition.x;
+  document.getElementById('setting-overlay-y').value = config.overlayPosition.y;
+  document.getElementById('setting-auto-reply').value = config.autoReply;
+  // Model tab (chat)
+  document.getElementById('setting-model-provider').value = config.modelProvider || 'antigravity';
+  document.getElementById('setting-api-key').value = config.apiKey || '';
+  const p = config.modelProvider || 'antigravity';
+  document.getElementById('api-key-group').style.display =
+    (p === 'openrouter' || p === 'gemini') ? 'block' : 'none';
+  // Voice tab
+  document.getElementById('setting-voice-provider').value = config.voiceProvider || 'edge-tts';
+  document.getElementById('setting-voice-name').value = config.voiceName || '';
+  // Train tab
+  document.getElementById('setting-train-provider').value = config.trainProvider || 'antigravity';
+  document.getElementById('setting-train-key').value = config.trainKey || '';
+  const tp = config.trainProvider || 'antigravity';
+  document.getElementById('train-key-group').style.display =
+    (tp === 'openrouter' || tp === 'gemini') ? 'block' : 'none';
+  // Character tab
+  updateCurrentCharacter(config);
+}
+
+function updateCurrentCharacter(config) {
+  const display = document.getElementById('current-character-display');
+  if (config.character && config.characterImage) {
+    display.innerHTML = `
+      <div style="display:flex; align-items:center; gap:12px;">
+        <img src="${config.characterImage}" style="width:48px; height:48px; border-radius:8px; object-fit:cover; border:2px solid #58a6ff;" alt="${config.character}" onerror="this.style.display='none'; this.parentElement.innerHTML='<br><span style=font-size:32px>🖼️</span>'">
+        <div>
+          <div style="font-weight:500; color:#f0f6fc;">${config.character}</div>
+          <div style="font-size:12px; color:#8b949e;">Đang hoạt động</div>
+        </div>
+        <span class="status-badge online">Hoạt động</span>
+      </div>
+    `;
+  } else {
+    display.innerHTML = `<span class="status-badge offline">Chưa chọn nhân vật</span>`;
+  }
+}
+
+async function loadCharacters() {
+  const listEl = document.getElementById('characters-list');
+  try {
+    const characters = await window.niOhAPI.getCharacters();
+    if (characters.length === 0) {
+      listEl.innerHTML = `
+        <div style="grid-column:1/-1; text-align:center; padding:32px; color:#8b949e;">
+          <div style="font-size:48px; margin-bottom:12px;">🖼️</div>
+          <div>Chưa có nhân vật nào</div>
+          <div style="font-size:12px; margin-top:8px;">Thêm file hình vào thư mục characters/</div>
+        </div>
+      `;
+      return;
+    }
+    listEl.innerHTML = characters.map(char => {
+      const isActive = mainConfig?.character === char.name;
+      return `
+        <div class="char-thumb ${isActive ? 'active' : ''}" onclick="selectCharacter('${char.name}')" title="${char.name}">
+          <img src="${char.path}" alt="${char.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='❓'">
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    listEl.innerHTML = `
+      <div style="grid-column:1/-1; text-align:center; padding:24px; color:#f85149;">
+        Lỗi tải danh sách
+      </div>
+    `;
+  }
+}
+
+async function selectCharacter(charName) {
+  const result = await window.niOhAPI.selectCharacter(charName);
+  if (result.success) {
+    loadCharacters();
+    const display = document.getElementById('current-character-display');
+    display.innerHTML = `<span class="status-badge online">Đã chọn: ${charName}</span>`;
+  } else {
+    alert('Không thể chọn nhân vật: ' + (result.error || 'lỗi'));
+  }
+}
+
+// ─── Model (Chat AI) ───
+async function loadModels() {
+  const selectEl = document.getElementById('setting-model-name');
+  const provider = document.getElementById('setting-model-provider').value;
+  try {
+    let models = [];
+    if (provider === 'antigravity') {
+      models = await window.niOhAPI.getAgYModels();
+    } else if (provider === 'ollama') {
+      models = await window.niOhAPI.getOllamaModels();
+      if (!models.length) models = [{ id:'qwen2.5:7b', label:'qwen2.5:7b (mặc định)' }];
+    } else if (provider === 'openrouter') {
+      models = [
+        { id:'upstage/solar-pro4:free', label:'Solar Pro 4 (Free)' },
+        { id:'minimax/minimax-m3:free', label:'MiniMax M3 (Free)' },
+        { id:'deepseek/deepseek-v4-flash-0731', label:'DeepSeek v4 Flash' }
+      ];
+    } else if (provider === 'gemini') {
+      models = [
+        { id:'gemini-3.6-flash', label:'Gemini 3.6 Flash' },
+        { id:'gemini-3.1-flash-lite', label:'Gemini 3.1 Flash Lite' }
+      ];
+    }
+    selectEl.innerHTML = models.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
+    if (mainConfig?.modelName && models.some(m=>m.id===mainConfig.modelName)) {
+      selectEl.value = mainConfig.modelName;
+    }
+  } catch (e) {
+    selectEl.innerHTML = `<option value="">Không thể tải danh sách model</option>`;
+  }
+}
+
+function onProviderChange() {
+  const provider = document.getElementById('setting-model-provider').value;
+  const keyGroup = document.getElementById('api-key-group');
+  const hint = document.getElementById('model-hint');
+  keyGroup.style.display = (provider === 'openrouter' || provider === 'gemini') ? 'block' : 'none';
+  if (provider === 'antigravity') hint.textContent = 'Model qua Antigravity CLI (agy). Không cần API key.';
+  else if (provider === 'ollama') hint.textContent = 'Model Ollama local (0 token). Cần Ollama đang chạy (ollama serve).';
+  else if (provider === 'openrouter') hint.textContent = 'Model qua OpenRouter. Cần API key.';
+  else if (provider === 'gemini') hint.textContent = 'Model qua Google Gemini. Cần API key.';
+  loadModels();
+}
+
+async function saveModelSettings() {
+  const config = {
+    modelProvider: document.getElementById('setting-model-provider').value,
+    modelName: document.getElementById('setting-model-name').value,
+    apiKey: document.getElementById('setting-api-key').value
+  };
+  await window.niOhAPI.saveConfig(config);
+  mainConfig = { ...mainConfig, ...config };
+  alert('Đã lưu cài đặt Model! Provider: ' + config.modelProvider + ' | Model: ' + config.modelName);
+}
+
+// ─── Voice ───
+function onVoiceProviderChange() {
+  const provider = document.getElementById('setting-voice-provider').value;
+  // Voice không cần key trên UI — chọn provider + tên voice là đủ
+  loadVoiceModels();
+}
+
+async function loadVoiceModels() {
+  // Voice model list — hiện tại dùng các engine cố định, không cần load danh sách
+  // Nếu sau này có API voice provider, thêm logic ở đây
+}
+
+async function saveVoiceSettings() {
+  const config = {
+    voiceProvider: document.getElementById('setting-voice-provider').value,
+    voiceName: document.getElementById('setting-voice-name').value,
+    voiceSpeed: parseFloat(document.getElementById('setting-voice-speed')?.value || '1.0')
+  };
+  await window.niOhAPI.saveConfig(config);
+  mainConfig = { ...mainConfig, ...config };
+  alert('Đã lưu cài đặt Giọng nói!');
+}
+
+async function onVoiceSampleSelected(input) {
+  if (input.files.length === 0) return;
+  const file = input.files[0];
+  const status = document.getElementById('voice-sample-status');
+  status.textContent = '⏳ Đang tạo giọng mới từ file...';
+  status.style.color = '#58a6ff';
+  try {
+    const result = await window.niOhAPI.trainVoiceFromSample(file);
+    status.textContent = result.success
+      ? `✅ Đã tạo giọng: ${result.voiceName || 'mới'}`
+      : `❌ Lỗi: ${result.error || 'không rõ'}`;
+    status.style.color = result.success ? '#3fb950' : '#f85149';
+    if (result.success) {
+      // Cập nhật voice name trong setting
+      if (result.voiceName) {
+        document.getElementById('setting-voice-name').value = result.voiceName;
+        mainConfig.voiceName = result.voiceName;
+      }
+    }
+  } catch (e) {
+    status.textContent = '❌ Lỗi: ' + (e.message || e);
+    status.style.color = '#f85149';
+  }
+}
+
+// ─── Self-Train ───
+function onTrainProviderChange() {
+  const provider = document.getElementById('setting-train-provider').value;
+  document.getElementById('train-key-group').style.display =
+    (provider === 'openrouter' || provider === 'gemini') ? 'block' : 'none';
+  loadTrainModels();
+}
+
+async function loadTrainModels() {
+  const selectEl = document.getElementById('setting-train-model');
+  const provider = document.getElementById('setting-train-provider').value;
+  try {
+    let models = [];
+    if (provider === 'antigravity') {
+      models = await window.niOhAPI.getAgYModels();
+    } else if (provider === 'ollama') {
+      models = await window.niOhAPI.getOllamaModels();
+      if (!models.length) models = [{ id:'qwen2.5:7b', label:'qwen2.5:7b (mặc định)' }];
+    } else if (provider === 'gemini') {
+      models = [
+        { id:'gemini-3.6-flash', label:'Gemini 3.6 Flash' },
+        { id:'gemini-3.1-pro-high', label:'Gemini 3.1 Pro' }
+      ];
+    }
+    selectEl.innerHTML = models.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
+    if (mainConfig?.trainModel && models.some(m=>m.id===mainConfig.trainModel)) {
+      selectEl.value = mainConfig.trainModel;
+    }
+  } catch (e) {
+    selectEl.innerHTML = `<option value="">Không thể tải danh sách model</option>`;
+  }
+}
+
+async function saveTrainSettings() {
+  const config = {
+    trainProvider: document.getElementById('setting-train-provider').value,
+    trainModel: document.getElementById('setting-train-model').value,
+    trainKey: document.getElementById('setting-train-key').value
+  };
+  await window.niOhAPI.saveConfig(config);
+  mainConfig = { ...mainConfig, ...config };
+  alert('Đã lưu cài đặt Self-Train! Provider: ' + config.trainProvider + ' | Model: ' + config.trainModel);
+}
+
+async function onTrainFileSelected(input) {
+  if (input.files.length === 0) return;
+  const file = input.files[0];
+  const status = document.getElementById('train-status');
+  status.textContent = `File: ${file.name}`;
+  status.style.color = '#3fb950';
+}
+
+async function runSelfTrain() {
+  const provider = document.getElementById('setting-train-provider').value;
+  const model = document.getElementById('setting-train-model').value;
+  const key = document.getElementById('setting-train-key').value;
+  const status = document.getElementById('train-status');
+  const progress = document.getElementById('train-progress');
+  const progressText = document.getElementById('train-progress-text');
+  const progressBar = document.getElementById('train-progress-bar');
+  progress.style.display = 'block';
+  progressText.textContent = 'Khởi động...';
+  progressBar.style.width = '10%';
+  status.textContent = '⏳ Đang chạy...';
+  status.style.color = '#58a6ff';
+  try {
+    const result = await window.niOhAPI.runSelfTrain({ provider, model, key });
+    progressBar.style.width = '100%';
+    progressText.textContent = result.message || 'Hoàn tất';
+    status.textContent = result.success ? '✅ Train thành công' : '❌ Lỗi: ' + (result.error || 'không rõ');
+    status.style.color = result.success ? '#3fb950' : '#f85149';
+  } catch (e) {
+    progressText.textContent = 'Lỗi';
+    progressBar.style.width = '100%';
+    status.textContent = '❌ Lỗi: ' + (e.message || e);
+    status.style.color = '#f85149';
+  }
+  setTimeout(() => { progress.style.display = 'none'; }, 3000);
+}
+
+async function unlearnLastRule() {
+  const status = document.getElementById('train-status');
+  status.textContent = '⏳ Đang xóa rule gần nhất...';
+  status.style.color = '#f85149';
+  try {
+    const result = await window.niOhAPI.unlearnLastRule();
+    status.textContent = result.success ? '✅ Đã xóa' : '❌ Lỗi: ' + (result.error || 'không rõ');
+    status.style.color = result.success ? '#3fb950' : '#f85149';
+  } catch (e) {
+    status.textContent = '❌ Lỗi: ' + (e.message || e);
+    status.style.color = '#f85149';
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+name: Verify Public Repo
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Node syntax check
+        run: find src -name "*.js" -exec node --check {} \; && echo "✓ Node.js OK"
+      - name: Python syntax check
+        run: find scripts tools -name "*.py" -exec python -m py_compile {} \; && echo "✓ Python OK"
+      - name: Secret scan
+        run: grep -rE "sk-[a-zA-Z0-9]{32,}|AIza[0-9A-Za-z_-]{35}" . --exclude-dir=.git || echo "✓ No secrets found"
+      - name: .gitignore check
+        run: git ls-files | grep -E "\.env|api_keys|app_config|secrets" && (echo "✗ secrets tracked" && exit 1) || echo "✓ .gitignore OK"

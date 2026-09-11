@@ -1,0 +1,17 @@
+{
+  "character": "default",
+  "characterImage": null,
+  "voiceProvider": "edge-tts",
+  "voiceName": "vi-VN-HoaiMyNeural",
+  "voiceSpeed": 1.0,
+  "modelProvider": "antigravity",
+  "modelName": "gemini-3.8-flash-high",
+  "apiKey": "***",
+  "overlayVisible": true,
+  "overlayPosition": {
+    "x": 40,
+    "y": 40
+  },
+  "autoReply": false,
+  "ttsEnabled": true
+}

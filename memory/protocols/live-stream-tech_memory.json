@@ -1,0 +1,120 @@
+{
+  "topicName": "Live Streaming Tech",
+  "last_updated": "2026-09-10T22:37:05.835786+00:00",
+  "sources": [
+    "live_protocol | web: hollyland, midnightman, obs-versions",
+    "live_protocol | web: obs-versions, antmedia, hollyland",
+    "live_protocol",
+    "live_protocol",
+    "live_protocol",
+    "live_protocol",
+    "live_protocol",
+    "live_protocol",
+    "live_protocol",
+    "live_protocol"
+  ],
+  "entries": [
+    {
+      "type": "update",
+      "topic": "Live Streaming Tech",
+      "content": "OBS audio mixing 2026: streamer master volume 3-5 dB cao hơn music/game SFX để viewers rõ voice. Audio bitrate: 160 kbps (stereo) cho streaming, 320 kbps cho local recording. Sample rate 48 kHz (match system audio). Voice peak tại -6 dB để có headroom không clipping. Podcast/talking stream: 128 kbps đủ. Common mistakes: sample rate mismatch → audio sync issues. Adjust sync offset trong Advanced Audio Properties nếu cần.",
+      "source": "live_protocol | web: hollyland, midnightman, obs-versions",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T22:36:04.731148+00:00",
+      "confidence": 1.0,
+      "content_hash": "228ea1ffc02082be1e8c9ae5bd721ead"
+    },
+    {
+      "type": "update",
+      "topic": "Live Streaming Tech",
+      "content": "OBS bitrate 2026: 1080p 60fps → 6000-8000 kbps (H.264), 4500 kbps (AV1/HEVC). Twitch cap 6000 kbps cho non-partner, partner rarely benefit >8500 kbps vì Twitch transcodes. YouTube hỗ trợ đến 51000 kbps cho 4K60. Facebook recommends 4000 kbps cho 1080p. Bitrate ≤ 75% upload bandwidth để tránh connection issues. Keyframe interval 2s cho optimal adaptive bitrate switching. Network upload speed cần 2x target bitrate.",
+      "source": "live_protocol | web: obs-versions, antmedia, hollyland",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T22:36:04.731148+00:00",
+      "confidence": 1.0,
+      "content_hash": "d0bdc414d12495700c52f5716bd7ab27"
+    },
+    {
+      "type": "update",
+      "topic": "直播技术",
+      "content": "比特率：1080p 60fps应使用6000-8000 kbps。如果网络较弱，降低到4500 kbps但质量会下降。",
+      "source": "live_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "187d0575850978d9b70a3db961119e05"
+    },
+    {
+      "type": "update",
+      "topic": "ライブストリーミング技術",
+      "content": "ビットレート：1080p 60fpsでは6000-8000 kbpsを使用するべき。ネットワークが弱い場合は4500 kbpsに減らすが、品質は低下する。",
+      "source": "live_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "249dec487aa10c0093a2ae8daab16076"
+    },
+    {
+      "type": "update",
+      "topic": "Live Streaming Tech",
+      "content": "Bitrate: 1080p 60fps should use 6000-8000 kbps. If network is weak, reduce to 4500 kbps but quality will decrease.",
+      "source": "live_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "2251d7abdf4dd2b835ffce730a664448"
+    },
+    {
+      "type": "update",
+      "topic": "Live Streaming Tech",
+      "content": "Bitrate: 1080p 60fps use 6000-8000 kbps. If network weak, reduce to 4500 kbps but quality decreases.",
+      "source": "live_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "c877a92238c713aab2c053f3b22d761d"
+    },
+    {
+      "type": "update",
+      "topic": "直播技术",
+      "content": "OBS音频混合：主播的主音量应比音乐或游戏音效高3-5分贝，以便观众能清楚听到声音。",
+      "source": "live_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "8d385014e6d07dd8ef5d60b4b18e6f9c"
+    },
+    {
+      "type": "update",
+      "topic": "ライブストリーミング技術",
+      "content": "OBSオーディオミキシング：ストリーマーのマスター音量を音楽やゲームの効果音よりも3-5dB高くして、視聴者が声をよく聞こえるようにする。",
+      "source": "live_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "b5c8dee091be6eb1b4a2d6d3f2fb9582"
+    },
+    {
+      "type": "update",
+      "topic": "Live Streaming Tech",
+      "content": "OBS audio mixing: Streamer's master volume should be 3-5dB higher than music/game SFX so viewers can clearly hear the voice.",
+      "source": "live_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "7b130c800a05c0dcc0e06e7d6ee7d18a"
+    },
+    {
+      "type": "update",
+      "topic": "Live Streaming Tech",
+      "content": "OBS audio mixing: Streamer's master volume 3-5dB higher than music/game SFX so viewers clearly hear voice.",
+      "source": "live_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "5a0e42a16cdf685b53166345cf9ad907"
+    }
+  ]
+}

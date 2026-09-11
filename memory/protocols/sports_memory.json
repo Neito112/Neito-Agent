@@ -1,0 +1,309 @@
+{
+  "topicName": "Thể Thao",
+  "last_updated": "2026-09-10T22:36:41.963844+00:00",
+  "sources": [
+    "sports_protocol"
+  ],
+  "entries": [
+    {
+      "type": "update",
+      "topic": "体育",
+      "content": "战术教练争论：瓜迪奥拉（传控主导）、克洛普（反 pressing—丢球后立即高位逼抢）、西梅奥内（防守组织—稳固防守空间占领）、孔特（战术纪律— rigid 阵型）。恩佐·马雷萨：'佩ップ是近年世界最佳教练。'",
+      "source": "sports_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "bdd5509a4c9f5dc6271228772b4c59c5"
+    },
+    {
+      "type": "update",
+      "topic": "スポーツ",
+      "content": "戦術的監督論争：ペップ・グアルディオラ（ポゼッション支配）、ユルゲン・クロップ（ゲーゲンプレッシング—ボールロスト直後ハイプレス）、ディエゴ・シメオネ（守備組織—堅固な守備スペース占有）、アントニオ・コンテ（戦術的規律—rigidなフォーメーション）。エンゾ・マレスカ：'ペップは近年世界最高の監督。'",
+      "source": "sports_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "2fc2a92c5072042b69f3c4f12a97926b"
+    },
+    {
+      "type": "update",
+      "topic": "Sports",
+      "content": "Tactical managers debate: Pep Guardiola (possession dominance), Jürgen Klopp (Gegenpressing—press high immediately after losing ball), Diego Simeone (defensive organization—solid defensive space occupation), Antonio Conte (tactical discipline—rigid formation). Enzo Maresca: 'Pep is the best coach in the world in recent years.'",
+      "source": "sports_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "a5645d6d4db33171da140bb6a35f60e9"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Thao",
+      "content": "Tactical managers debate: Pep Guardiola (possession dominance), Jürgen Klopp (Gegenpressing—press high từ khi lose ball), Diego Simeone (defensive organization—chiếm space phòng thủ 꽁 solid), Antonio Conte (tactical discipline—hình phạt rigid). Enzo Maresca: 'Pep là best coach thế giới近年.'",
+      "source": "sports_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "2683fef0a574ec98bc1d6eb269e6f355"
+    },
+    {
+      "type": "update",
+      "topic": "体育",
+      "content": "皮帕·瓜迪奥拉曼城战术演变2016-2026：控制传控（平均70%传球控制权），边后卫内切中场制造 overloads，8号自由推进高位，假9号轮换，双pivot 复兴。关键：球员在球到达前移动到空档。",
+      "source": "sports_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "1cfb43a7306285139edfad738bec7565"
+    },
+    {
+      "type": "update",
+      "topic": "スポーツ",
+      "content": "ペップ・グアルディオラ戦術進化マンシティ2016-2026：制御されたポゼッション（平均70%ポゼッション）、フルバックを中盤にインバートしてオーバーロード作成、8番が自由に高い位置へ、偽9番ローテーション、ダブルピボット復活。鍵：選手がボールが到着する前にスペースに移動。",
+      "source": "sports_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "58571fe7360e6cd059b2db1f1946c623"
+    },
+    {
+      "type": "update",
+      "topic": "Sports",
+      "content": "Pep Guardiola tactical evolution Man City 2016-2026: controlled possession (avg 70% possession), invert full-backs into midfield create overload, number eights free push high, false nine rotate, double pivot revitalize. Key: players move into space before ball arrives.",
+      "source": "sports_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "37f4cb11fc67f028af83caffa3df3e67"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Thao",
+      "content": "Pep Guardiola tactical evolution Man City 2016-2026: controlled possession (avg 70% possession), invert full-backs into midfield tạo overload, number eights free push cao, false nine rotate, double pivot revolvement. Key: players move into space before ball arrives.",
+      "source": "sports_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T21:00:06.147263+00:00",
+      "confidence": 1.0,
+      "content_hash": "f68c91908baa4718693ce32caaf2134c"
+    },
+    {
+      "type": "update",
+      "topic": "体育",
+      "content": "评论区摘要：YouTube '历代最佳进球' — 用户分享对进球的情感连接，而不仅是技术。评论：'这个进球让我流泪'、 '让我想起童年'、'因为故事而美丽，不是因为技能'。",
+      "source": "sports_protocol",
+      "lang": "zh",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "cc168b21b851e9a73b7d3ba5f1aa400e"
+    },
+    {
+      "type": "update",
+      "topic": "スポーツ",
+      "content": "コメント欄要約：YouTube '歴代最高のゴール' — ユーザーは単なる技術ではなくゴールへの感情的なつながりを共有する。コメント：'このゴールで泣いた'、'子供時代を思い出す'、'スキルではなく物語だから美しい'。",
+      "source": "sports_protocol",
+      "lang": "ja",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "866ba217145534e2f7baf4649fc81840"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Thao",
+      "content": "Comment summary: YouTube 'Best goals ever' — users share emotional connections to goals, not just technique. Comments: 'this goal made me cry', 'reminds me of childhood', 'beautiful because of story not skill'.",
+      "source": "sports_protocol",
+      "lang": "en",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "3efb53fb6eac272cc8d129da7c1d02c3"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Thao",
+      "content": "Comment section tóm tắt: YouTube 'Best goals ever' — users share emotional connections to goals, not just technique. Comments: 'this goal made me cry', 'reminds me of childhood', 'beautiful because of story not skill'.",
+      "source": "sports_protocol",
+      "lang": "vi",
+      "source_type": "comment",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "7bf5618a4d1f6e6037c931199dad60b7"
+    },
+    {
+      "type": "update",
+      "topic": "体育",
+      "content": "论坛帖子摘要：r/soccer '最佳战术教练' — 瓜迪奥拉（传控）、克洛普（反 pressing）、西梅奥内（防守组织）、孔特（战术纪律）。争论：'谁是最伟大？'",
+      "source": "sports_protocol",
+      "lang": "zh",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "a0f48089091a33bb77d1bbfae9a060ff"
+    },
+    {
+      "type": "update",
+      "topic": "スポーツ",
+      "content": "フォーラムスレッド要約：r/soccer '最高の戦術的監督' — ペップ・グアルディオラ（ポゼッション）、ユルゲン・クロップ（ゲーゲンプレッシング）、ディエゴ・シメオネ（守備組織）、アントニオ・コンテ（戦術的規律）。議論：'誰が最も偉大？'",
+      "source": "sports_protocol",
+      "lang": "ja",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "793f1fa21a064ff9f8832e7b393083d7"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Thao",
+      "content": "Forum summary: r/soccer 'Best tactical managers' — Pep Guardiola (possession), Jürgen Klopp (Gegenpressing), Diego Simeone (defensive organization), Antonio Conte (tactical discipline). Debate: 'who is greatest?'",
+      "source": "sports_protocol",
+      "lang": "en",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.950146+00:00",
+      "confidence": 1.0,
+      "content_hash": "e1097064a27bd3cf5b19c9e46b157486"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Thao",
+      "content": "Forum thread tóm tắt: r/soccer 'Best tactical managers' — Pep Guardiola (possession), Jürgen Klopp (Gegenpressing), Diego Simeone (defensive organization), Antonio Conte (tactical discipline). Debate: 'who is greatest?'",
+      "source": "sports_protocol",
+      "lang": "vi",
+      "source_type": "forum",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "02e4f885a701c843e5520b3231e254e0"
+    },
+    {
+      "type": "update",
+      "topic": "体育",
+      "content": "视频分析摘要：'战术分析 - 皮帕·瓜迪奥拉 曼城' — 位置型战术、球的循环、 pressing 触发、半空间利用。关键：球员在球到达前移动到空间。",
+      "source": "sports_protocol",
+      "lang": "zh",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "9d2c17e80e91de0331fbb4e5601b7369"
+    },
+    {
+      "type": "update",
+      "topic": "スポーツ",
+      "content": "動画分析要約：'戦術分析 - ペップ・グアルディオラ マンチェスター・シティ' — ポジショナルプレー、ボール循環、プレッシングトリガー、ハーフスペースの活用。鍵：選手がボールが到着する前にスペースに移動する。",
+      "source": "sports_protocol",
+      "lang": "ja",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "eee08be2353fa03445fa9eaa1b06c4d0"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Thao",
+      "content": "Video analysis summary: 'Tactical analysis - Pep Guardiola Man City' — positional play, ball circulation, pressing triggers, half-space exploitation. Key: players move into space before ball arrives.",
+      "source": "sports_protocol",
+      "lang": "en",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "f3c8e45ded1c5807bd83a8d0b715115c"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Thao",
+      "content": "Video analysis tóm tắt: 'Tactical analysis - Pep Guardiola Man City' — positional play, ball circulation, pressing triggers, half-space exploitation. Key: players move into space before ball arrives.",
+      "source": "sports_protocol",
+      "lang": "vi",
+      "source_type": "video",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "5c2640c43aa74fe5ebeccfd84fbb0354"
+    },
+    {
+      "type": "update",
+      "topic": "体育",
+      "content": "体育基础：团队动态 — 位置职责、沟通、信任、团队合作。最强球员没有团队合作也不会赢。",
+      "source": "sports_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "7ca62198dee1a26bacbb46405bd8e8d4"
+    },
+    {
+      "type": "update",
+      "topic": "スポーツ",
+      "content": "スポーツ基礎：チームダイナミクス — ポジション責任、コミュニケーション、信頼、チームワーク。最も強い選手でもチームワークなければ勝てない。",
+      "source": "sports_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "ef03ff441a5ac2c3d711d36a99961d54"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Thao",
+      "content": "Sports basics: Team dynamics — position responsibility, communication, trust, teamwork. Strongest player doesn't win without teamwork.",
+      "source": "sports_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "74c047837fa08fdb48368278ef7385ca"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Thao",
+      "content": "Sports cơ bản: Team dynamics — position responsibility, communication, trust, teamwork. Người chơi mạnh nhất không phải là win jika tidak teamwork.",
+      "source": "sports_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "d8d38db309be110cd6688439acf1870e"
+    },
+    {
+      "type": "update",
+      "topic": "体育",
+      "content": "体育基础：规则理解 — 知道基本规则、何为违规、犯规技术、优势规则。规则是比赛的基础。",
+      "source": "sports_protocol",
+      "lang": "zh",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "add64643b412959e8ccb8f454056e88e"
+    },
+    {
+      "type": "update",
+      "topic": "スポーツ",
+      "content": "スポーツ基礎：ルール理解 — 基本ルール、ファウル技術、アドバンテージ ルールを知っている。ルールはプレーする基盤である。",
+      "source": "sports_protocol",
+      "lang": "ja",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "79481c82036434432f2ac3edcd3e61cc"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Thao",
+      "content": "Sports basics: Rules understanding — know basic rules, what constitutes violation, foul technique, advantage rule. Rules are foundation to play.",
+      "source": "sports_protocol",
+      "lang": "en",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "4fb61903ac7b35f3b2ab0c2c46a6a9f7"
+    },
+    {
+      "type": "update",
+      "topic": "Thể Thao",
+      "content": "Sports cơ bản: Rules understanding — biết luật cơ bản, vi phạm gì, foul kỹ thuật, advantage rule. Luật là nền tảng để chơi.",
+      "source": "sports_protocol",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T16:45:01.948859+00:00",
+      "confidence": 1.0,
+      "content_hash": "c01be5af3423f72453ffbad1688bbdef"
+    }
+  ]
+}

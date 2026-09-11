@@ -1,0 +1,373 @@
+{
+  "topicName": "Valorant",
+  "last_updated": "2026-09-10T22:36:42.004467+00:00",
+  "sources": [
+    "valorant_protocol | web: youtube THE ULTIMATE Beginners Guide VALORANT 2026",
+    "valorant_protocol | web: epicgames, youtube updated economy guide",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol",
+    "valorant_protocol"
+  ],
+  "entries": [
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Valorant 2026 beginners guide: Crosshair 1-4-2-2 layout (13 cái càng tối ưu). Economy guide updated: buy full sau pistol round thắng, eco sau loss. Agent selection: start với 1-2 main agent, expand sau. Radiant guide: role + main agent optimization. Key: học 1 agent thật tốt trước khi expand.",
+      "source": "valorant_protocol | web: youtube THE ULTIMATE Beginners Guide VALORANT 2026",
+      "lang": "vi",
+      "source_type": "video",
+      "timestamp": "2026-09-10T22:36:04.731148+00:00",
+      "confidence": 1.0,
+      "content_hash": "25f595eac23024cdcbc266efac59fc30"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Crossfire 2026: sniper chọn 2+ hiding spots tạo crossfire. Khi địch phát hiện 1 điểm, từ góc khác phản kicks. Economy: buy full weapon mỗi 3 rounds, save trong 2 rounds còn lại. Đảm bảo best weapon trong critical rounds. Adaptive economy: unpredictability + outflank enemies là strategic — không có hard-set rules cho mọi round.",
+      "source": "valorant_protocol | web: epicgames, youtube updated economy guide",
+      "lang": "vi",
+      "source_type": "knowledge",
+      "timestamp": "2026-09-10T22:36:04.731148+00:00",
+      "confidence": 1.0,
+      "content_hash": "2c60ca6bb63a7938090b8e540123498f"
+    },
+    {
+      "type": "update",
+      "topic": "永久进击",
+      "content": "永久进击：经济管理 — 每3局全买，另外2局节省。确保在关键局中拥有最好武器。",
+      "source": "valorant_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T16:07:36.613162+00:00",
+      "confidence": 1.0,
+      "content_hash": "162e6b33c1f69734c4d4dcbefffef174"
+    },
+    {
+      "type": "update",
+      "topic": "ヴァロラント",
+      "content": "ヴァロラント：エコノミー — 3ラウンドごとにフルバイ、残り2ラウンドセーブ。重要なラウンドで最高のレストリングを確保。",
+      "source": "valorant_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T16:07:36.613162+00:00",
+      "confidence": 1.0,
+      "content_hash": "d3382bf1b2f616d166785d8ce9972241"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Valorant: Economy — buy full weapon every 3 rounds, save in the other 2. Ensure best weapon in critical rounds.",
+      "source": "valorant_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T16:07:36.613162+00:00",
+      "confidence": 1.0,
+      "content_hash": "3945079115fb3de480bbec9315af0161"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Valorant: Economy — buy full weapon every 3 rounds, save in other 2. Ensure best weapon in critical rounds.",
+      "source": "valorant_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T16:07:36.613162+00:00",
+      "confidence": 1.0,
+      "content_hash": "41d9622c7b02422bc5b4c6684a625732"
+    },
+    {
+      "type": "update",
+      "topic": "永久进击",
+      "content": "永久进击：交叉火力 — 狙击手选择2个以上藏身点创造交叉火力。敌人发现一个点时，从另一个角度攻击。",
+      "source": "valorant_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T16:07:36.613162+00:00",
+      "confidence": 1.0,
+      "content_hash": "14aa0d964ba11d051f30568937da67a9"
+    },
+    {
+      "type": "update",
+      "topic": "ヴァロラント",
+      "content": "ヴァロラント：クロスファイア — スナイパーは2つ以上の隠れ場所を選びクロスファイアを作る。敵が1スポット発見したら別角度から攻撃。",
+      "source": "valorant_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T16:07:36.613162+00:00",
+      "confidence": 1.0,
+      "content_hash": "80b0ff85e7e38b00a7887583d4c19f2b"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Valorant: Crossfire — sniper select 2+ hiding spots create crossfire. When enemy discovers one spot, attack from different angle.",
+      "source": "valorant_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T16:07:36.613162+00:00",
+      "confidence": 1.0,
+      "content_hash": "a66458bdb91bc9366e94eb95b690ff32"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Valorant: Crossfire — sniper chọn 2+ hiding spots tạo crossfire. Khi địch phát hiện 1 điểm, từ góc khác phản kicks.",
+      "source": "valorant_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T16:07:36.613162+00:00",
+      "confidence": 1.0,
+      "content_hash": "1838b2fcb04875792b22295ca924e7c4"
+    },
+    {
+      "type": "update",
+      "topic": "永久进击",
+      "content": "烟雾战术：烟雾不是永久的，持续9-11秒。利用短暂时间掩护移动或快速进入/重新占领。",
+      "source": "valorant_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "8e4a0dffd73c499ade9a1839c7874259"
+    },
+    {
+      "type": "update",
+      "topic": "ヴァロラント",
+      "content": "スモーク戦術：スモークは恒久的ではなく9-11秒間持続。短い時間を使って移動を隠蔽するか、迅速な突入や奪還を行う。",
+      "source": "valorant_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "22cd8e85b95070840e6e24d88b4f75b5"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Smoke tactics: Smoke isn't permanent, lasts 9-11 seconds. Use the short window to cover movement or quick entry/retake.",
+      "source": "valorant_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "b9d0a93d290aa3683436d0261bd3a156"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Smoke tactics: Smoke lasts 9-11 seconds. Use short window to cover movement or quick entry/retake.",
+      "source": "valorant_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "d8a94d6f3d97e283de074ad399375563"
+    },
+    {
+      "type": "update",
+      "topic": "永久进击",
+      "content": "经济管理：每3局全买，另外2局节省。这样确保在关键局中始终拥有最好的武器。",
+      "source": "valorant_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "224b0ff89684ff8400eae45207d44253"
+    },
+    {
+      "type": "update",
+      "topic": "ヴァロラント",
+      "content": "エコノミー：3ラウンドごとにフルバイ、残り2ラウンドはセーブ。重要なラウンドで常に最高のレストリング持っていることを保証する。",
+      "source": "valorant_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "c20a2cc7c9617a288e61eaa3ec26cb6f"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Economy: Buy full weapon every 3 rounds, save in the other 2. This ensures you always have the best weapon in critical rounds.",
+      "source": "valorant_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "299ca36cce9169f1c28503512859e440"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Economy: Buy full weapon every 3 rounds, save in other 2. Ensures best weapon in critical rounds.",
+      "source": "valorant_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "cdf22c3862c534a1325adc2a1b2ced3f"
+    },
+    {
+      "type": "update",
+      "topic": "永久进击",
+      "content": "交叉火力：作为一名狙击手，选择2个以上的藏身点来创造交叉火力。当敌人发现一个点时，从另一个角度进行攻击。",
+      "source": "valorant_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "5f490501ade167824473a0eeaa7de8c2"
+    },
+    {
+      "type": "update",
+      "topic": "ヴァロラント",
+      "content": "クロスファイア：スナイパーとして2つ以上の隠れ場所を選びクロスファイアを作る。敵が1つのスポットを発見したとき、別の角度から攻撃する。",
+      "source": "valorant_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "fdb912d2914083642ed1a816c246ca87"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Crossfire: As a sniper, select 2+ hiding spots to create crossfire. When enemy discovers one spot, attack from a different angle.",
+      "source": "valorant_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "0231401f4aeab9cceef4a08d9887f904"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Crossfire: Sniper chọn 2+ hiding spots để tạo crossfire. Khi địch phát hiện 1 điểm, từ góc khác phản kicks.",
+      "source": "valorant_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T16:02:30.226695+00:00",
+      "confidence": 1.0,
+      "content_hash": "e1d408f378ee838115b64e99fc6946c5"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Valorant 11.04版本：Sage增强 - 治疗改善，Sova侦察箭改变更清晰。地图：Abyss回归排位，Icebox暂时移除。Ping声音更柔和提高清晰度。",
+      "source": "valorant_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T15:59:44.438869+00:00",
+      "confidence": 1.0,
+      "content_hash": "9073082674f368087c48b169deafdace"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "ヴァロラント パッチ 11.04：Sage強化 - ヒール改善、Sova偵察矢変更で明確化。マップ：Abyssがキューに戻り、Icebox一時削除。Ping audio柔らかくして明確化。",
+      "source": "valorant_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T15:59:44.438869+00:00",
+      "confidence": 1.0,
+      "content_hash": "8901d313d6dd55ed0040e56883dfb54e"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Valorant Patch 11.04: Sage buff - heals improved, Sova recon arrow changes for clarity. Maps: Abyss returned to queue, Icebox removed temporarily. Ping audio less harsh for better clarity.",
+      "source": "valorant_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T15:59:44.438869+00:00",
+      "confidence": 1.0,
+      "content_hash": "68d1876a859131a37d3f99cadf6acd01"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Valorant 12.01：Riot Games更新补丁说明12.01，概述竞技射击游戏代理、地图和游戏系统平衡变更。更新旨在改善竞技体验。",
+      "source": "valorant_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T15:59:44.438869+00:00",
+      "confidence": 1.0,
+      "content_hash": "497aaf6d4b89139f6501733e682f7390"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "ヴァロラント 12.01：Riot Gamesがパッチノート12.01を更新し、競技用シューティングゲームのエージェント、マップ、ゲームプレイシステムへのバランス変更を概説。更新は競技エクスペリエンス向上を目指す。",
+      "source": "valorant_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T15:59:44.438869+00:00",
+      "confidence": 1.0,
+      "content_hash": "562439507f1d81e3cb853a3442ebda9e"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Valorant 12.01: Riot Games updates patch notes 12.01, outlining balance changes to agents, maps, and gameplay systems for competitive shooter. Update aims to improve competitive experience.",
+      "source": "valorant_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T15:59:44.438869+00:00",
+      "confidence": 1.0,
+      "content_hash": "69216c7cbd3451a5ece463a45d62d5ff"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Valorant 12.01: Riot Games cập nhật bản ghi chú patch 12.01, outlining balance changes to agents, maps, and gameplay systems for competitive shooter. Update aims to improve competitive experience.",
+      "source": "valorant_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T15:59:44.438869+00:00",
+      "confidence": 1.0,
+      "content_hash": "194126b0b86c225159f372eb7fa2e92c"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Valorant 11.04版本：代理平衡 - Chamber和Sage调整。Abyss地图回归，Icebox地图下架。游戏性：Ping声音减弱，AOE终极技能改变。",
+      "source": "valorant_protocol",
+      "lang": "zh",
+      "timestamp": "2026-09-10T15:59:44.438869+00:00",
+      "confidence": 1.0,
+      "content_hash": "8d51a47ebc3a1b6cc3f6b2d6f4e12e3d"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "ヴァロラント パッチ 11.04：エージェントバランス - ChamberとSage調整。Abyssマップ戻り、Iceboxマップ外す。ゲームプレイ：Ping audioを柔らかく、AOE ultimate変更。",
+      "source": "valorant_protocol",
+      "lang": "ja",
+      "timestamp": "2026-09-10T15:59:44.438869+00:00",
+      "confidence": 1.0,
+      "content_hash": "0dd08fbc78db3073280fe6a5499c9918"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Valorant Patch 11.04: Agent balance - Chamber and Sage adjusted. Abyss map returns, Icebox map out. Gameplay: Ping audio made less harsh, AOE ultimate changed.",
+      "source": "valorant_protocol",
+      "lang": "en",
+      "timestamp": "2026-09-10T15:59:44.438869+00:00",
+      "confidence": 1.0,
+      "content_hash": "772453581e63bb8015ed3082c9a50cab"
+    },
+    {
+      "type": "update",
+      "topic": "Valorant",
+      "content": "Valorant Patch 11.04: Agent balance - Chamber và Sage được điều chỉnh. Abyss map quay lại, Icebox map ra ngoài. Gameplay: Ping audio được giảm nhẵn, AOE ultimate changed.",
+      "source": "valorant_protocol",
+      "lang": "vi",
+      "timestamp": "2026-09-10T15:59:44.438869+00:00",
+      "confidence": 1.0,
+      "content_hash": "10bcb4e2dc7b4af6ddd08d330cb639f9"
+    }
+  ]
+}
