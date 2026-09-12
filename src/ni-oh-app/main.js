@@ -1080,10 +1080,59 @@ async function onEyeMessage(msg) {
     situationEngine.accumulateConcepts(msg);
     if (mainConfig.eyeProactive && !eyeBusy && !answeringVoice) {
       const hit = situationEngine.evaluate(msg);
-      if (hit) runSituation(hit);
+      if (hit) { runSituation(hit); }
+      else handleSwitchEvent(msg);   // không có tình huống → xét sự kiện đổi cửa sổ
     }
   } catch (e) {}
   scheduleIdleWorker();
+}
+
+// ═══ SWITCH EVENT — đổi cửa sổ game/ứng dụng (thiết kế: Gemini 3.1 Pro) ═══
+// launch  : app/game LẦN ĐẦU trong phiên hoặc vừa qua màn loading/launcher
+//           → 1 câu xác nhận chuyển giao thức, template 0ms không qua LLM.
+// tabback : app đã dùng trước đó, chỉ Alt-Tab → KHÔNG chào; bắn 1 lượt soi
+//           nội dung mới xuất hiện ngay (debounce theo soul).
+// scene   : cùng app đổi cửa sổ con → situation engine tự lo (chạy trước).
+const _switchCooldown = {};
+function protocolNameFor(frame) {
+  const t = String(frame.window || ''), p = String(frame.process || '');
+  try {
+    const rules = visionBrain.loadTriggers().rules || [];
+    for (const r of rules) {
+      const w = r.when && r.when.window;
+      if (w) { try { if (new RegExp(w, 'i').test(t)) { const k = visionBrain.loadKnowledge(r.topic); return (k && k.topic) || r.topic; } } catch (e) {} }
+    }
+  } catch (e) {}
+  try {
+    for (const topic of visionBrain.listTopics()) {
+      const head = String(topic.topic).toLowerCase().split(' ')[0];
+      if (head.length > 3 && (t.toLowerCase().includes(head) || p.toLowerCase().includes(head))) return topic.topic;
+    }
+  } catch (e) {}
+  return p.replace(/\.exe$/i, '') || t || 'app mới';
+}
+async function handleSwitchEvent(msg) {
+  const ev = situationEngine.switchEvent(msg);
+  if (!ev) return;
+  const P = situationEngine.pacing();
+  const key = ev.kind + ':' + ev.proc;
+  const now = Date.now();
+  if (_switchCooldown[key] && now - _switchCooldown[key] < P.cooldown_base_s * 1000) return;
+  _switchCooldown[key] = now;
+  if (ev.kind === 'launch' && P.startup_ack) {
+    situationEngine.markAcked(ev.proc);
+    const proto = protocolNameFor(msg);
+    const line = `Chuyển sang ${proto}. Em bật theo dõi.`;   // template — 0ms, không LLM
+    if (!isBannedSpeech(line)) await speakText(line, 1.1);
+    return;
+  }
+  if (ev.kind === 'tabback') {
+    setTimeout(() => {
+      if (!mainConfig.eyeProactive || eyeBusy || answeringVoice) return;
+      const f = lastFrame;
+      if (f && f.process === ev.proc && (Date.now() / 1000 - (f.ts || 0)) < 12) chitAboutScreen(true);
+    }, P.debounce_scene_ms);
+  }
 }
 
 // Chạy 1 tình huống: instant = đọc data luôn (0 suy luận); infer = não suy luận rồi lưu vĩnh viễn
@@ -1188,10 +1237,12 @@ let chitTimer = null;
 function scheduleChit() {
   clearTimeout(chitTimer);
   if (!mainConfig.eyeProactive || !mainConfig.realtimeScanEnabled) return;
-  const wait = (90 + Math.random() * 150) * 1000;   // 90–240 giây
+  const P = situationEngine.pacing();
+  const lo = P.chit_min_s, hi = Math.max(lo + 10, P.chit_max_s);
+  const wait = (lo + Math.random() * (hi - lo)) * 1000;   // khoảng đọc từ soul "Nhịp giao tiếp"
   chitTimer = setTimeout(chitAboutScreen, wait);
 }
-async function chitAboutScreen() {
+async function chitAboutScreen(eventNow) {
   try {
     if (!mainConfig.eyeProactive || !mainConfig.realtimeScanEnabled) return;
     const msg = lastFrame;
@@ -1199,7 +1250,7 @@ async function chitAboutScreen() {
     if (!fresh || eyeBusy || answeringVoice) return;   // mắt chưa thấy gì mới → im lặng
     // Cảnh YouTube/video: chỉ được nói về thứ Sếp ĐANG XEM, cấm bình luận nút/bản quyền
     const prompt =
-      `BẠN LÀ NI-OH — vừa LIẾC màn hình Sếp lúc ${new Date().toLocaleTimeString('vi-VN')}.\n` +
+      `BẠN LÀ NI-OH — ${eventNow ? 'Sếp vừa QUAY LẠI màn hình này, nói về NỘI DUNG vừa xuất hiện' : 'vừa LIẾC'} lúc ${new Date().toLocaleTimeString('vi-VN')}.\n` +
       `CẢNH THỰC TẾ (nguồn duy nhất, không có trong này là không tồn tại):\n` +
       `- App on top: ${msg.process || '?'} | Cửa sổ: "${msg.window || '?'}"\n` +
       `- Vật thể: ${(msg.classes || []).join(', ') || 'không có'}\n` +
@@ -1211,9 +1262,10 @@ async function chitAboutScreen() {
     try {
       if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('thinking', 15);
       const r = await new Promise((resolve) => {
-        const a = agyArgsX(prompt, mainConfig.modelName || 'gemini-3.8-flash-low');
+        const urgent = situationEngine.tempo() === situationEngine.pacing().tempo_urgency_threshold;
+        const a = agyArgsX(prompt, urgent ? 'gemini-3.8-flash-low' : (mainConfig.modelName || 'gemini-3.8-flash-low'));
         const child = spawn(a.exe, a.args, { windowsHide: true });
-        const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch(e){} resolve({ success:false, error:'agy timeout' }); }, 45000);
+        const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch(e){} resolve({ success:false, error:'agy timeout' }); }, urgent ? 20000 : 45000);
         let out = '', err = '';
         child.stdout.on('data', d => out += d);
         child.stderr.on('data', d => err += d);

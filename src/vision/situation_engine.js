@@ -238,6 +238,84 @@ function setCondensed(slug, id, short) {
   return saveTopic(slug, d);
 }
 
+/* ── NHỊP GIAO TIẾP ĐỌC TỪ SOUL — mục "## Nhịp giao tiếp" trong memory/soul.md
+   Engine parse mỗi lần file đổi; thiếu trường → mặc định. Sếp chỉnh soul là
+   Ni-Oh đổi tốc độ/tần suất nói theo, không cần sửa code. ── */
+const SOUL_FILE = path.join(__dirname, '..', '..', 'memory', 'soul.md');
+const DEFAULT_PACING = {
+  startup_ack: true, chit_min_s: 90, chit_max_s: 240,
+  tempo_urgency_threshold: 'urgent', debounce_scene_ms: 300,
+  cooldown_base_s: 30, forbidden_topics: []
+};
+let _pacing = null, _pacingMtime = 0;
+function pacing() {
+  let st; try { st = fs.statSync(SOUL_FILE); } catch (e) { return DEFAULT_PACING; }
+  if (_pacing && _pacingMtime === st.mtimeMs) return _pacing;
+  let raw = ''; try { raw = fs.readFileSync(SOUL_FILE, 'utf8'); } catch (e) { return DEFAULT_PACING; }
+  const sec = (raw.split(/^##\s*Nhịp giao tiếp/m)[1] || '').split(/^##\s/m)[0];
+  const get = (key) => { const m = sec.match(new RegExp('\\*\\*' + key + '\\s*[:*]+\\s*\\*\\*?\\s*[:*]*\\s*(.+)')) || sec.match(new RegExp('\\*\\*' + key + '[^*]*\\*\\*:\\s*(.+)')); return m ? m[1].replace(/\*/g, '').trim() : null; };
+  const num = (s, dmin, dmax) => {
+    if (!s) return null;
+    const a = String(s).match(/(\d+)\s*s?\s*[-–~]\s*(\d+)/);
+    if (a) return [Math.max(dmin, +a[1]), Math.min(3600, +a[2])];
+    const n = parseInt(s, 10); return isNaN(n) ? null : [n, n];
+  };
+  const chit = num(get('chit_chat_range'), 15, 3600);
+  const db = parseInt(get('debounce_scene_ms'), 10);
+  const cb = parseInt(get('cooldown_base_s'), 10);
+  const ft = (get('forbidden_topics') || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+  _pacing = {
+    startup_ack: !/^false/i.test(get('startup_ack') || 'true'),
+    chit_min_s: chit ? chit[0] : DEFAULT_PACING.chit_min_s,
+    chit_max_s: chit ? chit[1] : DEFAULT_PACING.chit_max_s,
+    tempo_urgency_threshold: (get('tempo_urgency_threshold') || 'urgent').trim().toLowerCase(),
+    debounce_scene_ms: isNaN(db) ? DEFAULT_PACING.debounce_scene_ms : Math.min(5000, Math.max(0, db)),
+    cooldown_base_s: isNaN(cb) ? DEFAULT_PACING.cooldown_base_s : Math.max(5, cb),
+    forbidden_topics: ft.length ? ft : DEFAULT_PACING.forbidden_topics
+  };
+  _pacingMtime = st.mtimeMs;
+  return _pacing;
+}
+
+/* ── SWITCH DETECTOR — phân biệt KHỞI ĐỘNG app/game vs TAB quay lại ──────
+   'launch'   : process chưa từng thấy trong phiên, HOẶC title loading/launcher
+                vừa chuyển sang title chính (game vừa load xong).
+   'tabback'  : process đã có trong lịch sử gần đây, chỉ Alt-Tab qua lại.
+   'scene'    : cùng process, title đổi (bảng mới/menu mới) → sự kiện nội dung. */
+const LOADING_RE = /launcher|loading|log\s*in|login|patching|updating|start\s*screen|main\s*menu|khởi động|đăng nhập|đang tải/i;
+const _procHist = new Map();   // proc → { titles:Set, loading:bool, acked:bool, lastSeen }
+let _activeProc = null;
+function switchEvent(frame) {
+  const proc = frame && frame.process;
+  if (!proc) return null;
+  const now = Date.now();
+  const win = frame.window || '';
+  const isLoading = LOADING_RE.test(win);
+  let h = _procHist.get(proc);
+  const isNewProc = !h;
+  if (!h) { h = { titles: new Set(), loading: false, acked: false }; _procHist.set(proc, h); }
+  h.titles.add(win);
+  const prevProc = _activeProc;
+  const procChanged = prevProc !== proc;
+  let ev = null;
+  if (procChanged) {
+    _activeProc = proc;
+    if (isNewProc && !isLoading) ev = { kind: 'launch', proc, window: win, first: true };       // app vào thẳng nội dung
+    else if (!isNewProc && h.loading && !isLoading && !h.acked) ev = { kind: 'launch', proc, window: win, first: false }; // load xong → vào chính
+    else if (!isNewProc && !h.loading) ev = { kind: 'tabback', proc, window: win, prev: prevProc };
+    else if (!isNewProc && isLoading) ev = null;                                                 // đang load tiếp → im
+    h.loading = isLoading;
+  } else if (!isLoading && h.loading) {
+    h.loading = false;
+    if (!h.acked) ev = { kind: 'launch', proc, window: win, first: false };                      // cùng proc: loading→chính
+  } else if (h._lastWin !== undefined && win !== h._lastWin) {
+    ev = { kind: 'scene', proc, window: win };                                                   // cùng app đổi cửa sổ con
+  }
+  h._lastWin = win;
+  return ev;
+}
+function markAcked(proc) { const h = _procHist.get(proc); if (h) h.acked = true; }
+
 /* ── tình huống dùng được ngay khi nạp answer thủ công (đọc tài liệu) ── */
 function setAnswer(slug, situationId, answer, source) {
   const data = loadTopic(slug);
@@ -264,4 +342,4 @@ function status() {
   return out;
 }
 
-module.exports = { evaluate, accumulateConcepts, setAnswer, status, buildInferPrompt, norm, loadTopic, saveTopic, registerFrame, tempo, condenseQueue, setCondensed };
+module.exports = { evaluate, accumulateConcepts, setAnswer, status, buildInferPrompt, norm, loadTopic, saveTopic, registerFrame, tempo, condenseQueue, setCondensed, pacing, switchEvent, markAcked };
