@@ -323,7 +323,7 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
 <div class="main-wrap">
 <div class="topbar">
   <strong id="topbar-title" style="font-size:var(--fs-md)">Tổng quan</strong>
-  <span class="status-text" id="topbar-sub" style="margin-right:auto;margin-left:12px">Điều khiển nhanh — đồng bộ với nhân vật overlay</span>
+  <span class="status-text" id="topbar-sub" style="margin-right:auto;margin-left:12px">Điều khiển — đồng bộ trực tiếp với overlay</span>
   <div class="winctl">
     <button class="wc" id="wc-min" title="Thu nhỏ" aria-label="Thu nhỏ">▁</button>
     <button class="wc" id="wc-max" title="Phóng to / khôi phục" aria-label="Phóng to">▢</button>
@@ -336,30 +336,30 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
   <!-- ══ Panel: Tổng quan — công tắc 2 chiều ══ -->
   <section class="panel active" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
     <h2>Tổng quan</h2>
-    <p class="subtitle">Bật/tắt ngay tại đây — trạng thái đồng bộ 2 chiều với các nút dưới nhân vật.</p>
+    <p class="subtitle">Mọi chuyển đổi đồng bộ hai chiều với các nút trên overlay.</p>
 
     <div class="card">
       <div class="ctrl">
         <span class="ico">👁</span>
-        <div class="meta"><strong>Quan sát PC</strong><small>Mắt YOLO nhìn màn hình realtime để Ni-Oh biết Sếp đang làm gì</small></div>
+        <div class="meta"><strong>Quan sát PC</strong><small>Nhận diện nội dung màn hình theo thời gian thực</small></div>
         <span class="state" id="st-eye">—</span>
         <label class="switch"><input type="checkbox" id="sw-eye" onchange="setEye(this.checked)"><span class="track"></span></label>
       </div>
       <div class="ctrl">
         <span class="ico">🎙</span>
-        <div class="meta"><strong>Micro</strong><small>Ni-Oh nghe Sếp nói bằng faster-whisper (local, GPU)</small></div>
+        <div class="meta"><strong>Micro</strong><small>Ghi nhận giọng nói, xử lý cục bộ trên GPU</small></div>
         <span class="state" id="st-mic">—</span>
         <label class="switch"><input type="checkbox" id="sw-mic" onchange="setMic(this.checked)"><span class="track"></span></label>
       </div>
       <div class="ctrl">
         <span class="ico">🔊</span>
-        <div class="meta"><strong>Giọng đọc</strong><small>Ni-Oh đọc câu trả lời bằng VieNeu</small></div>
+        <div class="meta"><strong>Giọng đọc</strong><small>Đọc câu trả lời bằng giọng VieNeu</small></div>
         <span class="state" id="st-tts">—</span>
         <label class="switch"><input type="checkbox" id="sw-tts" onchange="setTts(this.checked)"><span class="track"></span></label>
       </div>
       <div class="ctrl">
         <span class="ico">🧿</span>
-        <div class="meta"><strong>Nhân vật overlay</strong><small>Hiện/ẩn nhân vật trên màn hình</small></div>
+        <div class="meta"><strong>Nhân vật overlay</strong><small>Ẩn hoặc hiển thị nhân vật trên màn hình</small></div>
         <span class="state" id="st-ov">—</span>
         <label class="switch"><input type="checkbox" id="sw-ov" onchange="setOverlay(this.checked)"><span class="track"></span></label>
       </div>
@@ -368,14 +368,14 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
     <div class="card">
       <div class="ctrl">
         <span class="ico">️</span>
-        <div class="meta"><strong>Ni-Oh tự lên tiếng</strong><small>Bật: mắt thấy cảnh đáng nói thì chủ động nhắc. Tắt: chỉ trả lời khi Sếp hỏi (khuyên dùng)</small></div>
+        <div class="meta"><strong>Ni-Oh tự lên tiếng</strong><small>Bật: chủ động nhận xét khi màn hình có diễn biến đáng chú ý. Tắt: chỉ phản hồi khi được hỏi.</small></div>
         <span class="state" id="st-pro">—</span>
         <label class="switch"><input type="checkbox" id="sw-pro" onchange="setProactive(this.checked)"><span class="track"></span></label>
       </div>
     </div>
 
     <div class="card">
-      <h3>📚 Bộ não &amp; mắt đang có gì</h3>
+      <h3>📚 Trí nhớ &amp; trạng thái quan sát</h3>
       <p class="desc" id="ov-kb">—</p>
       <p class="desc" id="ov-eye">—</p>
       <button class="btn btn-sm" style="margin-top:var(--sp-2)" onclick="loadOverview()">↻ Làm mới</button>
@@ -384,11 +384,11 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
 
   <!-- ══ Panel: Model AI — mỗi dòng 1 chức năng ══ -->
   <section class="panel" id="panel-model" role="tabpanel" aria-labelledby="tab-model" hidden>
-    <h2>Model AI &amp; Tự học</h2>
-    <p class="subtitle">Mỗi khối là một chức năng độc lập: nhà cung cấp · key · model.</p>
+    <h2>Model &amp; Tự học</h2>
+    <p class="subtitle">Mỗi khối cấu hình độc lập: nhà cung cấp · khóa · model.</p>
 
     <div class="card">
-      <h3>💬 Chat — trả lời câu hỏi (gồm nhận diện giọng nói)</h3>
+      <h3>💬 Hội thoại — trả lời câu hỏi và nhận diện giọng nói</h3>
       <div class="row">
         <div class="field" style="margin:0">
           <label for="setting-model-provider">Nhà cung cấp</label>
@@ -407,13 +407,13 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
           <label for="setting-model-name">Model</label>
           <select id="setting-model-name"></select>
         </div>
-        <button class="btn btn-primary icon-btn" onclick="saveModelSettings()" title="Lưu cài đặt Chat" aria-label="Lưu cài đặt Chat">💾</button>
+        <button class="btn btn-primary icon-btn" onclick="saveModelSettings()" title="Lưu cấu hình hội thoại" aria-label="Lưu cấu hình hội thoại">💾</button>
       </div>
       <p class="desc" id="model-hint">Model qua Antigravity CLI (agy). Không cần API key.</p>
     </div>
 
     <div class="card">
-      <h3>🧠 Self-Train — nạp kiến thức vào giao thức</h3>
+      <h3>🧠 Tự học — nạp kiến thức vào hệ thống</h3>
       <div class="row">
         <div class="field" style="margin:0">
           <label for="setting-train-provider">Nhà cung cấp</label>
@@ -432,11 +432,11 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
           <label for="setting-train-model">Model</label>
           <select id="setting-train-model"></select>
         </div>
-        <button class="btn btn-primary icon-btn" onclick="saveTrainSettings()" title="Lưu cài đặt Self-Train" aria-label="Lưu cài đặt Self-Train">💾</button>
+        <button class="btn btn-primary icon-btn" onclick="saveTrainSettings()" title="Lưu cấu hình tự học" aria-label="Lưu cấu hình tự học">💾</button>
       </div>
       <div class="row" style="margin-top: var(--sp-3)">
         <div class="field" style="margin:0; flex:2 1 220px">
-          <label for="train-topic-input">Chủ đề cần train (agy tra cứu → lọc thành kiến thức cho mắt YOLO + điều kiện kích hoạt nói)</label>
+          <label for="train-topic-input">Chủ đề cần nạp — tra cứu, chọn lọc và kích hoạt theo ngữ cảnh</label>
           <input type="text" id="train-topic-input" placeholder="VD: Genshin Impact, Valorant, nấu ăn, livestream…" autocomplete="off">
         </div>
         <button class="btn btn-primary shrink" id="btn-train-topic" onclick="trainTopic()">🧠 Train chủ đề</button>
@@ -453,7 +453,7 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
   <!-- ══ Panel: Voice ══ -->
   <section class="panel" id="panel-voice" role="tabpanel" aria-labelledby="tab-voice" hidden>
     <h2>Giọng nói</h2>
-    <p class="subtitle">Chọn engine đọc, giọng, tốc độ — hoặc tạo giọng mới từ file mẫu.</p>
+    <p class="subtitle">Engine đọc, giọng, tốc độ — tùy biến từ file mẫu.</p>
 
     <div class="card">
       <h3>🎤 Engine &amp; giọng đọc</h3>
@@ -482,8 +482,8 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
           <label for="setting-voice-speed">Tốc độ <span id="speed-val" class="status-text">1.0x</span></label>
           <input type="range" id="setting-voice-speed" min="0.5" max="2.0" step="0.1" value="1.0">
         </div>
-        <button class="btn btn-primary icon-btn" onclick="saveVoiceSettings()" title="Lưu cài đặt giọng" aria-label="Lưu cài đặt giọng">💾</button>
-        <button class="btn shrink" id="btn-test-voice" onclick="testVoice()" title="Nghe thử giọng hiện tại">▶ Test giọng</button>
+        <button class="btn btn-primary icon-btn" onclick="saveVoiceSettings()" title="Lưu cấu hình giọng" aria-label="Lưu cấu hình giọng">💾</button>
+        <button class="btn shrink" id="btn-test-voice" onclick="testVoice()" title="Phát mẫu giọng đang chọn">▶ Test giọng</button>
       </div>
       <div class="row" style="margin-top: var(--sp-3)">
         <button class="btn shrink" onclick="document.getElementById('voice-sample').click()">🎧 Tạo giọng mới từ file mẫu</button>
@@ -494,7 +494,7 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
     </div>
 
     <div class="card">
-      <h3>🎙 Micro — nhận diện câu hỏi bằng giọng nói</h3>
+      <h3>🎙 Micro — thu nhận câu hỏi bằng giọng nói</h3>
       <div class="row">
         <div class="field" style="margin:0; flex:2 1 200px">
           <label for="setting-mic-mode">Chế độ nghe</label>
@@ -513,12 +513,7 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
   <!-- ══ Panel: Character ══ -->
   <section class="panel" id="panel-character" role="tabpanel" aria-labelledby="tab-character" hidden>
     <h2>Nhân vật overlay</h2>
-    <p class="subtitle">Chọn hình hiển thị cho Ni-Oh trên màn hình.</p>
-
-    <div class="card">
-      <h3>Đang dùng</h3>
-      <div id="current-character-display"><span class="chip"><span class="dot"></span> Đang tải…</span></div>
-    </div>
+    <p class="subtitle">Hình ảnh Ni-Oh hiển thị trên màn hình.</p>
 
     <div class="card">
       <h3>Danh sách</h3>
@@ -526,9 +521,9 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
         <div class="empty" aria-busy="true">Đang tải…</div>
       </div>
       <div class="row" style="margin-top:var(--sp-3)">
-        <button class="btn btn-sm shrink" onclick="loadCharacters()" data-tip="Quét lại thư mục assets/characters">↻ Làm mới</button>
-        <button class="btn btn-sm shrink" onclick="window.niOhAPI.openFolder('characters')" data-tip="Mở thư mục assets\characters trong Explorer">📂 Mở thư mục</button>
-        <button class="btn btn-sm btn-primary shrink" onclick="openAssetModal()" data-tip="Thêm nhân vật mới: kéo thả ảnh từng tư thế (đứng im / nói / rảnh / nhìn chuột) hoặc để AI tự sinh">＋ Thêm nhân vật</button>
+        <button class="btn btn-sm shrink" onclick="loadCharacters()" data-tip="Quét lại thư mục asset">↻ Làm mới</button>
+        <button class="btn btn-sm shrink" onclick="window.niOhAPI.openFolder('characters')" data-tip="Mở thư mục asset nhân vật">📂 Mở thư mục</button>
+        <button class="btn btn-sm btn-primary shrink" onclick="openAssetModal()" data-tip="Khai báo nhân vật mới: gán ảnh cho từng trạng thái hoặc sinh bằng AI">＋ Thêm nhân vật</button>
       </div>
     </div>
   </section>
@@ -536,15 +531,15 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
   <!-- ══ Panel: Linh hồn ══ -->
   <section class="panel" id="panel-soul" role="tabpanel" aria-labelledby="tab-soul" hidden>
     <h2>Linh hồn Ni-Oh</h2>
-    <p class="subtitle">Viết tính cách, sở thích, cách nói chuyện — Ni-Oh sống theo file này và tự ghi thêm kinh nghiệm mỗi ngày vào mục cuối.</p>
+    <p class="subtitle">Định hình tính cách và phong cách giao tiếp. Ni-Oh tuân thủ nội dung này và tự bổ sung kinh nghiệm vào mục cuối file.</p>
     <div class="card">
       <div class="field">
         <label for="soul-editor">soul.md — nội dung kiểu Markdown</label>
         <textarea id="soul-editor" rows="18" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;padding:10px;font-family:'Geist Mono',Consolas,monospace;resize:vertical" placeholder="# Linh hon Ni-Oh&#10;&#10;## Tinh cach&#10;- ..."></textarea>
       </div>
       <div class="row">
-        <button class="btn btn-primary shrink" onclick="saveSoul()" data-tip="Lưu vào memory/soul.md — nạp ngay vào mọi câu trả lời của Ni-Oh">💾 Lưu linh hồn</button>
-        <button class="btn shrink" onclick="loadSoul()" data-tip="Đọc lại file từ đĩa (phòng khi Ni-Oh tự thêm kinh nghiệm mới)">↻ Tải lại</button>
+        <button class="btn btn-primary shrink" onclick="saveSoul()" data-tip="Lưu vào memory/soul.md — áp dụng cho mọi phản hồi tiếp theo">💾 Lưu</button>
+        <button class="btn shrink" onclick="loadSoul()" data-tip="Tải lại nội dung từ đĩa">↻ Tải lại</button>
         <span class="status-text shrink" id="soul-status"></span>
       </div>
       <p class="desc">Cuối file có mục <strong>“Tự rút kinh nghiệm”</strong> — Ni-Oh tự thêm dòng mỗi lần học được cách nói hay hơn; quá 40 dòng nó tự cô đọng.</p>
@@ -554,38 +549,38 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
   <!-- ══ Panel: Kho mở rộng ══ -->
   <section class="panel" id="panel-ext" role="tabpanel" aria-labelledby="tab-ext" hidden>
     <h2>Kho mở rộng</h2>
-    <p class="subtitle">Core Ni-Oh bất biến — công cụ sống ở kho riêng, cài xong dùng NGAY không cần khởi động lại. Não agy phân tích yêu cầu và tự cài đúng chỗ.</p>
+    <p class="subtitle">Thành phần lõi của Ni-Oh độc lập với kho tiện ích. Yêu cầu cài đặt được phân tích và tiếp nhận tự động, có hiệu lực ngay, không khởi động lại.</p>
 
     <div class="card">
       <div class="ctrl">
         <span class="ico">🛡️</span>
-        <div class="meta"><strong>Quyền quản trị hệ thống</strong><small>Bật: Ni-Oh tự vận hành máy (chạy lệnh, cài đặt, click, sửa file) kết hợp mắt YOLO kiểm chứng. Tắt: chỉ tư vấn.</small></div>
+        <div class="meta"><strong>Quyền quản trị hệ thống</strong><small>Mở rộng quyền thi hành lệnh ở cấp Administrator (cài phần mềm, dịch vụ hệ thống). Các chức năng thông thường luôn hoạt động đầy đủ dù bật hay tắt.</small></div>
         <span class="state" id="st-admin">—</span>
         <label class="switch"><input type="checkbox" id="sw-admin" onchange="setExtAdmin(this.checked)"><span class="track"></span></label>
       </div>
     </div>
 
     <div class="card">
-      <h3>📥 Gửi yêu cầu cài đặt</h3>
-      <p class="desc" style="margin-top:-4px;margin-bottom:10px">Nhập tên công cụ, link GitHub, hoặc chọn file .zip — kèm mô tả nếu cần. Não agy sẽ phân tích đó là skill / tool / MCP / plugin và tự cài vào kho.</p>
+      <h3>📥 Yêu cầu cài đặt</h3>
+      <p class="desc" style="margin-top:-4px;margin-bottom:10px">Nhập tên tiện ích, đường dẫn GitHub hoặc chọn tệp .zip. Hệ thống tự phân định loại (skill, tool, MCP, plugin) và cài đặt vào đúng vị trí.</p>
       <div class="field">
         <textarea id="ext-req" rows="3" placeholder="VD: cài skill đọc phụ đề video từ https://github.com/xxx/yyy&#10;hoặc: tool đổi âm lượng hệ thống&#10;hoặc: MCP filesystem cho thư mục D:/Data" style="width:100%;background:rgba(7,8,10,.6);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:var(--fs-md);font-family:var(--font);padding:var(--sp-2) var(--sp-3);outline:none;resize:vertical;min-height:64px"></textarea>
       </div>
       <div class="row">
-        <button class="btn shrink" id="btn-ext-zip" onclick="extPickZip()" data-tip="Chọn file .zip chứa skill/tool/plugin — Ni-Oh tự giải nén và đọc cấu trúc">🗜️ Chọn file zip</button>
+        <button class="btn shrink" id="btn-ext-zip" onclick="extPickZip()" data-tip="Chọn tệp .zip — hệ thống tự giải nén và nhận diện cấu trúc">🗜️ Chọn file zip</button>
         <span class="status-text shrink" id="ext-zip-name" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-        <button class="btn btn-primary shrink" id="btn-ext-send" onclick="extSend()" data-tip="Gửi cho não agy phân tích + cài đặt (30–240 giây)">🚀 Gửi yêu cầu</button>
+        <button class="btn btn-primary shrink" id="btn-ext-send" onclick="extSend()" data-tip="Phân tích và cài đặt tự động (30–240 giây)">🚀 Gửi</button>
       </div>
       <div id="ext-req-out" style="display:none;margin-top:10px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:var(--fs-sm);white-space:pre-wrap;max-height:180px;overflow-y:auto;background:var(--glass)"></div>
     </div>
 
     <div class="card">
-      <h3>⚙️ Đã cài &amp; đang dùng</h3>
-      <p class="desc" style="margin-top:-4px;margin-bottom:10px">Trạng thái thật của từng công cụ — nạp được / báo lỗi / đang tắt. Bấm ↻ để kiểm tra lại.</p>
+      <h3>⚙️ Đã cài đặt</h3>
+      <p class="desc" style="margin-top:-4px;margin-bottom:10px">Trạng thái vận hành thực tế của từng thành phần: hoạt động, lỗi hoặc tạm ngắt.</p>
       <div id="ext-items" style="display:flex;flex-direction:column;gap:6px"><div class="empty" aria-busy="true">Đang tải…</div></div>
       <div class="row" style="margin-top:10px">
-        <button class="btn btn-sm shrink" onclick="loadExt()" data-tip="Quét lại kho + kiểm tra sức khỏe từng công cụ">↻ Kiểm tra lại</button>
-        <button class="btn btn-sm shrink" onclick="window.niOhAPI.extOpenFolder()" data-tip="Mở thư mục extensions/ trong Explorer">📂 Mở kho</button>
+        <button class="btn btn-sm shrink" onclick="loadExt()" data-tip="Kiểm tra lại toàn bộ kho tiện ích">↻ Kiểm tra lại</button>
+        <button class="btn btn-sm shrink" onclick="window.niOhAPI.extOpenFolder()" data-tip="Mở thư mục kho tiện ích">📂 Mở kho</button>
       </div>
     </div>
   </section>
@@ -666,10 +661,10 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
       </div>
       <div id="tm-body" style="overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px"></div>
       <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn shrink" id="tm-retrain" data-tip="agy tra cứu web lại từ đầu cho chủ đề này">🔁 Train lại topic</button>
-        <button class="btn btn-danger shrink" id="tm-delete" data-tip="Xóa toàn bộ kiến thức + trigger của chủ đề">🗑 Xóa chủ đề</button>
+        <button class="btn shrink" id="tm-retrain" data-tip="Tra cứu và nạp lại toàn bộ chủ đề">🔁 Train lại topic</button>
+        <button class="btn btn-danger shrink" id="tm-delete" data-tip="Xóa toàn bộ dữ liệu chủ đề">🗑 Xóa chủ đề</button>
         <div style="flex:1"></div>
-        <button class="btn btn-primary shrink" id="tm-add" data-tip="Tự thêm 1 kiến thức mới vào chủ đề">＋ Thêm entry</button>
+        <button class="btn btn-primary shrink" id="tm-add" data-tip="Bổ sung thủ công một mục kiến thức">＋ Thêm entry</button>
       </div>
     </div>
   </div>
@@ -876,14 +871,7 @@ function applyConfig(config) {
   refreshChips();
 }
 
-function updateCurrentCharacter(config) {
-  const display = document.getElementById('current-character-display');
-  if (config.character) {
-    display.innerHTML = `<span class="chip ok"><span class="dot"></span> ${config.character}</span>`;
-  } else {
-    display.innerHTML = `<span class="chip warn"><span class="dot"></span> Chưa chọn nhân vật</span>`;
-  }
-}
+function updateCurrentCharacter() { /* nhân vật đang dùng thể hiện trực tiếp trên danh sách */ }
 
 async function loadCharacters() {
   const listEl = document.getElementById('characters-list');
@@ -948,10 +936,10 @@ function onProviderChange() {
   document.getElementById('api-key-group').style.display =
     (provider === 'openrouter' || provider === 'gemini') ? 'block' : 'none';
   const hint = document.getElementById('model-hint');
-  if (provider === 'antigravity') hint.textContent = 'Model qua Antigravity CLI (tool đóng gói trong dự án). Không cần API key.';
-  else if (provider === 'ollama') hint.textContent = 'Model Ollama local (0 token). Cần chạy ollama serve.';
-  else if (provider === 'openrouter') hint.textContent = 'Cần API key OpenRouter.';
-  else if (provider === 'gemini') hint.textContent = 'Cần API key Google Gemini.';
+  if (provider === 'antigravity') hint.textContent = 'Antigravity CLI — tích hợp sẵn trong dự án, không cần khóa API.';
+  else if (provider === 'ollama') hint.textContent = 'Ollama cục bộ — yêu cầu ollama serve đang chạy.';
+  else if (provider === 'openrouter') hint.textContent = 'Yêu cầu khóa API OpenRouter.';
+  else if (provider === 'gemini') hint.textContent = 'Yêu cầu khóa API Google Gemini.';
   loadModels();
 }
 
@@ -983,7 +971,7 @@ async function loadTopics() {
     const rows = (vs.topics || []).map(t => {
       const name = t.topic || t.slug;
       const r = rules.find(x => x.topic === t.slug || x.id === t.slug);
-      return `<div class="card" style="margin:0; padding:10px 12px; cursor:pointer" data-tip="Bấm để xem toàn bộ ${t.entries} kiến thức đã train — xóa/từng cái, thêm mới, hoặc train lại" onclick="openTopicModal('${t.slug}','${name.replace(/'/g, '')}')">
+      return `<div class="card" style="margin:0; padding:10px 12px; cursor:pointer" data-tip="Mở xem chi tiết ${t.entries} kiến thức đã train — xóa/từng cái, thêm mới, hoặc train lại" onclick="openTopicModal('${t.slug}','${name.replace(/'/g, '')}')">
         <strong style="font-size:13px">🧠 ${name}</strong>
         <p class="desc" style="margin-top:2px">${t.entries} kiến thức · mắt theo: ${(t.yolo_watch||[]).slice(0,3).join(', ')||'—'}</p>
         ${r && r.speak ? `<p class="desc" style="margin-top:4px">🔔 ${r.speak}</p>` : ''}
@@ -1206,7 +1194,7 @@ async function openTopicModal(slug, name) {
       <div style="border:1px solid var(--border);border-radius:8px;padding:10px">
         <div style="display:flex;justify-content:space-between;gap:8px;align-items:start">
           <strong style="font-size:13px">${e.cue}</strong>
-          <button class="btn btn-sm btn-danger" style="padding:2px 8px;font-size:11px" data-tip="Xóa riêng entry này" onclick="delEntry('${slug.replace(/'/g,'') }','${String(e.cue).replace(/'/g, "\\'").replace(/"/g, '')}')">✕</button>
+          <button class="btn btn-sm btn-danger" style="padding:2px 8px;font-size:11px" data-tip="Xóa mục này" onclick="delEntry('${slug.replace(/'/g,'') }','${String(e.cue).replace(/'/g, "\\'").replace(/"/g, '')}')">✕</button>
         </div>
         <p style="font-size:12px;color:var(--text-muted);margin-top:4px">${String(e.fact||'').slice(0,220)}</p>
         ${e.answer ? `<p style="font-size:12px;margin-top:4px">💬 ${String(e.answer).slice(0,160)}</p>` : ''}
@@ -1417,11 +1405,11 @@ async function loadExt() {
     const [list, hp] = await Promise.all([window.niOhAPI.extList(), window.niOhAPI.extHealth()]);
     const health = (hp && hp.health) || {};
     const items = [];
-    for (const s of list.skills) items.push({ key: 'skill:' + s.id, icon: '🧠', kind: 'Skill', name: s.id, desc: (s.description || '').slice(0, 80), off: false, del: () => extDel('skill', s.id) });
+    for (const s of list.skills) { if (s.core) continue; items.push({ key: 'skill:' + s.id, icon: '🧠', kind: 'Skill', name: s.id, desc: (s.description || '').slice(0, 80), off: false }); }
     for (const t of list.tools) items.push({ key: 'tool:' + t.id, icon: '🔧', kind: 'Tool', name: t.id, desc: (t.desc || '').slice(0, 80), off: false, del: () => extDel('tool', t.id) });
     for (const m of list.mcp) items.push({ key: 'mcp:' + m.name, icon: '🔌', kind: 'MCP', name: m.name, desc: m.command + ' ' + (m.args || []).join(' '), off: m.enabled === false, del: () => extDel('mcp', m.name) });
     for (const pl of list.plugins) items.push({ key: 'plugin:' + pl.name, icon: '📦', kind: 'Plugin', name: pl.name, desc: pl.source || 'agy plugin', off: pl.enabled === false, del: () => extDel('plugin', pl.name) });
-    if (!items.length) { el.innerHTML = '<div class="empty"><div class="big">🧩</div><strong>Chưa có công cụ nào</strong><p style="font-size:12px;margin-top:4px">Gửi yêu cầu cài đặt ở khung trên.</p></div>'; }
+    if (!items.length) { el.innerHTML = '<div class="empty"><div class="big">🧩</div><strong>Chưa có công cụ nào</strong><p style="font-size:12px;margin-top:4px">Gửi cài đặt ở khung trên.</p></div>'; }
     else el.innerHTML = items.map(it => {
       const h = health[it.key];
       const st = it.off ? '<span class="chip"><span class="dot"></span> đang tắt</span>'
@@ -1436,7 +1424,7 @@ async function loadExt() {
           <div class="desc" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${it.desc}</div>${msg}
         </span>
         ${st}
-        <button class="btn btn-sm btn-danger" style="padding:2px 8px;font-size:11px" onclick="${'extDel(\'' + it.key.split(':')[0] + '\',\'' + it.name.replace(/'/g, '') + '\')'}" data-tip="Gỡ khỏi kho">✕</button>
+        <button class="btn btn-sm btn-danger" style="padding:2px 8px;font-size:11px" onclick="${'extDel(\'' + it.key.split(':')[0] + '\',\'' + it.name.replace(/'/g, '') + '\')'}" data-tip="Gỡ bỏ">✕</button>
       </div>`;
     }).join('');
     const adm = list.admin && list.admin.granted;

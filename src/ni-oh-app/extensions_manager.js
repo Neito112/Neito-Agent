@@ -54,6 +54,10 @@ function parseSkillFront(md) {
   }
   return out;
 }
+// Skill nền tảng đi kèm Ni-Oh — ẩn khỏi danh sách để tránh gỡ nhầm
+const CORE_SKILLS = new Set(['pc-operation-vision', 'debug-fix', 'code-authoring', 'web-research']);
+function isCoreSkill(id) { return CORE_SKILLS.has(String(id || '')); }
+
 function listSkills() {
   ensureStore();
   const out = [];
@@ -62,7 +66,7 @@ function listSkills() {
       const sk = path.join(SKILLS, d, 'SKILL.md');
       if (!fs.existsSync(sk)) continue;
       const fm = parseSkillFront(fs.readFileSync(sk, 'utf8'));
-      out.push({ id: d, name: fm.name || d, description: fm.description || '', userInvocable: fm.userInvocable, files: fs.readdirSync(path.join(SKILLS, d)).length });
+      out.push({ id: d, name: fm.name || d, description: fm.description || '', userInvocable: fm.userInvocable, core: isCoreSkill(d), files: fs.readdirSync(path.join(SKILLS, d)).length });
     }
   } catch (e) {}
   return out;
@@ -143,8 +147,8 @@ function storePrompt() {
   if (mc.length) lines.push('MCP server đang bật:\n' + mc.map(m => `- ${m.name} (${m.command})`).join('\n'));
   if (pl.length) lines.push('PLUGIN đang bật:\n' + pl.map(p => `- ${p.name}`).join('\n'));
   lines.push(adm
-    ? 'QUYỀN HỆ THỐNG: ĐÃ CẤP. Bạn được phép vận hành máy (đọc/ghi file, chạy lệnh, điều khiển app) KẾT HỢP cảnh mắt YOLO đang thấy để thao tác chính xác — như một agent tự trị.'
-    : 'QUYỀN HỆ THỐNG: CHƯA CẤP. Chỉ trả lời/tư vấn, KHÔNG tự chạy lệnh hay sửa file hệ thống. Muốn Sếp bật quyền quản trị trong tab Mở rộng nếu cần thao tác thật.');
+    ? 'QUYỀN QUẢN TRỊ: ĐÃ CẤP. Ngoài thao tác thông thường, bạn chạy được cả lệnh cần elevated (cài phần mềm, service, registry) — kết hợp cảnh mắt YOLO để thao tác và kiểm chứng chính xác.'
+    : 'QUYỀN QUẢN TRỊ: CHƯA CẤP. Bạn vẫn đầy đủ thao tác thông thường (đọc/ghi file, chạy lệnh mức user, mở app, click). Chỉ lệnh cần Administrator bị chặn — khi đó hướng dẫn Sếp bật công tắc ở tab Mở rộng.');
   return lines.join('\n\n');
 }
 
@@ -166,7 +170,7 @@ function agyCli(argsArr, timeoutMs) {
 }
 
 module.exports = {
-  EXT, SKILLS, TOOLS, ensureStore,
+  EXT, SKILLS, TOOLS, ensureStore, isCoreSkill,
   listSkills, listExtTools, listMcp, listPlugins,
   addMcp, removeMcp, toggleMcp, addPlugin, removePlugin, togglePlugin,
   adminState, setAdmin, agyFlags, storePrompt, agyCli,

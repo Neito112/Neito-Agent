@@ -1158,6 +1158,7 @@ ipcMain.handle('ext-skill-save', (_, payload) => {
   } catch (e) { return { success: false, error: e.message }; }
 });
 ipcMain.handle('ext-skill-remove', (_, id) => {
+  if (extMan.isCoreSkill(id)) return { success: false, error: 'Skill nền tảng của Ni-Oh — không thể gỡ' };
   try {
     const safe = String(id).replace(/[^a-z0-9-]/g, '');
     fs.rmSync(path.join(extMan.SKILLS, safe), { recursive: true, force: true });
