@@ -50,7 +50,11 @@ function listTopics() {
           slug: slugName,
           topic: d.topic || slugName,
           entries: (d.entries || []).length,
-          yolo_watch: d.yolo_watch || []
+          yolo_watch: d.yolo_watch || [],
+          concepts: (d.concepts || []).length,
+          situations: (d.situations || []).length,
+          answered: (d.situations || []).filter(s => s.answer).length,
+          concept_state: d.concept_state || 'empty'
         };
       })
       .sort((a, b) => a.topic.localeCompare(b.topic));

@@ -970,12 +970,19 @@ async function loadTopics() {
     }
     const rows = (vs.topics || []).map(t => {
       const name = t.topic || t.slug;
-      const r = rules.find(x => x.topic === t.slug || x.id === t.slug);
+      const stChip = t.concept_state === 'activated'
+        ? `<span class="chip ok" style="font-size:10px;padding:1px 7px"><span class="dot"></span> ${t.concepts} khái niệm · ${t.answered}/${t.situations} sẵn câu</span>`
+        : t.concept_state === 'concepts_ready'
+        ? `<span class="chip" style="font-size:10px;padding:1px 7px"><span class="dot"></span> ${t.concepts} khái niệm · chờ gắn tình huống</span>`
+        : `<span class="chip" style="font-size:10px;padding:1px 7px"><span class="dot"></span> chưa nạp khái niệm</span>`;
       return `<div class="card" style="margin:0; padding:10px 12px; cursor:pointer" data-tip="Mở xem chi tiết ${t.entries} kiến thức đã train — xóa/từng cái, thêm mới, hoặc train lại" onclick="openTopicModal('${t.slug}','${name.replace(/'/g, '')}')">
         <strong style="font-size:13px">🧠 ${name}</strong>
         <p class="desc" style="margin-top:2px">${t.entries} kiến thức · mắt theo: ${(t.yolo_watch||[]).slice(0,3).join(', ')||'—'}</p>
-        ${r && r.speak ? `<p class="desc" style="margin-top:4px">🔔 ${r.speak}</p>` : ''}
-        <button class="btn btn-sm" style="margin-top:6px" data-tip="agy tra cứu web lại chủ đề này" onclick="event.stopPropagation();retrainTopic('${name}')">🔁 Train lại</button>
+        <div style="margin-top:4px">${stChip}</div>
+        <div class="row" style="margin-top:6px;gap:6px">
+          <button class="btn btn-sm" data-tip="agy tra cứu web lại chủ đề này" onclick="event.stopPropagation();retrainTopic('${name}')">🔁 Train lại</button>
+          ${t.concept_state !== 'activated' ? `<button class="btn btn-sm btn-primary" data-tip="Sonnet phân loại khái niệm hình ảnh rồi gắn tình huống thực tế" onclick="event.stopPropagation();buildConcepts('${t.slug}')">🧩 Nạp khái niệm</button>` : ''}
+        </div>
       </div>`;
     });
     el.innerHTML = rows.length ? rows.join('') :
@@ -983,6 +990,17 @@ async function loadTopics() {
   } catch (e) {
     el.innerHTML = `<div class="empty">⚠️ Không đọc được danh sách</div>`;
   }
+}
+
+async function buildConcepts(slug) {
+  toast('Đang phân loại khái niệm hình ảnh (Sonnet)...');
+  const r1 = await window.niOhAPI.conceptsRun(slug, 'describe');
+  if (!r1.success) { toast('❌ Khái niệm: ' + (r1.error || 'lỗi')); return; }
+  toast(`✓ ${r1.total} khái niệm — đang gắn tình huống thực tế...`);
+  const r2 = await window.niOhAPI.conceptsRun(slug, 'situations');
+  if (!r2.success) { toast('❌ Tình huống: ' + (r2.error || 'lỗi')); return; }
+  toast(`✓ Xong: ${r2.situations} tình huống kích hoạt đã sẵn`);
+  loadTopics();
 }
 
 async function retrainTopic(t) {

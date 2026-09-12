@@ -78,6 +78,10 @@ contextBridge.exposeInMainWorld('niOhAPI', {
   saveCharacterAssets: (payload) => ipcRenderer.invoke('save-character-assets', payload),
   quickGenAsset: (payload) => ipcRenderer.invoke('quick-gen-asset', payload),
 
+  conceptsRun: (slug, mode, image) => ipcRenderer.invoke('concepts-run', { slug, mode, image }),
+  situationStatus: () => ipcRenderer.invoke('situation-status'),
+  situationSetAnswer: (slug, id, answer, source) => ipcRenderer.invoke('situation-set-answer', { slug, id, answer, source }),
+
   // Kho mở rộng: skill / tool / mcp / plugin / admin
   extList: () => ipcRenderer.invoke('ext-list'),
   extAdmin: (on) => ipcRenderer.invoke('ext-admin', on),

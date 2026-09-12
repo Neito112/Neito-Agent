@@ -187,6 +187,7 @@ function createDashboardWindow(openTab) {
 // ─── AI Provider: Antigravity CLI (agy) — dùng tool đóng gói trong dự án ──
 const agyTool = require(path.join(NIOH_ROOT, 'tools', 'agy', 'resolver.js'));
 const extMan = require(path.join(APP_DIR, 'extensions_manager.js'));
+const situationEngine = require(path.join(NIOH_ROOT, 'src', 'vision', 'situation_engine.js'));
 // Args agy + cờ KHO MỞ RỘNG (skill/tool/mcp/plugin) + quyền admin nếu đã cấp
 function agyArgsX(prompt, model) { return agyTool.agyArgs(prompt, model, extMan.agyFlags()); }
 // Chạy agy BẤT ĐỒNG BỘ — execSync từng làm treo cứng (AppHang) toàn bộ app khi agy nghĩ lâu
@@ -1072,7 +1073,43 @@ async function onEyeMessage(msg) {
   eyeHistory.push(msg);
   const cutoff = Date.now() / 1000 - 8;
   while (eyeHistory.length && (eyeHistory[0].ts || 0) < cutoff) eyeHistory.shift();
-  // (không còn đường 'trigger → câu kịch bản' — mọi câu chủ động đều qua bộ phiếm cảnh thật bên dưới)
+  // ── SITUATION ENGINE: đếm khái niệm đồng hiện → bắn câu có sẵn / suy luận 1 lần ──
+  try { situationEngine.accumulateConcepts(msg); } catch (e) {}
+  if (mainConfig.eyeProactive && !eyeBusy && !answeringVoice) {
+    const hit = situationEngine.evaluate(msg);
+    if (hit) runSituation(hit);
+  }
+}
+
+// Chạy 1 tình huống: instant = đọc data luôn (0 suy luận); infer = não suy luận rồi lưu vĩnh viễn
+async function runSituation(hit) {
+  eyeBusy = true;
+  try {
+    if (hit.instant) {
+      visionBrain.bumpStat('situation_instant');
+      if (!isBannedSpeech(hit.text)) await speakText(hit.text);
+      return;
+    }
+    visionBrain.bumpStat('situation_infer');
+    if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('thinking', 20);
+    const r = await new Promise((resolve) => {
+      const a = agyArgsX(hit.prompt, mainConfig.modelName || 'gemini-3.8-flash-low');
+      const child = spawn(a.exe, a.args, { windowsHide: true });
+      const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch(e){} resolve({ success:false, error:'agy timeout' }); }, 60000);
+      let out = '';
+      child.stdout.on('data', d => out += d);
+      child.on('close', code => { clearTimeout(to); resolve(code === 0 && out.trim() ? { success:true, answer: out.trim() } : { success:false, error:'agy exit '+code }); });
+      child.on('error', e => { clearTimeout(to); resolve({ success:false, error: e.message }); });
+    });
+    if (r.success) {
+      const ans = r.answer.replace(/^["\']+|["\']+$/g, '').trim().split('\n')[0];
+      if (ans && !isBannedSpeech(ans)) {
+        hit.save(ans);                       // lưu answer → lần sau bắn tức thì, 0 suy luận
+        await speakText(ans);
+      }
+    }
+  } catch (e) { /* engine lỗi thì im lặng */ }
+  finally { eyeBusy = false; }
 }
 
 // ═══ TRÒ CHUYỆN PHIẾM THEO MÀN HÌNH ═══
@@ -1299,6 +1336,35 @@ ipcMain.handle('ext-health', () => {
   return { success: true, health: out };
 });
 
+ipcMain.handle('concepts-run', (_, { slug, mode, image }) => {
+  const script = path.join(NIOH_ROOT, 'tools', 'agy', 'concept_classifier.js');
+  if (!fs.existsSync(script)) return { success: false, error: 'Thiếu concept_classifier.js' };
+  const args = [script, String(slug).replace(/[^a-z0-9_-]/g, '')];
+  if (mode === 'situations') args.push('--situations');
+  else if (mode === 'image') args.push('--image', String(image || ''));
+  else args.push('--describe');
+  return new Promise((resolve) => {
+    const child = spawn(process.execPath, args, { windowsHide: true, cwd: NIOH_ROOT });
+    let out = '', err = '';
+    const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch(e){} resolve({ success:false, error:'Quá thời gian (8 phút)' }); }, 480000);
+    child.stdout.on('data', d => out += d);
+    child.stderr.on('data', d => err += d);
+    child.on('close', code => {
+      clearTimeout(to);
+      try {
+        const lines = out.trim().split('\n').filter(Boolean);
+        const j = JSON.parse(lines[lines.length - 1] || '{}');
+        resolve({ success: !!j.success, ...j });
+      } catch (e) { resolve({ success: false, error: (err || out || 'exit ' + code).slice(0, 300) }); }
+    });
+    child.on('error', e => { clearTimeout(to); resolve({ success: false, error: e.message }); });
+  });
+});
+ipcMain.handle('situation-status', () => { try { return situationEngine.status(); } catch (e) { return {}; } });
+ipcMain.handle('situation-set-answer', (_, { slug, id, answer, source }) => {
+  try { return { success: situationEngine.setAnswer(String(slug), String(id), String(answer), source) }; }
+  catch (e) { return { success: false, error: e.message }; }
+});
 ipcMain.handle('ext-ask', async (_, question) => {
   // hỏi agy KÈM kho skill/tool + quyền + ngữ cảnh mắt — như agent chat thường
   const prompt = extMan.storePrompt() + '\n\nCẢNH MÀN HÌNH (mắt YOLO): ' + screenContext() +
