@@ -559,7 +559,7 @@
   window.niOhAPI.onSay((text) => showBubble(text));
 
   let audioEl = null, audioUrl = '';
-  function playInOverlay(url) {
+  function playInOverlay(url, rate) {
     if (!audioEl) { audioEl = new Audio(); audioEl.preload = 'auto';
       audioEl.addEventListener('play', () => setAnim('talking'));
       audioEl.addEventListener('ended', () => setAnim(null));
@@ -568,9 +568,10 @@
     if (audioUrl === url && !audioEl.paused) { try { audioEl.pause(); } catch(e){} }
     audioUrl = url;
     audioEl.src = url;
+    try { audioEl.playbackRate = Math.min(1.6, Math.max(0.5, rate || 1)); } catch(e){}
     audioEl.play().catch(() => {});
   }
-  window.niOhAPI.onPlayFile((msg) => { if (msg && msg.url) playInOverlay(msg.url); });
+  window.niOhAPI.onPlayFile((msg) => { if (msg && msg.url) playInOverlay(msg.url, msg.rate); });
 
   // ═══ Config ═══
   const POSE_FILE = { idle:'idle', talking:'talking', thinking:'thinking', fidget:'idle_fidget', look_cursor:'look_cursor', happy:'happy', alert:'alert', sleepy:'sleepy' };

@@ -27,6 +27,28 @@ function norm(s) {
     .replace(/[^a-z0-9 +#%:/.-]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+/* ── TEMPO — nhịp màn hình (fps thay đổi cảnh) ──────────────────────────
+   Game đối kháng: cảnh biến động liên tục → cps cao → 'urgent'.
+   main.js gọi registerFrame() cho MỌI khung; chỉ khung THẬT đổi (không
+   static/cheap) được tính. tempo() trả cấp độ để engine + TTS tăng tốc. */
+const _ts = [];
+function registerFrame(frame) {
+  if (!frame) return;
+  const changed = !frame.static && !frame.cheap;
+  const now = Date.now();
+  if (changed) _ts.push(now);
+  while (_ts.length && now - _ts[0] > 12000) _ts.shift();
+}
+function tempo() {
+  const now = Date.now();
+  while (_ts.length && now - _ts[0] > 12000) _ts.shift();
+  const cps = _ts.length / 12;          // cảnh đổi mỗi giây (trung bình 12s)
+  if (cps >= 2.2) return 'urgent';      // combat/fps cao
+  if (cps >= 0.8) return 'fast';
+  return 'calm';
+}
+const TEMPO_RATE = { calm: 1.0, fast: 1.15, urgent: 1.35 };
+
 /* cache file theo mtime để evaluate() rẻ */
 const _cache = {};
 function loadTopic(slug) {
@@ -93,7 +115,7 @@ function matchSituation(slug, data, present, frame) {
 }
 
 /* ── prompt mẫu: suy luận toàn-man-hình + toàn-KB ───────────────────── */
-function buildInferPrompt(slug, data, s, frame) {
+function buildInferPrompt(slug, data, s, frame, tp) {
   const facts = (data.entries || []).slice(0, 60)
     .map(e => `- ${e.cue}: ${String(e.fact || '').slice(0, 160)}`).join('\n');
   return [
@@ -105,7 +127,9 @@ function buildInferPrompt(slug, data, s, frame) {
     `- Chữ trên màn hình: ${String(frame.text || '—').replace(/\s+/g, ' ').slice(0, 600)}`,
     `TOÀN BỘ KIẾN THỨC GIAO THỨC "${data.topic || slug}":\n${facts.slice(0, 4000)}`,
     s.prompt_template ? `YÊU CẦU: ${s.prompt_template}` : 'Yêu cầu: nói 1 câu tiếng Việt hữu ích nhất cho tình huống trên, bám sát chữ/vật thể thật đang thấy.',
-    'OUTPUT: DUY NHẤT 1 câu nói < 25 từ (sẽ được đọc thành giọng). Không giải thích, không markdown.'
+    tp === 'urgent'
+      ? 'TỐC ĐỘ LÀ SỐ 1 — trận đấu đang diễn ra: OUTPUT duy nhất 1 câu ≤ 8 từ, thẳng hành động, không giải thích, không chào hỏi.'
+      : 'OUTPUT: DUY NHẤT 1 câu nói < 25 từ (sẽ được đọc thành giọng). Không giải thích, không markdown.'
   ].join('\n');
 }
 
@@ -128,10 +152,20 @@ function evaluate(frame) {
     if (!m) continue;
     const s = m.situation;
     if (s.window && !new RegExp(s.window, 'i').test(frame.window || '')) continue;
-    if (s.answer && String(s.answer).trim()) {
-      return { instant: true, text: String(s.answer).trim(), slug, situation: s, hits: m.hits, need: m.need };
+    const tp = tempo();
+    const rate = TEMPO_RATE[tp];
+    if ((s.answer && String(s.answer).trim()) || (s.answer_urgent && String(s.answer_urgent).trim())) {
+      const urgentReady = tp === 'urgent' && s.answer_urgent;
+      const text = String(urgentReady ? s.answer_urgent : s.answer).trim();
+      // câu dài bắn lúc gấp → đánh dấu cần nén (worker nhàn rỗi sẽ biên soạn lại)
+      if (tp === 'urgent') {
+        s.urgent_fires = (s.urgent_fires || 0) + 1;
+        if (!s.answer_urgent && text.split(/\s+/).length > 8) s.condense_due = true;
+        saveTopic(slug, data);
+      }
+      return { instant: true, text, rate, tempo: tp, slug, situation: s, hits: m.hits, need: m.need };
     }
-    const prompt = buildInferPrompt(slug, data, s, frame);
+    const prompt = buildInferPrompt(slug, data, s, frame, tp);
     return {
       infer: true, prompt, slug, situation: s, hits: m.hits, need: m.need,
       save: (answer) => {
@@ -178,6 +212,32 @@ function accumulateConcepts(frame) {
   }
 }
 
+/* ── NÉN CÂU GẤP: hàng đợi biên soạn lại lúc nhàn rỗi ───────────────────
+   Câu bắn trong tempo urgent mà >8 từ → condense_due. Worker lúc nhàn
+   (màn hình im / mắt+tai tắt) gọi Sonnet viết lại ≤6 từ → answer_urgent. */
+function condenseQueue() {
+  const out = [];
+  for (const slug of topicFiles()) {
+    const d = loadTopic(slug);
+    if (!d) continue;
+    for (const s of (d.situations || [])) {
+      if (s.condense_due && s.answer && !s.answer_urgent)
+        out.push({ slug, id: s.id, situation: s.situation, answer: String(s.answer) });
+    }
+  }
+  return out;
+}
+function setCondensed(slug, id, short) {
+  const d = loadTopic(slug);
+  if (!d) return false;
+  const s = (d.situations || []).find(x => x.id === id);
+  if (!s) return false;
+  s.answer_urgent = String(short).slice(0, 90);
+  s.condense_due = false;
+  s.condensed_at = new Date().toISOString();
+  return saveTopic(slug, d);
+}
+
 /* ── tình huống dùng được ngay khi nạp answer thủ công (đọc tài liệu) ── */
 function setAnswer(slug, situationId, answer, source) {
   const data = loadTopic(slug);
@@ -204,4 +264,4 @@ function status() {
   return out;
 }
 
-module.exports = { evaluate, accumulateConcepts, setAnswer, status, buildInferPrompt, norm, loadTopic, saveTopic };
+module.exports = { evaluate, accumulateConcepts, setAnswer, status, buildInferPrompt, norm, loadTopic, saveTopic, registerFrame, tempo, condenseQueue, setCondensed };

@@ -614,7 +614,8 @@ function playAudioSilent(file) {
 const BANNED_SPEECH = /(đăng\s*ký|dăng\s*ky|subscribe|theo\s*dõi\s*kênh|chuông\s*thông\s*báo|bấm\s*nút|like\s*và|cổ\s*vũ|kết\s*video|ytb|youtube)/i;
 function isBannedSpeech(t) { return BANNED_SPEECH.test(String(t || '')); }
 
-async function speakText(text) {
+async function speakText(text, rate) {
+  rate = Math.min(1.6, Math.max(0.5, Number(rate) || 1));
   if (!text || !text.trim()) return { success:false, error:'Không có text' };
   if (isBannedSpeech(text)) return { success:false, error:'Chặn câu cấm (YouTube/đăng ký)' };
   if (!mainConfig.ttsEnabled) return { success:false, error:'TTS đang tắt' };
@@ -628,14 +629,14 @@ async function speakText(text) {
 
   if (r.success && r.file) {
     // Điếc tạm thời khi đang nói — chống mic nghe tiếng loa rồi tự hỏi tự đáp
-    earSend({ cmd: 'mute', sec: Math.min(30, 2 + normalizeForSpeech(text).length * 0.12) });
+    earSend({ cmd: 'mute', sec: Math.min(30, (2 + normalizeForSpeech(text).length * 0.12) / rate) });
     mainConfig.lastAnswer = text;
     saveConfig();
     if (overlayWindow && !overlayWindow.isDestroyed() && overlayWindow.isVisible()) {
       const wc = overlayWindow.webContents;
       wc.send('say', normalizeForSpeech(text));
       // CHỈ phát ở overlay — không nhân bản ra audioWindow (tránh tiếng chồng tiếng)
-      wc.send('play-file', { url: fileUrl(r.file), id: Date.now() });
+      wc.send('play-file', { url: fileUrl(r.file), id: Date.now(), rate });
     } else {
       playAudioSilent(r.file);
     }
@@ -673,7 +674,7 @@ ipcMain.handle('ask-question', async (_, question) => {
     visionBrain.bumpStat('kb_hits');
     visionBrain.bumpStat('saved_tokens_est', 400);
     const answer = String(kb.entry.answer);
-    await speakOrShow(wc, answer);
+    await speakOrShow(wc, answer, situationEngine.tempo() === 'urgent' ? 1.25 : 1);
     return { success: true, answer, provider: 'kb', topic: kb.topic };
   }
 
@@ -718,7 +719,7 @@ ipcMain.handle('ask-question', async (_, question) => {
 });
 
 // Bong bóng + tiếng RA CÙNG LÚC: TTS xong mới hiện chữ; TTS tắt thì hiện ngay
-async function speakOrShow(wc, answer) {
+async function speakOrShow(wc, answer, rate) {
   if (mainConfig.ttsEnabled) {
     const done = await speakText(answer).catch(() => ({ success: false }));
     if (done && done.success) return; // speakText đã tự gửi say + play-file
@@ -1074,11 +1075,15 @@ async function onEyeMessage(msg) {
   const cutoff = Date.now() / 1000 - 8;
   while (eyeHistory.length && (eyeHistory[0].ts || 0) < cutoff) eyeHistory.shift();
   // ── SITUATION ENGINE: đếm khái niệm đồng hiện → bắn câu có sẵn / suy luận 1 lần ──
-  try { situationEngine.accumulateConcepts(msg); } catch (e) {}
-  if (mainConfig.eyeProactive && !eyeBusy && !answeringVoice) {
-    const hit = situationEngine.evaluate(msg);
-    if (hit) runSituation(hit);
-  }
+  try {
+    situationEngine.registerFrame(msg);
+    situationEngine.accumulateConcepts(msg);
+    if (mainConfig.eyeProactive && !eyeBusy && !answeringVoice) {
+      const hit = situationEngine.evaluate(msg);
+      if (hit) runSituation(hit);
+    }
+  } catch (e) {}
+  scheduleIdleWorker();
 }
 
 // Chạy 1 tình huống: instant = đọc data luôn (0 suy luận); infer = não suy luận rồi lưu vĩnh viễn
@@ -1087,7 +1092,7 @@ async function runSituation(hit) {
   try {
     if (hit.instant) {
       visionBrain.bumpStat('situation_instant');
-      if (!isBannedSpeech(hit.text)) await speakText(hit.text);
+      if (!isBannedSpeech(hit.text)) await speakText(hit.text, hit.rate);
       return;
     }
     visionBrain.bumpStat('situation_infer');
@@ -1110,6 +1115,58 @@ async function runSituation(hit) {
     }
   } catch (e) { /* engine lỗi thì im lặng */ }
   finally { eyeBusy = false; }
+}
+
+// ═══ WORKER NHÀN RỖI — nén câu tình huống + cô đọng KB khi không có gì làm ═══
+// Kích hoạt: (mắt+tai đều TẮT) HOẶC (mắt bật nhưng màn hình im lặng ≥6 phút).
+// Việc: lấy condense_due → Sonnet viết lại ≤6 từ (answer_urgent) → lần combat
+// sau bắn tức thì câu cực ngắn, không lỡ nhịp trận đấu.
+let idleTimer = null, idleBusy = false;
+function scheduleIdleWorker() {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(idleCondenseRun, 10 * 60 * 1000);   // kiểm tra mỗi 10 phút
+}
+async function idleCondenseRun() {
+  try {
+    if (idleBusy || eyeBusy || answeringVoice) return;
+    const eyeOff = !mainConfig.realtimeScanEnabled;
+    const micOff = (mainConfig.micMode || 'off') === 'off';
+    const screenQuiet = !lastFrame || (Date.now() / 1000 - (lastFrame.ts || 0) > 360);
+    const isIdle = (eyeOff && micOff) || (eyeOff && !mainConfig.eyeProactive) || screenQuiet;
+    if (!isIdle) return;
+    const q = situationEngine.condenseQueue();
+    if (!q.length) return;
+    idleBusy = true;
+    setEmotion('sleepy', 0);   // nhân vật vào tư thế nghỉ — tín hiệu cho Sếp biết đang bảo trì ngầm
+    const item = q[0];         // mỗi lượt 1 câu — không tham, để dành CPU cho Sếp
+    const prompt = [
+      'BIÊN SOẠN CÂU GỌI VỐN cho Ni-Oh (chế độ nhàn rỗi). Tình huống game/phần mềm đang diễn ra NHANH:',
+      `Tình huống: ${item.situation}`,
+      `Câu hiện tại (${item.answer.split(/\s+/).length} từ): "${item.answer}"`,
+      'Nhiệm vụ: viết lại DUY NHẤT 1 phiên bản rút gọn ≤ 6 từ tiếng Việt, giữ đúng hành động/thông báo cốt lõi, kiểu mệnh lệnh ngắn gọn của casters game (VD: "Né phải, hồi ngay!", "Cảnh báo băng trái!").',
+      'OUTPUT: chỉ in câu rút gọn, không dấu ngoặc, không giải thích.'
+    ].join('\n');
+    const r = await new Promise((resolve) => {
+      const a = agyArgsX(prompt, 'claude-sonnet-4-6');
+      const child = spawn(a.exe, a.args, { windowsHide: true });
+      const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch(e){} resolve({ success:false }); }, 90000);
+      let out = '';
+      child.stdout.on('data', d => out += d);
+      child.on('close', code => { clearTimeout(to); resolve(code === 0 && out.trim() ? { success:true, answer: out.trim().split('\n').pop() } : { success:false }); });
+      child.on('error', () => { clearTimeout(to); resolve({ success:false }); });
+    });
+    if (r.success && r.answer) {
+      const short = r.answer.replace(/^["']+|["']+$/g, '').trim().slice(0, 60);
+      if (short && short.split(/\s+/).length <= 9) {
+        situationEngine.setCondensed(item.slug, item.id, short);
+        visionBrain.bumpStat('condensed_ok');
+      }
+    }
+  } catch (e) { /* im lặng */ }
+  finally { idleBusy = false; scheduleIdleWorker(); }
+}
+function setEmotion(mood, sec) {
+  try { if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('emotion', mood, sec); } catch (e) {}
 }
 
 // ═══ TRÒ CHUYỆN PHIẾM THEO MÀN HÌNH ═══
@@ -1721,6 +1778,7 @@ app.whenReady().then(() => {
   if ((mainConfig.micMode || 'off') !== 'off') earSpawn();
 });
 
+setTimeout(scheduleIdleWorker, 60 * 1000);   // worker nhàn rỗi: lịch lượt đầu sau 60s
 app.on('before-quit', () => { app.isQuitting = true; stopEye(); if (vieDaemon) { try { vieDaemon.kill(); } catch(e){} } if (earProcess) { try { earProcess.kill(); } catch(e){} } saveConfig(); });
 process.on('uncaughtException', (e) => {
   console.error('[Nioh] uncaught:', (e && e.stack || e || '').toString().slice(0, 500));
