@@ -84,7 +84,9 @@ function agyJson(prompt, { schema, images = [], model = SONNET, timeoutMs = 7800
         } catch (e) {}
       }
       // KHÔNG fallback thô: envelope {conversation_id,response} không phải data
-      resolve({ success: false, error: 'không parse được structured output: ' + (err || out || 'exit ' + code).slice(-250) });
+      const blob = (err || out || 'exit ' + code);
+      if (/quota reached/i.test(blob)) return resolve({ success: false, quota: true, error: blob.slice(-200) });
+      resolve({ success: false, error: 'không parse được structured output: ' + blob.slice(-250) });
     });
     child.on('error', e => { clearTimeout(to); resolve({ success: false, error: e.message }); });
   });
@@ -255,6 +257,7 @@ async function resolveUnanswered(state) {
   ].join('\n\n'), {
     schema: { type: 'object', properties: { answered: { type: 'boolean' }, answer: { type: 'string' }, evidence_url: { type: 'string' }, hint_for_next: { type: 'string' } }, required: ['answered'] }
   });
+  if (r.quota) return { resolved: 0, still: 1, quota: true };
   item.tries = (item.tries || 0) + 1;
   if (r.success && r.data.answered && r.data.answer) {
     sit.answer = String(r.data.answer).slice(0, 200);
@@ -282,7 +285,10 @@ async function learnSource(state, src) {
   }
   log(state, `VÒNG 1 — khái niệm: ${src.url}`);
   const l1 = await loop1Concepts(src.slug, srcText, images);
-  if (!l1.success) { src.status = 'failed'; src.error = 'v1:' + l1.error; log(state, `✗ vòng 1 lỗi: ${l1.error}`); saveState(state); return; }
+  if (!l1.success) {
+    if (l1.quota) { src.status = 'quota_wait'; src.attempts = (src.attempts || 1) - 1; log(state, `⏸ quota Sonnet hết — ${src.url} chờ reset (không đếm lỗi)`); saveState(state); return; }
+    src.status = 'failed'; src.error = 'v1:' + l1.error; log(state, `✗ vòng 1 lỗi: ${l1.error}`); saveState(state); return;
+  }
   log(state, `v1: +${l1.added} khái niệm, ${l1.merged} gộp đồng nghĩa, ${l1.skipped} bỏ qua (${l1.coverage})`);
   // nguồn chưa đọc hết → vòng 1 lặp lại tối đa 2 lần nữa (chống lười)
   let rounds = 1;
@@ -294,7 +300,10 @@ async function learnSource(state, src) {
   }
   log(state, `VÒNG 2 — tình huống: ${src.url}`);
   const l2 = await loop2Situations(src.slug, srcText, images);
-  if (!l2.success) { src.status = 'failed'; src.error = 'v2:' + l2.error; log(state, `✗ vòng 2 lỗi: ${l2.error}`); saveState(state); return; }
+  if (!l2.success) {
+    if (l2.quota) { src.status = 'quota_wait'; src.attempts = (src.attempts || 1) - 1; log(state, `⏸ quota hết giữa vòng 2 — chờ reset`); saveState(state); return; }
+    src.status = 'failed'; src.error = 'v2:' + l2.error; log(state, `✗ vòng 2 lỗi: ${l2.error}`); saveState(state); return;
+  }
   for (const s of l2.list) {
     if (!s.ok && !state.unanswered.some(u => u.slug === src.slug && u.id === s.id))
       state.unanswered.push({ slug: src.slug, id: s.id, from_url: src.url, tries: 0, resolved: false, added: new Date().toISOString() });
@@ -309,7 +318,7 @@ async function learnSource(state, src) {
 /* ══ ĐIỀU PHỐI ═══════════════════════════════════════════════════════ */
 function nextPending(state) {
   const now = Date.now();
-  return state.sources.find(s => s.status === 'pending'
+  return state.sources.find(s => s.status === 'pending' || s.status === 'quota_wait'
     || (s.status === 'learning' && (!s.started_at || now - Date.parse(s.started_at) > 30 * 60000))
     || (s.status === 'failed' && (s.attempts || 0) < 2 && (!s.started_at || now - Date.parse(s.started_at) > 60000)));
 }
@@ -322,7 +331,7 @@ async function once() {
     src.started_at = new Date().toISOString();
     await learnSource(state, src);
     saveState(state);
-    return { did: 'source', url: src.url, status: src.status };
+    return { did: 'source', url: src.url, status: src.status, quota: src.status === 'quota_wait' };
   }
   const res = await resolveUnanswered(state);
   saveState(state);
@@ -332,6 +341,7 @@ async function marathon() {
   for (let i = 0; i < 50; i++) {
     const r = await once();
     console.log(JSON.stringify(r));
+    if (r.quota) { console.log('QUOTA HẾT — dừng marathon, worker nhàn rỗi sẽ thử lại'); break; }
     if (r.did === 'unanswered' && !r.resolved && !r.still) { console.log('HẾT VIỆC — queue trống'); break; }
   }
 }
@@ -345,7 +355,7 @@ function statusOut() {
     rounds: state.rounds || 0,
     sources_total: state.sources.length,
     sources_learned: state.sources.filter(s => s.status === 'learned').length,
-    sources_pending: pend,
+    sources_pending: pend + state.sources.filter(s => s.status === 'quota_wait').length,
     unanswered_open: unres,
     recent_log: state.log.slice(-8),
     by_topic: state.sources.reduce((acc, s) => { acc[s.slug] = (acc[s.slug] || 0) + (s.status === 'learned' ? 1 : 0); return acc; }, {})
