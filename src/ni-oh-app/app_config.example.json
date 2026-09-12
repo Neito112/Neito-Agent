@@ -1,17 +1,20 @@
 {
   "character": "default",
   "characterImage": null,
-  "voiceProvider": "edge-tts",
-  "voiceName": "vi-VN-HoaiMyNeural",
+  "voiceProvider": "vieneu",
+  "voiceName": "Ngọc Linh",
   "voiceSpeed": 1.0,
   "modelProvider": "antigravity",
-  "modelName": "gemini-3.8-flash-high",
-  "apiKey": "***",
+  "modelName": "gemini-3.8-flash-low",
+  "trainProvider": "antigravity",
+  "trainModel": "gemini-3.8-flash-high",
+  "apiKey": "",
   "overlayVisible": true,
-  "overlayPosition": {
-    "x": 40,
-    "y": 40
-  },
-  "autoReply": false,
-  "ttsEnabled": true
+  "overlayPosition": { "x": 40, "y": 40 },
+  "characterScale": 1,
+  "overlayCharHidden": false,
+  "ttsEnabled": true,
+  "realtimeScanEnabled": false,
+  "eyeProactive": false,
+  "micMode": "off"
 }

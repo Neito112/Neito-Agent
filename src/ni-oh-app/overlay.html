@@ -2,293 +2,692 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ni-Oh Tactical Desktop Overlay</title>
+<title>Ni-Oh Overlay</title>
 <style>
-  :root {
-    --primary: #00f2fe;
-    --secondary: #4facfe;
-    --bg-glass: rgba(10, 15, 30, 0.75);
-    --border-glow: rgba(0, 242, 254, 0.4);
-    --text: #e0f7fa;
-  }
-
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    user-select: none;
-    font-family: 'Segoe UI', system-ui, sans-serif;
-  }
-
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { background: transparent !important; overflow: hidden; width:100%; height:100%; }
   body {
-    background: transparent;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    justify-content: flex-end;
-    align-items: flex-end;
-    padding: 24px;
+    font-family:'Segoe UI',system-ui,sans-serif;
+    user-select:none; -webkit-user-select:none;
+  }
+  body.over-char { cursor: grab; }
+  body.dragging, body.dragging * { cursor: grabbing !important; }
+
+  /* ═══ WRAPPER SCALE ĐỒNG BỘ (nhân vật + nút + popup). Khung chat NGOÀI wrapper. ═══ */
+  #zoomwrap {
+    position:absolute; top:0; left:0; width:240px;
+    transform-origin: 0 0;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .bubble-space { width:100%; height:122px; flex:none; }
+
+  /* ── Bong bóng thoại: absolute trong wrap, bottom do JS set (bám đỉnh đầu) ── */
+  .bubble {
+    position:absolute; left:10px; right:10px; bottom:232px; z-index:5;
+    max-height: 116px; overflow: hidden;
+    background: rgba(15,23,42,.95);
+    border:1px solid #8fb4ec; border-radius:12px;
+    padding:7px 10px;
+    color:#eaf2ff; font-size:12px; line-height:1.45;
+    opacity:0; pointer-events:none;
+    transition: opacity .25s, transform .25s, bottom .35s cubic-bezier(.22,1,.36,1);
+    box-shadow:0 6px 24px rgba(0,0,0,.5);
+    transform: translateY(-6px) scale(.96);
+  }
+  .bubble.show { opacity:1; transform: translateY(0) scale(1); }
+  .bubble::after {
+    content:''; position:absolute; top:100%; left:50%; margin-left:-6px;
+    border:6px solid transparent; border-top-color:#8fb4ec;
   }
 
-  .companion-widget {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 12px;
-    z-index: 9999;
-    -webkit-app-region: drag;
-    cursor: grab;
+  /* ── VÙNG nhân vật: cao độ CỐ ĐỊNH — ẩn/hiện không làm xê dịch hàng nút ── */
+  .zone-char { position:relative; width:100%; height:176px; flex:none; }
+  .char {
+    position:absolute; left:50%; bottom:0; margin-left:-60px;
+    width:120px; height:144px;
+    transform-origin: 50% 100%;
+    transition: transform .38s cubic-bezier(.34,1.3,.64,1), opacity .3s;
+  }
+  body.no-char .char { transform: scale(.3) translateY(30px); opacity:0; }
+  .floaty { width:100%; height:100%; animation: float 3.2s ease-in-out infinite; }
+  @keyframes float { 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-6px);} }
+  .char img { width:100%; height:100%; object-fit:contain; }
+  svg.character { width:100%; height:100%; display:block; overflow:visible; }
+
+  .slime-body { transform-box:fill-box; transform-origin:center bottom; animation: squish 3.6s ease-in-out infinite; }
+  @keyframes squish { 0%,100%{ transform:scale(1,1);} 50%{ transform:scale(1.025,.975);} }
+  .puddle { transform-box:fill-box; transform-origin:center; animation: puddle 3.2s ease-in-out infinite; }
+  @keyframes puddle { 0%,100%{ transform:scaleX(1); opacity:.4;} 50%{ transform:scaleX(.85); opacity:.25;} }
+  .glint { animation: glow 2.8s ease-in-out infinite; }
+  @keyframes glow { 0%,100%{ opacity:.6;} 50%{ opacity:1;} }
+  .eyes-normal { transform-box:fill-box; transform-origin:center; animation: blink 4.5s ease-in-out infinite; }
+  @keyframes blink { 0%,41%,45%,100%{ transform:scaleY(1);} 43%{ transform:scaleY(.08);} }
+
+  /* biểu cảm */
+  .face g, .face .m-o, .face .m-flat, .face .m-grin, .face .m-big,
+  .slime-body .zzz, .slime-body .bub, .slime-body .core { display:none; }
+  .face .eyes-normal, .face .m-smile { display:block; }
+  .char.talking .m-smile { display:none; }
+  .char.talking .m-o { display:block; transform-box:fill-box; transform-origin:center; animation: talk .26s ease-in-out infinite alternate; }
+  @keyframes talk { from { transform: scaleY(.3);} to { transform: scaleY(1.25);} }
+  .char.talking .floaty { animation-duration:.9s; }
+  .char.thinking .eyes-normal, .char.thinking .m-smile { display:none; }
+  .char.thinking .eyes-line, .char.thinking .m-flat, .char.thinking .core, .char.thinking .bub { display:block; }
+  .char.thinking .bub { animation: rise 2.2s ease-in-out infinite; }
+  @keyframes rise { 0%{ transform:translateY(0); opacity:.8;} 100%{ transform:translateY(-26px); opacity:0;} }
+  .char.happy .eyes-normal, .char.happy .m-smile { display:none; }
+  .char.happy .eyes-happy, .char.happy .m-grin, .char.happy .bub { display:block; }
+  .char.happy .bub { animation: rise 1.6s ease-in-out infinite; }
+  .char.sleepy .slime-body { animation:none; transform: scaleY(.72); }
+  .char.sleepy .eyes-normal, .char.sleepy .m-smile { display:none; }
+  .char.sleepy .eyes-line, .char.sleepy .m-o, .char.sleepy .zzz { display:block; }
+  .char.sleepy .m-o { transform:scale(.5); }
+  .char.sleepy .zzz { animation: glow 2s ease-in-out infinite; }
+  .char.alert .eyes-normal, .char.alert .m-smile { display:none; }
+  .char.alert .eyes-alert, .char.alert .m-big { display:block; }
+  .char.alert .floaty { animation: shake .5s ease-in-out infinite; }
+  @keyframes shake { 0%,100%{ transform:translateX(0);} 25%{ transform:translateX(-2px);} 75%{ transform:translateX(2px);} }
+  .zone-char.poke .floaty { animation: boing .55s ease; }
+  @keyframes boing { 0%,100%{ transform:scale(1,1);} 30%{ transform:scale(1.14,.82);} 60%{ transform:scale(.92,1.1);} }
+
+  /* avatar đại diện khi ẩn — pop vào đúng chỗ nhân vật co lại */
+  .mini-avatar {
+    position:absolute; left:50%; bottom:8px; margin-left:-23px;
+    width:46px; height:46px; border-radius:50%;
+    background:radial-gradient(circle at 38% 32%, #dcecfb, #9ec1ee 45%, #6d97dd);
+    border:2px solid rgba(143,180,236,.7);
+    box-shadow:0 4px 14px rgba(0,0,0,.45), inset 0 2px 6px rgba(255,255,255,.5);
+    cursor:grab;
+    transform: scale(0); opacity:0;
+    transition: transform .32s cubic-bezier(.34,1.56,.64,1) .12s, opacity .2s .12s;
+  }
+  .mini-avatar:active { cursor:grabbing; }
+  body.no-char .mini-avatar { transform: scale(1); opacity:1; }
+  .mini-avatar::before, .mini-avatar::after {
+    content:''; position:absolute; top:17px; width:4px; height:6px; border-radius:50%; background:#2c4f7c;
+  }
+  .mini-avatar::before { left:13px; } .mini-avatar::after { right:13px; }
+  .mini-avatar .sm {
+    position:absolute; left:50%; top:25px; transform:translateX(-50%);
+    width:12px; height:6px; border:2px solid #2c4f7c; border-top:none; border-radius:0 0 12px 12px;
   }
 
-  .companion-widget.paused {
-    opacity: 0.3;
-    pointer-events: none;
+  /* ── 2 nút tròn nổi (scale cùng nhân vật) ── */
+  .zone-bar { position:relative; width:100%; flex:none; margin-top:8px;
+    display:flex; justify-content:center; }
+  .bar-main { display:flex; align-items:center; gap:8px; }
+  .btn {
+    width:22px; height:22px; border-radius:50%; flex:none;
+    background: rgba(22,27,34,.92); color:#c9d1d9;
+    border:1px solid #30363d; font-size:10px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 2px 8px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06);
+    transition: border-color .15s, background .15s, transform .12s;
   }
+  .btn:hover { border-color:#8fb4ec; background:#1f2937; transform: translateY(-1px); }
+  .btn.active { border-color:#7dd3fc; color:#7dd3fc; background: rgba(125,211,252,.16); }
+  .state-dot { width:6px; height:6px; border-radius:50%; background:#ff5a5a;
+    box-shadow:0 0 6px rgba(255,90,90,.8); flex:none; transition:background .2s, box-shadow .2s; }
+  .state-dot.on { background:#3fb950; box-shadow:0 0 6px #3fb950; }
 
-  .speech-bubble {
-    background: var(--bg-glass);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--border-glow);
-    border-radius: 16px 16px 4px 16px;
-    padding: 12px 18px;
-    max-width: 320px;
-    color: var(--text);
-    font-size: 13.5px;
-    line-height: 1.5;
-    box-shadow: 0 8px 32px rgba(0, 242, 254, 0.2);
-    opacity: 0;
-    transform: translateY(10px) scale(0.95);
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    pointer-events: none;
-    -webkit-app-region: no-drag;
+  /* popup nút chức năng — có ô % kích thước nhập được */
+  .zone-func { position:relative; width:100%; flex:none; display:none; justify-content:center; margin-top:8px; }
+  .zone-func.open { display:flex; }
+  .func-box {
+    display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:999px;
+    background:linear-gradient(180deg, rgba(27,28,30,.88), rgba(16,17,18,.92));
+    backdrop-filter: blur(14px) saturate(1.15);
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow:0 4px 14px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);
+    animation: popIn .2s cubic-bezier(.22,1,.36,1);
   }
+  .scale-wrap { display:flex; align-items:center; gap:3px; margin-right:2px; }
+  .scale-input {
+    width:42px; background:rgba(7,8,10,.7); border:1px solid rgba(255,255,255,.08);
+    border-radius:6px; color:#f9f9f9; font-size:10px; font-family:inherit;
+    padding:3px 2px; text-align:center; outline:none; appearance:textfield; -moz-appearance:textfield;
+  }
+  .scale-input::-webkit-inner-spin-button, .scale-input::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+  .scale-input:focus { border-color:rgba(85,179,255,.6); }
+  .scale-pct { font-size:9px; color:#8b949e; }
 
-  .speech-bubble.active {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    pointer-events: auto;
+  /* ══ KHUNG CHAT — ngoài wrapper scale: UI 80% cố định, chỉ khung co giãn ══ */
+  .zone-chat { position:absolute; left:0; right:0; top:0; display:none;
+    justify-content:center; margin-top:8px; }
+  .zone-chat.open { display:flex; }
+  .chat-panel {
+    position:relative; width:224px;
+    display:flex; gap:5px; align-items:flex-end;
+    background:linear-gradient(180deg, rgba(27,28,30,.88), rgba(16,17,18,.92));
+    backdrop-filter: blur(14px) saturate(1.15);
+    border:1px solid rgba(255,255,255,.06); border-radius:10px;
+    padding:5px;
+    box-shadow:0 6px 18px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.04);
+    transition:border-color .18s;
+    animation: popIn .2s cubic-bezier(.22,1,.36,1);
   }
-
-  .speech-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-    font-size: 11px;
-    color: var(--primary);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: bold;
+  @keyframes popIn { from { opacity:0; transform:translateY(-6px) scale(.97); } to { opacity:1; transform:none; } }
+  .chat-panel:focus-within { border-color:rgba(85,179,255,.35); }
+  .chat-input {
+    flex:1; min-width:0; min-height:21px; max-height:130px;
+    background:rgba(7,8,10,.6); border:1px solid rgba(255,255,255,.05); border-radius:6px;
+    color:#f9f9f9; font-size:10px; padding:4px 6px; outline:none;
+    resize:none; overflow-y:auto; font-family:inherit; line-height:1.4;
+    white-space:pre-wrap; word-break:break-word;
+    transition:border-color .18s;
   }
-
-  .avatar-sphere {
-    width: 68px;
-    height: 68px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #00f2fe, #0052d4);
-    box-shadow: 0 0 25px rgba(0, 242, 254, 0.6), inset 0 0 15px rgba(255, 255, 255, 0.4);
-    cursor: pointer;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    animation: float 4s ease-in-out infinite;
-    -webkit-app-region: no-drag;
+  .chat-input:hover { border-color:rgba(255,255,255,.10); }
+  .chat-input:focus { border-color:rgba(85,179,255,.6); }
+  .chat-input::placeholder { color:#6a6b6c; }
+  .chat-input::-webkit-scrollbar { width:6px; }
+  .chat-input::-webkit-scrollbar-track { background:transparent; }
+  .chat-input::-webkit-scrollbar-thumb {
+    background:rgba(255,255,255,.12); border-radius:999px;
+    border:1.5px solid transparent; background-clip:padding-box;
   }
-
-  .avatar-sphere:hover {
-    transform: scale(1.08);
-    box-shadow: 0 0 35px rgba(0, 242, 254, 0.9);
+  .chat-input::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,.24); background-clip:padding-box; }
+  .chat-send {
+    width:21px; height:21px; border-radius:50%; flex:none;
+    background:linear-gradient(180deg,#3fb950,#238636);
+    border:1px solid rgba(46,160,67,.6); color:#fff;
+    font-size:9px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.25), 0 1px 2px rgba(0,0,0,.4);
+    transition:transform .12s, background .15s;
   }
-
-  .avatar-core {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 0 15px #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
+  .chat-send:hover { background:linear-gradient(180deg,#46d360,#2ea043); }
+  .chat-send:active { transform:scale(.92); }
+  .chat-corner {
+    position:absolute; right:0; bottom:0; width:13px; height:13px;
+    cursor:nwse-resize; border-radius:0 0 9px 0;
+    background:
+      linear-gradient(135deg, transparent 0 52%, rgba(255,255,255,.28) 52% 60%, transparent 60% 74%, rgba(255,255,255,.28) 74% 82%, transparent 82%);
   }
-
-  .pulse-ring {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 2px solid var(--primary);
-    animation: pulse 2.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  .chat-corner:hover {
+    background:
+      linear-gradient(135deg, transparent 0 52%, #55b3ff 52% 60%, transparent 60% 74%, #55b3ff 74% 82%, transparent 82%);
   }
-
-  .command-bar {
-    position: absolute;
-    bottom: 84px;
-    right: 0;
-    background: var(--bg-glass);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--border-glow);
-    border-radius: 18px;
-    padding: 10px 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    width: 340px;
-    transform: translateY(20px) scale(0.9);
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.25s ease;
-    -webkit-app-region: no-drag;
-  }
-
-  .command-bar.active {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .command-input {
-    flex: 1;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
-    padding: 8px 12px;
-    color: #fff;
-    font-size: 13px;
-    outline: none;
-  }
-
-  .command-input:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 8px rgba(0, 242, 254, 0.4);
-  }
-
-  .action-btn {
-    background: linear-gradient(135deg, var(--secondary), var(--primary));
-    border: none;
-    color: #000;
-    font-weight: bold;
-    padding: 8px 12px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: opacity 0.2s;
-  }
-
-  .action-btn:hover {
-    opacity: 0.9;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-  }
-
-  @keyframes pulse {
-    0% { transform: scale(1); opacity: 0.8; }
-    100% { transform: scale(1.6); opacity: 0; }
-  }
+  .pad-b { height:6px; flex:none; }
 </style>
 </head>
 <body>
+<div id="zoomwrap">
+  <div class="bubble-space"></div>
+  <div class="bubble" id="bubble"></div>
 
-  <div class="companion-widget" id="companionWidget">
-    <div class="speech-bubble" id="speechBubble">
-      <div class="speech-meta">
-        <span>🛡️ Ni-Oh Companion</span>
-        <span id="speechTime">Live</span>
+  <div class="zone-char" id="zoneChar">
+    <div class="char" id="char">
+      <div class="floaty">
+        <svg class="character" id="charSvg" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="slimeG" cx="38%" cy="30%" r="80%">
+              <stop offset="0%" stop-color="#dcecfb"/>
+              <stop offset="45%" stop-color="#9ec1ee"/>
+              <stop offset="100%" stop-color="#6d97dd"/>
+            </radialGradient>
+            <radialGradient id="coreG" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#bfe4ff"/>
+              <stop offset="60%" stop-color="#5aa7e8" stop-opacity=".8"/>
+              <stop offset="100%" stop-color="#5aa7e8" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <ellipse class="puddle" cx="100" cy="224" rx="56" ry="9" fill="#9ec1ee"/>
+          <g class="slime-body">
+            <path d="M100 30 C108 50 138 72 150 106 C162 140 152 190 100 198 C48 190 38 140 50 106 C62 72 92 50 100 30 Z"
+                  fill="url(#slimeG)" stroke="#b7d2f2" stroke-width="2" opacity=".94"/>
+            <path d="M52 178 q-14 8 -10 16 q5 8 16 2 Z" fill="#8fb4ec" opacity=".8"/>
+            <path d="M70 150 q30 -14 60 2 q-28 12 -60 -2 Z" fill="#5b8bd6" opacity=".18"/>
+            <path d="M62 112 q20 -8 30 4 q-18 8 -30 -4 Z" fill="#ffffff" opacity=".14"/>
+            <g class="core">
+              <circle cx="100" cy="132" r="26" fill="url(#coreG)"/>
+              <path d="M100 118 l10 14 l-10 14 l-10 -14 Z" fill="#cfeaff" stroke="#7db8ea" stroke-width="1.4" class="glint"/>
+            </g>
+            <ellipse class="glint" cx="74" cy="72" rx="13" ry="19" fill="#ffffff" opacity=".65" transform="rotate(-24 74 72)"/>
+            <circle cx="62" cy="100" r="4" fill="#ffffff" opacity=".4"/>
+            <g class="bub" fill="none" stroke="#bfe4ff" stroke-width="1.6">
+              <circle cx="150" cy="60" r="4"/><circle cx="160" cy="44" r="2.6"/><circle cx="146" cy="36" r="1.8"/>
+            </g>
+            <g class="zzz" fill="#bfe4ff" font-family="Segoe UI" font-weight="700">
+              <text x="146" y="52" font-size="16">z</text>
+              <text x="160" y="36" font-size="12">z</text>
+            </g>
+          </g>
+          <g class="face">
+            <g class="eyes-normal">
+              <ellipse cx="84" cy="132" rx="5.5" ry="9" fill="#2c4f7c"/>
+              <ellipse cx="116" cy="132" rx="5.5" ry="9" fill="#2c4f7c"/>
+              <circle cx="82" cy="128.5" r="2" fill="#ffffff" opacity=".95"/>
+              <circle cx="114" cy="128.5" r="2" fill="#ffffff" opacity=".95"/>
+            </g>
+            <g class="eyes-line" stroke="#2c4f7c" stroke-width="2.6" stroke-linecap="round" fill="none">
+              <path d="M77 132 q7 5 14 0"/><path d="M109 132 q7 5 14 0"/>
+            </g>
+            <g class="eyes-happy" stroke="#2c4f7c" stroke-width="2.8" stroke-linecap="round" fill="none">
+              <path d="M77 134 q7 -9 14 0"/><path d="M109 134 q7 -9 14 0"/>
+            </g>
+            <g class="eyes-alert">
+              <circle cx="84" cy="130" r="9" fill="#ffffff" stroke="#2c4f7c" stroke-width="2"/>
+              <circle cx="84" cy="130" r="3.4" fill="#2c4f7c"/>
+              <circle cx="116" cy="130" r="9" fill="#ffffff" stroke="#2c4f7c" stroke-width="2"/>
+              <circle cx="116" cy="130" r="3.4" fill="#2c4f7c"/>
+            </g>
+            <path class="m-smile" d="M90 148 Q100 156 110 148" fill="none" stroke="#2c4f7c" stroke-width="2.6" stroke-linecap="round"/>
+            <ellipse class="m-o" cx="100" cy="152" rx="5" ry="6" fill="#2c4f7c"/>
+            <path class="m-flat" d="M92 152 h16" stroke="#2c4f7c" stroke-width="2.4" stroke-linecap="round"/>
+            <path class="m-grin" d="M88 146 Q100 162 112 146 Q100 154 88 146 Z" fill="#2c4f7c"/>
+            <ellipse class="m-big" cx="100" cy="154" rx="9" ry="13" fill="#2c4f7c"/>
+            <circle cx="70" cy="143" r="4.5" fill="#ff8fb8" opacity=".3"/>
+            <circle cx="130" cy="143" r="4.5" fill="#ff8fb8" opacity=".3"/>
+          </g>
+        </svg>
+        <img id="charImg" src="" alt="" style="display:none;">
       </div>
-      <div id="speechText">Sếp cần Ni-Oh hỗ trợ chiến thuật hay tính toán bài toán nào?</div>
     </div>
+    <div class="mini-avatar" id="miniAvatar" title="Giữ kéo để di chuyển"><span class="sm"></span></div>
+  </div>
 
-    <div class="command-bar" id="commandBar">
-      <input type="text" class="command-input" id="cmdInput" placeholder="Nhập lệnh hoặc câu hỏi (Alt+Space)..." />
-      <button class="action-btn" id="sendBtn">Gửi</button>
-    </div>
-
-    <div class="avatar-sphere" id="avatarSphere" title="Nhấn để mở Tactical Command Bar">
-      <div class="pulse-ring"></div>
-      <div class="avatar-core">🛡️</div>
+  <div class="zone-bar" id="zoneBar">
+    <div class="bar-main">
+      <button class="btn" id="btnChat" title="Mở/đóng khung chat" aria-label="Khung chat">💬</button>
+      <span class="state-dot" id="stateDot" title="YOLO đang tắt"></span>
+      <button class="btn" id="btnFunc" title="Các nút chức năng" aria-label="Nút chức năng">⋯</button>
     </div>
   </div>
 
-  <script>
-    const avatar = document.getElementById('avatarSphere');
-    const commandBar = document.getElementById('commandBar');
-    const cmdInput = document.getElementById('cmdInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const speechBubble = document.getElementById('speechBubble');
-    const speechText = document.getElementById('speechText');
+  <div class="zone-func" id="funcPanel">
+    <div class="func-box">
+      <span class="scale-wrap"><input id="scaleInput" class="scale-input" type="number" min="60" max="180" step="5" value="100" title="Tỉ lệ nhân vật — nhập số rồi Enter"><span class="scale-pct">%</span></span>
+      <button class="btn" id="btnEye" title="Quan sát PC — bật/tắt mắt YOLO" aria-label="Quan sát PC">👁</button>
+      <button class="btn" id="btnMic" title="Bật/tắt lắng nghe micro" aria-label="Bật tắt micro">🎙</button>
+      <button class="btn" id="btnMute" title="Bật/tắt giọng đọc" aria-label="Bật tắt giọng đọc">🔊</button>
+      <button class="btn" id="btnHideChar" title="Ẩn/hiện nhân vật" aria-label="Ẩn hiện nhân vật">🙈</button>
+    </div>
+  </div>
+  <div class="pad-b"></div>
+</div>
 
-    let isOpen = false;
-    let isLoading = false;
+<!-- Khung chat: NGOÀI wrapper — UI không scale, kéo không resize cửa sổ -->
+<div class="zone-chat" id="chatPanel">
+  <div class="chat-panel" id="chatBox">
+    <textarea id="chatInput" class="chat-input" placeholder="Hỏi Ni-Oh…" autocomplete="off" rows="1"></textarea>
+    <button id="chatSend" class="chat-send" title="Gửi (Enter)" aria-label="Gửi">➤</button>
+    <div class="chat-corner" id="chatCorner" title="Kéo góc để giãn khung 2 chiều"></div>
+  </div>
+</div>
 
-    avatar.addEventListener('click', () => {
-      isOpen = !isOpen;
-      commandBar.classList.toggle('active', isOpen);
-      if (isOpen) {
-        cmdInput.focus();
-        showSpeech('Ni-Oh đang lắng nghe Sếp...');
-      }
+<script>
+  let cfg = {};
+  const wrap = document.getElementById('zoomwrap');
+  const zoneChar = document.getElementById('zoneChar');
+  const char = document.getElementById('char');
+  const bubble = document.getElementById('bubble');
+  const bar = document.getElementById('zoneBar');
+  const chatPanel = document.getElementById('chatPanel');
+  const chatBox = document.getElementById('chatBox');
+  const chatInput = document.getElementById('chatInput');
+  const chatCorner = document.getElementById('chatCorner');
+  const funcPanel = document.getElementById('funcPanel');
+  const scaleInput = document.getElementById('scaleInput');
+  let bubbleTimer = null;
+
+  // ═══ HÌNH HỌC — cửa sổ CHỪ SẼN chỗ chat: kéo khung chat KHÔNG resize cửa sổ ═══
+  const NAT_W = 240;          // bề rộng thiết kế của wrapper (chưa scale)
+  const CHAT_MAX_W = 300;     // khung chat tối đa → cửa sổ luôn rộng đủ
+  const CHAT_RESERVE = 158;   // chiều cao chừa sẵn dưới hàng nút cho pop-up chat
+  let cscale = 1, shiftX = 0, shiftY = 0;
+
+  function bubbleBottom() {   // đáy bubble = đỉnh đầu nhân vật/avatar + 18px
+    return 18 + bar.offsetHeight + 8 + (charHidden ? 54 : 144) + 6;
+  }
+  function fitWindow(keepTop) {
+    wrap.style.transform = `scale(${cscale})`;
+    const sH = Math.ceil(wrap.getBoundingClientRect().height);
+    const W = Math.max(NAT_W * cscale, CHAT_MAX_W + 16);
+    wrap.style.left = Math.round((W - NAT_W * cscale) / 2) + 'px';
+    chatPanel.style.top = sH + 'px';
+    bubble.style.bottom = bubbleBottom() + 'px';
+    window.niOhAPI.overlayMetrics({
+      width: Math.round(W), height: sH + CHAT_RESERVE + 2,
+      dx: Math.round(shiftX), dy: Math.round(shiftY), keepTop: !!keepTop
     });
+    shiftX = 0; shiftY = 0;
+  }
+  window.addEventListener('resize', () => fitWindow());
 
-    sendBtn.addEventListener('click', sendCommand);
-    cmdInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') sendCommand();
-    });
-
-    window.addEventListener('keydown', (e) => {
-      if (e.altKey && e.code === 'Space') {
-        e.preventDefault();
-        isOpen = !isOpen;
-        commandBar.classList.toggle('active', isOpen);
-        if (isOpen) cmdInput.focus();
-      }
-    });
-
-    async function sendCommand() {
-      const q = cmdInput.value.trim();
-      if (!q || isLoading) return;
-
-      isLoading = true;
-      cmdInput.value = '';
-      commandBar.classList.remove('active');
-      isOpen = false;
-
-      showSpeech('⏳ Đang phân tích chiến lược...');
-
+  // ═══ HIT-TEST điểm ảnh có hình — trong suốt xuyên chuột ═══
+  let clickable = true;
+  let alphaMask = null, maskW = 200, maskH = 240;
+  function maskFromSource(src, w, h) {
+    const img = new Image();
+    img.onload = () => {
       try {
-        const result = await window.niOhAPI.askQuestion(q);
-        if (result.success) {
-          showSpeech(result.answer);
-        } else {
-          showSpeech(`⚠️ Lỗi: ${result.error || 'Không thể kết nối'}`);
+        maskW = w || img.naturalWidth || 200; maskH = h || img.naturalHeight || 240;
+        const c = document.createElement('canvas'); c.width = maskW; c.height = maskH;
+        const ctx = c.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(img, 0, 0, maskW, maskH);
+        const px = ctx.getImageData(0, 0, maskW, maskH).data;
+        const m = new Uint8Array(maskW * maskH);
+        for (let i = 0; i < m.length; i++) m[i] = px[i * 4 + 3];
+        alphaMask = m;
+      } catch (e) { alphaMask = null; }
+    };
+    img.src = src;
+  }
+  function buildDefaultMask() {
+    const imgEl = document.getElementById('charImg');
+    if (imgEl && imgEl.style.display !== 'none' && imgEl.src) { maskFromSource(imgEl.src); return; }
+    const svg = document.getElementById('charSvgDisk') || document.getElementById('charSvg');
+    if (!svg) return;
+    const xml = new XMLSerializer().serializeToString(svg);
+    maskFromSource('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml), 200, 240);
+  }
+  buildDefaultMask();
+
+  // ── default = file đĩa assets/characters/default.svg (Sếp thay file = đổi nhân vật,
+  //    app tự suy các trạng thái từ SVG + CSS biểu cảm). Inline SVG chỉ là fallback. ──
+  async function loadDefaultFromDisk() {
+    try {
+      const holder = document.querySelector('.floaty');
+      const keepImg = document.getElementById('charImg');
+      // 1) ưu tiên default.svg → app tự suy biểu cảm
+      let r = await window.niOhAPI.readAsset('characters/default.svg');
+      if (r && r.success && /<svg/i.test(r.text || '')) {
+        let txt = r.text.replace(/<style>[\s\S]*?<\/style>/i, '');
+        txt = txt.replace('<svg', '<svg class="character" id="charSvgDisk"', 1);
+        holder.innerHTML = txt;
+        if (keepImg) holder.appendChild(keepImg);
+        defaultFromDisk = true;
+      } else {
+        // 2) default.gif / default.png → ảnh động, giữ nguyên frame gốc
+        for (const ext of ['gif', 'apng', 'png', 'webp']) {
+          r = await window.niOhAPI.readAsset('characters/default.' + ext);
+          if (r && r.success && r.base64) {
+            const svgEl = document.getElementById('charSvg');
+            if (svgEl) svgEl.style.display = 'none';
+            keepImg.src = 'data:image/' + (ext === 'apng' ? 'png' : ext) + ';base64,' + r.base64;
+            keepImg.style.display = 'block';
+            defaultFromDisk = true;
+            break;
+          }
         }
-      } catch (err) {
-        showSpeech('⚠️ Lỗi kết nối tới Server Ni-Oh.');
-      } finally {
-        isLoading = false;
       }
+      if (defaultFromDisk) { buildDefaultMask(); fitWindow(); }
+    } catch (e) { /* giữ inline fallback */ }
+  }
+  let defaultFromDisk = false;
+  loadDefaultFromDisk();
+  const miniAvatar = document.getElementById('miniAvatar');
+  function hitCharacter(x, y) {
+    if (charHidden) {                       // ẩn → vùng kéo là avatar tròn
+      const m = miniAvatar.getBoundingClientRect();
+      if (!m.width) return false;
+      const dx = (x - (m.left + m.width / 2)) / (m.width / 2);
+      const dy = (y - (m.top + m.height / 2)) / (m.height / 2);
+      return dx * dx + dy * dy <= 1.15;
     }
+    const r = char.getBoundingClientRect();
+    if (!r.width || !r.height) return false;
+    if (x < r.left || x > r.right || y < r.top || y > r.bottom) return false;
+    if (!alphaMask) return true;
+    const lx = Math.min(maskW - 1, Math.floor((x - r.left) / r.width * maskW));
+    const ly = Math.min(maskH - 1, Math.floor((y - r.top) / r.height * maskH));
+    return alphaMask[ly * maskW + lx] > 12;
+  }
+  function overInteractive(e) {
+    const t = e.target;
+    if (t.closest('.zone-bar') || t.closest('.zone-chat') || t.closest('.zone-func') || t.closest('.bubble')) return true;
+    return hitCharacter(e.clientX, e.clientY);
+  }
+  function setClickable(on) {
+    if (on === clickable) return;
+    clickable = on;
+    window.niOhAPI.setClickable(on);
+    document.body.classList.toggle('over-char', on);
+  }
+  document.addEventListener('mousemove', (e) => {
+    if (drag) return;
+    setClickable(overInteractive(e));
+  });
 
-    function showSpeech(text) {
-      speechText.innerText = text;
-      speechBubble.classList.add('active');
-      clearTimeout(window.speechTimeout);
-      window.speechTimeout = setTimeout(() => {
-        speechBubble.classList.remove('active');
-      }, 7000);
+  // ═══ KÉO THẢ: chỉ từ nhân vật / avatar đại diện ═══
+  let drag = null, dragWasMoved = false;
+  function canDragFrom(e) {
+    if (e.button !== 0) return false;
+    if (e.target.closest('textarea, input, .btn, .chat-send, .chat-corner, .zone-bar, .zone-chat, .zone-func')) return false;
+    return hitCharacter(e.clientX, e.clientY);
+  }
+  document.addEventListener('mousedown', async (e) => {
+    if (!canDragFrom(e)) return;
+    drag = { moved: false, ready: false };
+    document.body.classList.add('dragging');
+    e.preventDefault();
+    const off = await window.niOhAPI.overlayDragStart();
+    if (drag) { drag.ready = true; drag.off = off; }
+  });
+  document.addEventListener('mousemove', () => {
+    if (!drag || !drag.ready) return;
+    drag.moved = true;
+    window.niOhAPI.overlayDragMove();
+  });
+  document.addEventListener('mouseup', () => {
+    if (drag) {
+      if (drag.moved) window.niOhAPI.overlayDragEnd();
+      dragWasMoved = drag.moved;
+      setTimeout(() => { dragWasMoved = false; }, 50);
+      drag = null; document.body.classList.remove('dragging');
     }
+  });
 
-    setTimeout(() => {
-      showSpeech('Sếp ơi, Ni-Oh Tactical Overlay đã sẵn sàng trên màn hình!');
-    }, 1000);
-  </script>
+  // Chạm hình (không kéo) → boing
+  document.addEventListener('click', (e) => {
+    if (dragWasMoved) return;
+    if (e.target.closest('.zone-bar') || e.target.closest('.zone-chat') || e.target.closest('.zone-func') || e.target.closest('.bubble')) return;
+    if (!hitCharacter(e.clientX, e.clientY)) return;
+    zoneChar.classList.remove('poke'); void zoneChar.offsetWidth; zoneChar.classList.add('poke');
+    setTimeout(() => zoneChar.classList.remove('poke'), 700);
+  });
+
+  // ═══ SCALE: lăn chuột (neo con trỏ) + ô % trong popup ═══
+  function setScale(v, anchorX, anchorY) {
+    const s1 = Math.min(1.8, Math.max(0.6, v));
+    if (Math.abs(s1 - cscale) < 1e-4) { scaleInput.value = Math.round(cscale * 100); return; }
+    const k = s1 / cscale;
+    if (anchorX != null) { shiftX += anchorX * (1 - k); shiftY += anchorY * (1 - k); }
+    else { shiftX += innerWidth / 2 * (1 - k); shiftY += innerHeight / 2 * (1 - k); }
+    cscale = s1;
+    scaleInput.value = Math.round(cscale * 100);
+    fitWindow();
+    window.niOhAPI.saveConfig({ characterScale: Math.round(cscale * 100) / 100 });
+  }
+  document.addEventListener('wheel', (e) => {
+    if (e.target.closest('.zone-chat') || e.target.closest('.zone-func') || e.target.closest('.bubble')) return;
+    if (e.target.closest('input')) return;
+    e.preventDefault();
+    setScale(cscale + (e.deltaY < 0 ? 0.06 : -0.06), e.clientX, e.clientY);
+  }, { passive: false });
+  scaleInput.addEventListener('change', () => {
+    let v = parseFloat(scaleInput.value);
+    if (!isFinite(v)) v = 100;
+    setScale(v / 100);
+  });
+  scaleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') scaleInput.blur(); e.stopPropagation(); });
+
+  // ═══ Popup nút chức năng ═══
+  function openFunc(v) {
+    const open = (v === undefined) ? !funcPanel.classList.contains('open') : !!v;
+    funcPanel.classList.toggle('open', open);
+    document.getElementById('btnFunc').classList.toggle('active', open);
+    fitWindow(true);   // giữ đỉnh — hàng nút không xê dịch
+  }
+  document.getElementById('btnFunc').addEventListener('click', (e) => { e.stopPropagation(); openFunc(); });
+
+  // ═══ Ẩn/hiện nhân vật: hàng nút CỐ ĐỊNH, nhân vật co về avatar ═══
+  let charHidden = false;
+  function setCharHidden(v) {
+    charHidden = !!v;
+    document.body.classList.toggle('no-char', charHidden);
+    document.getElementById('btnHideChar').classList.toggle('active', charHidden);
+    fitWindow(true);
+  }
+  document.getElementById('btnHideChar').addEventListener('click', () => {
+    setCharHidden(!charHidden);
+    window.niOhAPI.saveConfig({ overlayCharHidden: charHidden });
+  });
+
+  // ═══ Biểu cảm ═══
+  function setAnim(state, ms) {
+    char.classList.remove('talking','thinking','happy','sleepy','alert');
+    if (state) char.classList.add(state);
+    const img = document.getElementById('charImg');
+    const src = poseSrc(state || 'idle');
+    if (img.style.display !== 'none' && src) img.src = src;
+    if (ms) setTimeout(() => { char.classList.remove(state); const i = poseSrc('idle'); if (i && img.style.display !== 'none') img.src = i; }, ms);
+  }
+  window.niOhAPI.onTalkState((on) => setAnim(on ? 'talking' : null));
+  window.niOhAPI.onThinking((sec) => setAnim('thinking', Math.min(60000, (sec||8) * 1000)));
+  window.niOhAPI.onEmotion && window.niOhAPI.onEmotion((mood, sec) => setAnim(mood, sec ? sec * 1000 : 6000));
+  let idleSleepTimer = setTimeout(() => setAnim('sleepy'), 10 * 60 * 1000);
+  function resetSleep() { clearTimeout(idleSleepTimer); if (char.classList.contains('sleepy')) setAnim(null); idleSleepTimer = setTimeout(() => setAnim('sleepy'), 10 * 60 * 1000); }
+  ['mousedown','wheel','keydown'].forEach(ev => document.addEventListener(ev, resetSleep));
+
+  function showBubble(text) {
+    bubble.textContent = text;
+    bubble.classList.add('show');
+    clearTimeout(bubbleTimer);
+    bubbleTimer = setTimeout(() => bubble.classList.remove('show'), Math.max(4000, text.length * 80));
+  }
+  window.niOhAPI.onSay((text) => showBubble(text));
+
+  let audioEl = null, audioUrl = '';
+  function playInOverlay(url) {
+    if (!audioEl) { audioEl = new Audio(); audioEl.preload = 'auto';
+      audioEl.addEventListener('play', () => setAnim('talking'));
+      audioEl.addEventListener('ended', () => setAnim(null));
+      audioEl.addEventListener('error', () => setAnim(null));
+    }
+    if (audioUrl === url && !audioEl.paused) { try { audioEl.pause(); } catch(e){} }
+    audioUrl = url;
+    audioEl.src = url;
+    audioEl.play().catch(() => {});
+  }
+  window.niOhAPI.onPlayFile((msg) => { if (msg && msg.url) playInOverlay(msg.url); });
+
+  // ═══ Config ═══
+  const POSE_FILE = { idle:'idle', talking:'talking', thinking:'thinking', fidget:'idle_fidget', look_cursor:'look_cursor', happy:'happy', alert:'alert', sleepy:'sleepy' };
+  function poseSrc(pose) {
+    const P = cfg.characterPoses;
+    if (!P || cfg.character === 'default') return null;
+    const key = POSE_FILE[pose] || pose;
+    return P[key] ? (window.location.href.replace(/overlay\.html.*$/, '') + P[key]) : (pose === 'idle' ? (cfg.characterImage || null) : null);
+  }
+  function apply(cfg2) {
+    cfg = cfg2 || cfg;
+    const img = document.getElementById('charImg');
+    const svg = document.getElementById('charSvgDisk') || document.getElementById('charSvg');
+    const idleSrc = poseSrc('idle') || (cfg.characterImage && cfg.character !== 'default' ? cfg.characterImage : null);
+    if (idleSrc) { img.src = idleSrc; img.style.display = 'block'; svg.style.display = 'none'; maskFromSource(idleSrc); }
+    else { img.style.display = 'none'; svg.style.display = 'block'; buildDefaultMask(); }
+    // default.svg từ đĩa có animation sẵn → nếu đang là default, mask dựng lại sau khi load xong
+    if (!idleSrc && defaultFromDisk) buildDefaultMask();
+    const s = Math.min(1.8, Math.max(0.6, cfg.characterScale || 1));
+    if (Math.abs(s - cscale) > 0.001) { cscale = s; scaleInput.value = Math.round(s * 100); fitWindow(true); }
+    setCharHidden(!!cfg.overlayCharHidden);
+    applyChatSize();
+    const eyeOn = !!cfg.realtimeScanEnabled;
+    document.getElementById('btnEye').classList.toggle('active', eyeOn);
+    document.getElementById('btnMic').classList.toggle('active', (cfg.micMode || 'off') !== 'off');
+    document.getElementById('btnMute').textContent = cfg.ttsEnabled ? '🔊' : '🔇';
+    document.getElementById('stateDot').classList.toggle('on', eyeOn);
+    document.getElementById('stateDot').title = eyeOn ? 'YOLO đang bật' : 'YOLO đang tắt';
+    if (cfg.lastAnswer && cfg.lastAnswer !== apply._last) { apply._last = cfg.lastAnswer; showBubble(cfg.lastAnswer); }
+  }
+  window.niOhAPI.onInitConfig(apply);
+  window.niOhAPI.onConfigUpdate(apply);
+  fitWindow(true);
+
+  // ═══ Nút chức năng ═══
+  document.getElementById('btnEye').addEventListener('click', async () => {
+    const r = await window.niOhAPI.toggleRealtimeScan();
+    const on = !!(r && r.running);
+    showBubble(on ? 'Đang quan sát PC, Sếp.' : 'Đã tắt quan sát PC.');
+  });
+  document.getElementById('btnMute').addEventListener('click', async () => {
+    await window.niOhAPI.saveConfig({ ttsEnabled: !cfg.ttsEnabled });
+  });
+  document.getElementById('btnMic').addEventListener('click', async () => {
+    const r = await window.niOhAPI.micToggle();
+    const on = r.success && r.mode !== 'off';
+    document.getElementById('btnMic').classList.toggle('active', on);
+    showBubble(on ? 'Ni-Oh đang lắng nghe micro, Sếp cứ nói.' : 'Đã tắt micro.');
+  });
+
+  // ═══ Khung chat — mở/đóng KHÔNG resize cửa sổ (chỗ đã chừa sẵn) ═══
+  function openChat(v) {
+    const open = (v === undefined) ? !chatPanel.classList.contains('open') : !!v;
+    chatPanel.classList.toggle('open', open);
+    document.getElementById('btnChat').classList.toggle('active', open);
+    if (open) { applyChatSize(); chatInput.focus(); autoResize(); }
+  }
+  document.getElementById('btnChat').addEventListener('click', (e) => { e.stopPropagation(); openChat(); });
+  document.addEventListener('pointerdown', (e) => {
+    if (funcPanel.classList.contains('open') && !funcPanel.contains(e.target) && !e.target.closest('#btnFunc')) openFunc(false);
+    if (chatPanel.classList.contains('open') && !chatPanel.contains(e.target) && !e.target.closest('#btnChat')) openChat(false);
+  });
+
+  function applyChatSize() {
+    const w = Math.min(CHAT_MAX_W, Math.max(140, cfg.chatBoxW || 224));
+    const h = Math.min(130, Math.max(21, cfg.chatBoxH || 21));
+    chatBox.style.width = w + 'px';
+    chatInput.style.height = h + 'px';
+    if (cfg.chatBoxH) chatInput.dataset.userSized = '1';
+  }
+  function autoResize() {
+    if (!chatInput.dataset.userSized) {
+      chatInput.style.height = 'auto';
+      chatInput.style.height = Math.max(21, Math.min(130, chatInput.scrollHeight)) + 'px';
+    }
+  }
+  chatInput.addEventListener('input', autoResize);
+
+  // grip GÓC: giãn 2 chiều — thuần CSS, không IPC → mượt tuyệt đối
+  chatCorner.addEventListener('mousedown', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const sx = e.clientX, sy = e.clientY;
+    const w0 = chatBox.offsetWidth, h0 = chatInput.offsetHeight;
+    function move(ev) {
+      chatBox.style.width = Math.min(CHAT_MAX_W, Math.max(140, w0 + (ev.clientX - sx))) + 'px';
+      chatInput.dataset.userSized = '1';
+      chatInput.style.height = Math.min(130, Math.max(21, h0 + (ev.clientY - sy))) + 'px';
+    }
+    function up() {
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('mouseup', up);
+      window.niOhAPI.saveConfig({ chatBoxW: chatBox.offsetWidth, chatBoxH: chatInput.offsetHeight });
+    }
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', up);
+  });
+
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+    if (e.key === 'Escape') { openChat(false); openFunc(false); }
+    e.stopPropagation();
+  });
+  let asking = false;
+  async function sendChat() {
+    const q = chatInput.value.trim();
+    if (!q || asking) return;
+    asking = true;
+    chatInput.value = '';
+    if (!cfg.chatBoxH) { chatInput.dataset.userSized = ''; chatInput.style.height = '21px'; autoResize(); }
+    setAnim('thinking');
+    try {
+      const r = await window.niOhAPI.askQuestion(q);
+      char.classList.remove('talking');
+      showBubble(r.success ? r.answer : 'Lỗi: ' + (r.error || '?'));
+    } finally { asking = false; }
+  }
+  document.getElementById('chatSend').addEventListener('click', sendChat);
+</script>
 </body>
 </html>

@@ -1,0 +1,72 @@
+<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="slimeG" cx="38%" cy="30%" r="80%">
+              <stop offset="0%" stop-color="#dcecfb"/>
+              <stop offset="45%" stop-color="#9ec1ee"/>
+              <stop offset="100%" stop-color="#6d97dd"/>
+            </radialGradient>
+            <radialGradient id="coreG" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#bfe4ff"/>
+              <stop offset="60%" stop-color="#5aa7e8" stop-opacity=".8"/>
+              <stop offset="100%" stop-color="#5aa7e8" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <ellipse class="puddle" cx="100" cy="224" rx="56" ry="9" fill="#9ec1ee"/>
+          <g class="slime-body">
+            <path d="M100 30 C108 50 138 72 150 106 C162 140 152 190 100 198 C48 190 38 140 50 106 C62 72 92 50 100 30 Z"
+                  fill="url(#slimeG)" stroke="#b7d2f2" stroke-width="2" opacity=".94"/>
+            <path d="M52 178 q-14 8 -10 16 q5 8 16 2 Z" fill="#8fb4ec" opacity=".8"/>
+            <path d="M70 150 q30 -14 60 2 q-28 12 -60 -2 Z" fill="#5b8bd6" opacity=".18"/>
+            <path d="M62 112 q20 -8 30 4 q-18 8 -30 -4 Z" fill="#ffffff" opacity=".14"/>
+            <g class="core">
+              <circle cx="100" cy="132" r="26" fill="url(#coreG)"/>
+              <path d="M100 118 l10 14 l-10 14 l-10 -14 Z" fill="#cfeaff" stroke="#7db8ea" stroke-width="1.4" class="glint"/>
+            </g>
+            <ellipse class="glint" cx="74" cy="72" rx="13" ry="19" fill="#ffffff" opacity=".65" transform="rotate(-24 74 72)"/>
+            <circle cx="62" cy="100" r="4" fill="#ffffff" opacity=".4"/>
+            <g class="bub" fill="none" stroke="#bfe4ff" stroke-width="1.6">
+              <circle cx="150" cy="60" r="4"/><circle cx="160" cy="44" r="2.6"/><circle cx="146" cy="36" r="1.8"/>
+            </g>
+            <g class="zzz" fill="#bfe4ff" font-family="Segoe UI" font-weight="700">
+              <text x="146" y="52" font-size="16">z</text>
+              <text x="160" y="36" font-size="12">z</text>
+            </g>
+          </g>
+          <g class="face">
+            <g class="eyes-normal">
+              <ellipse cx="84" cy="132" rx="5.5" ry="9" fill="#2c4f7c"/>
+              <ellipse cx="116" cy="132" rx="5.5" ry="9" fill="#2c4f7c"/>
+              <circle cx="82" cy="128.5" r="2" fill="#ffffff" opacity=".95"/>
+              <circle cx="114" cy="128.5" r="2" fill="#ffffff" opacity=".95"/>
+            </g>
+            <g class="eyes-line" stroke="#2c4f7c" stroke-width="2.6" stroke-linecap="round" fill="none">
+              <path d="M77 132 q7 5 14 0"/><path d="M109 132 q7 5 14 0"/>
+            </g>
+            <g class="eyes-happy" stroke="#2c4f7c" stroke-width="2.8" stroke-linecap="round" fill="none">
+              <path d="M77 134 q7 -9 14 0"/><path d="M109 134 q7 -9 14 0"/>
+            </g>
+            <g class="eyes-alert">
+              <circle cx="84" cy="130" r="9" fill="#ffffff" stroke="#2c4f7c" stroke-width="2"/>
+              <circle cx="84" cy="130" r="3.4" fill="#2c4f7c"/>
+              <circle cx="116" cy="130" r="9" fill="#ffffff" stroke="#2c4f7c" stroke-width="2"/>
+              <circle cx="116" cy="130" r="3.4" fill="#2c4f7c"/>
+            </g>
+            <path class="m-smile" d="M90 148 Q100 156 110 148" fill="none" stroke="#2c4f7c" stroke-width="2.6" stroke-linecap="round"/>
+            <ellipse class="m-o" cx="100" cy="152" rx="5" ry="6" fill="#2c4f7c"/>
+            <path class="m-flat" d="M92 152 h16" stroke="#2c4f7c" stroke-width="2.4" stroke-linecap="round"/>
+            <path class="m-grin" d="M88 146 Q100 162 112 146 Q100 154 88 146 Z" fill="#2c4f7c"/>
+            <ellipse class="m-big" cx="100" cy="154" rx="9" ry="13" fill="#2c4f7c"/>
+            <circle cx="70" cy="143" r="4.5" fill="#ff8fb8" opacity=".3"/>
+            <circle cx="130" cy="143" r="4.5" fill="#ff8fb8" opacity=".3"/>
+          </g>
+        <style>
+  .slime-body{transform-box:fill-box;transform-origin:center bottom;animation:sq 3.6s ease-in-out infinite}
+  @keyframes sq{0%,100%{transform:scale(1,1)}50%{transform:scale(1.025,.975)}}
+  .eyes-normal{transform-box:fill-box;transform-origin:center;animation:bl 4.5s ease-in-out infinite}
+  @keyframes bl{0%,41%,45%,100%{transform:scaleY(1)}43%{transform:scaleY(.08)}}
+  .glint{animation:gl 2.8s ease-in-out infinite}@keyframes gl{0%,100%{opacity:.6}50%{opacity:1}}
+  .puddle{transform-box:fill-box;transform-origin:center;animation:pd 3.2s ease-in-out infinite}
+  @keyframes pd{0%,100%{transform:scaleX(1);opacity:.4}50%{transform:scaleX(.85);opacity:.25}}
+  .face g,.face .m-o,.face .m-flat,.face .m-grin,.face .m-big,.slime-body .zzz,.slime-body .bub,.slime-body .core{display:none}
+  .face .eyes-normal,.face .m-smile{display:block}
+</style></svg>
