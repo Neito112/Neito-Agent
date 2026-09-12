@@ -551,75 +551,42 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
     </div>
   </section>
 
-  <!-- ══ Panel: Kho mở rộng — skill / tool / mcp / plugin / admin ══ -->
+  <!-- ══ Panel: Kho mở rộng ══ -->
   <section class="panel" id="panel-ext" role="tabpanel" aria-labelledby="tab-ext" hidden>
     <h2>Kho mở rộng</h2>
-    <p class="subtitle">Core Ni-Oh bất biến — skill, tool, MCP, plugin sống ở kho riêng (<code>extensions/</code>) và chạy song song. Ni-Oh dùng agy gọi chúng như agent chat thông thường, nhưng có thêm MẮT để vận hành máy.</p>
+    <p class="subtitle">Core Ni-Oh bất biến — công cụ sống ở kho riêng, cài xong dùng NGAY không cần khởi động lại. Não agy phân tích yêu cầu và tự cài đúng chỗ.</p>
 
-    <div class="card" id="ext-admin-card">
+    <div class="card">
       <div class="ctrl">
         <span class="ico">🛡️</span>
-        <div class="meta"><strong>Quyền quản trị hệ thống</strong><small>Bật: Ni-Oh tự vận hành máy như OpenClaw/Agy/Hermes/Claude — chạy lệnh, mở app, click, sửa file, KẾT HỢP cảnh mắt YOLO thấy để thao tác chính xác. Tắt: chỉ tư vấn, không đụng vào máy.</small></div>
+        <div class="meta"><strong>Quyền quản trị hệ thống</strong><small>Bật: Ni-Oh tự vận hành máy (chạy lệnh, cài đặt, click, sửa file) kết hợp mắt YOLO kiểm chứng. Tắt: chỉ tư vấn.</small></div>
         <span class="state" id="st-admin">—</span>
         <label class="switch"><input type="checkbox" id="sw-admin" onchange="setExtAdmin(this.checked)"><span class="track"></span></label>
       </div>
-      <p class="desc" id="admin-note"></p>
     </div>
 
     <div class="card">
-      <h3>🧠 Skill — kỹ năng của Ni-Oh</h3>
-      <p class="desc" style="margin-top:-6px;margin-bottom:10px">Markdown định dạng Hermes (name + description + hướng dẫn). Agy đọc trực tiếp từ kho qua <code>--add-dir</code>, không cần khởi động lại.</p>
-      <div id="ext-skills" class="characters-grid" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))"><div class="empty" aria-busy="true">Đang tải…</div></div>
+      <h3>📥 Gửi yêu cầu cài đặt</h3>
+      <p class="desc" style="margin-top:-4px;margin-bottom:10px">Nhập tên công cụ, link GitHub, hoặc chọn file .zip — kèm mô tả nếu cần. Não agy sẽ phân tích đó là skill / tool / MCP / plugin và tự cài vào kho.</p>
+      <div class="field">
+        <textarea id="ext-req" rows="3" placeholder="VD: cài skill đọc phụ đề video từ https://github.com/xxx/yyy&#10;hoặc: tool đổi âm lượng hệ thống&#10;hoặc: MCP filesystem cho thư mục D:/Data" style="width:100%;background:rgba(7,8,10,.6);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:var(--fs-md);font-family:var(--font);padding:var(--sp-2) var(--sp-3);outline:none;resize:vertical;min-height:64px"></textarea>
+      </div>
+      <div class="row">
+        <button class="btn shrink" id="btn-ext-zip" onclick="extPickZip()" data-tip="Chọn file .zip chứa skill/tool/plugin — Ni-Oh tự giải nén và đọc cấu trúc">🗜️ Chọn file zip</button>
+        <span class="status-text shrink" id="ext-zip-name" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        <button class="btn btn-primary shrink" id="btn-ext-send" onclick="extSend()" data-tip="Gửi cho não agy phân tích + cài đặt (30–240 giây)">🚀 Gửi yêu cầu</button>
+      </div>
+      <div id="ext-req-out" style="display:none;margin-top:10px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:var(--fs-sm);white-space:pre-wrap;max-height:180px;overflow-y:auto;background:var(--glass)"></div>
+    </div>
+
+    <div class="card">
+      <h3>⚙️ Đã cài &amp; đang dùng</h3>
+      <p class="desc" style="margin-top:-4px;margin-bottom:10px">Trạng thái thật của từng công cụ — nạp được / báo lỗi / đang tắt. Bấm ↻ để kiểm tra lại.</p>
+      <div id="ext-items" style="display:flex;flex-direction:column;gap:6px"><div class="empty" aria-busy="true">Đang tải…</div></div>
       <div class="row" style="margin-top:10px">
-        <button class="btn btn-sm shrink" onclick="extSkillEditor()" data-tip="Tự viết 1 skill mới (markdown) — Ni-Oh dùng ngay lượt sau">＋ Viết skill</button>
-        <button class="btn btn-sm shrink" onclick="loadExt()" data-tip="Quét lại kho">↻ Làm mới</button>
+        <button class="btn btn-sm shrink" onclick="loadExt()" data-tip="Quét lại kho + kiểm tra sức khỏe từng công cụ">↻ Kiểm tra lại</button>
         <button class="btn btn-sm shrink" onclick="window.niOhAPI.extOpenFolder()" data-tip="Mở thư mục extensions/ trong Explorer">📂 Mở kho</button>
       </div>
-    </div>
-
-    <div class="card">
-      <h3>🔧 Tool mở rộng</h3>
-      <p class="desc" style="margin-top:-6px;margin-bottom:10px">File JS trong <code>extensions/tools/</code> — Ni-Oh tự viết tool mới khi thiếu (tự nạp, core không đổi).</p>
-      <div id="ext-tools" class="characters-grid" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))"><div class="empty" aria-busy="true">Đang tải…</div></div>
-      <div class="row" style="margin-top:10px">
-        <button class="btn btn-sm shrink" onclick="extToolEditor()" data-tip="Viết tool JS mới: module.exports={name,desc,run}">＋ Viết tool</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>🔌 MCP Server</h3>
-      <p class="desc" style="margin-top:-6px;margin-bottom:10px">Registry MCP của Ni-Oh. Bấm "Đồng bộ sang agy" để ghi vào agy (<code>agy mcp add</code>) — agy sẽ thấy tool MCP khi Ni-Oh gọi.</p>
-      <div id="ext-mcp" style="display:flex;flex-direction:column;gap:8px"><div class="empty" aria-busy="true">Đang tải…</div></div>
-      <div class="row" style="margin-top:10px">
-        <button class="btn btn-sm shrink" onclick="extMcpEditor()" data-tip="Thêm MCP: tên + lệnh + args (VD: npx -y @modelcontextprotocol/server-filesystem)">＋ Thêm MCP</button>
-        <button class="btn btn-sm shrink" onclick="extSyncAgy()" data-tip="Ghi các MCP đang bật vào cấu hình agy">⇄ Đồng bộ sang agy</button>
-        <span class="status-text shrink" id="ext-sync-status"></span>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>📦 Plugin</h3>
-      <p class="desc" style="margin-top:-6px;margin-bottom:10px">Plugin agy (<code>agy plugin install &lt;target&gt;</code>, hỗ trợ <code>plugin@marketplace</code>). Ni-Oh chạy lệnh cài/gỡ/bật/tắt giúp Sếp — vì plugin nằm NGOÀI core nên core không bao giờ hỏng vì cài đặt.</p>
-      <div id="ext-plugins" style="display:flex;flex-direction:column;gap:8px"><div class="empty" aria-busy="true">Đang tải…</div></div>
-      <div class="row" style="margin-top:10px">
-        <div class="field" style="margin:0;flex:2 1 220px">
-          <input type="text" id="ext-plugin-target" placeholder="VD: my-plugin@marketplace hoặc tên plugin" autocomplete="off">
-        </div>
-        <button class="btn btn-sm shrink" onclick="extPluginInstall()" data-tip="Chạy agy plugin install — kết quả hiện bên dưới">⬇ Cài plugin</button>
-        <span class="status-text shrink" id="ext-plugin-status"></span>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>🧪 Thử nghiệm kho</h3>
-      <p class="desc" style="margin-top:-6px;margin-bottom:10px">Gửi 1 yêu cầu thẳng cho não agy KÈM toàn bộ kho + quyền hiện tại + cảnh mắt — xem Ni-Oh điều phối skill/tool thật không.</p>
-      <div class="row">
-        <div class="field" style="margin:0;flex:2 1 260px">
-          <input type="text" id="ext-test-q" placeholder="VD: mở Notepad gõ 'xin chao' rồi chụp lại xem nó mở chưa" autocomplete="off">
-        </div>
-        <button class="btn btn-primary shrink" id="btn-ext-test" onclick="extTest()" data-tip="agy chạy với --add-dir extensions (+skip-permissions nếu đã cấp quyền)">▶ Chạy thử</button>
-      </div>
-      <pre id="ext-test-out" class="desc" style="white-space:pre-wrap;margin-top:10px;max-height:220px;overflow-y:auto;display:none"></pre>
     </div>
   </section>
 
@@ -1420,128 +1387,76 @@ async function quickGenAsset() {
 }
 
 // ═══ TAB MỞ RỘNG ═══
-let _extData = { skills:[], tools:[], mcp:[], plugins:[], admin:{granted:false} };
-async function loadExt() {
+let _extZipPath = null;
+async function extPickZip() {
+  const r = await window.niOhAPI.extPickZip();
+  if (r.success) {
+    _extZipPath = r.path;
+    document.getElementById('ext-zip-name').textContent = '🗜️ ' + r.path.split(/[\\/]/).pop();
+  } else if (!r.canceled && r.error) toast('❌ ' + r.error);
+}
+async function extSend() {
+  const text = document.getElementById('ext-req').value.trim();
+  if (!text && !_extZipPath) { toast('Nhập yêu cầu hoặc chọn file zip trước'); return; }
+  const btn = document.getElementById('btn-ext-send'), out = document.getElementById('ext-req-out');
+  btn.disabled = true; out.style.display = 'block';
+  out.textContent = '⏳ Não agy đang phân tích yêu cầu và cài vào kho (30–240 giây)…';
   try {
-    _extData = await window.niOhAPI.extList();
-    const sk = document.getElementById('ext-skills');
-    sk.innerHTML = _extData.skills.length ? _extData.skills.map(s => `
-      <div class="card" style="margin:0;padding:10px 12px">
-        <strong style="font-size:13px">🧠 ${s.name}</strong>
-        <p class="desc" style="margin-top:3px">${(s.description||'').slice(0,90)}…</p>
-        <div class="row" style="margin-top:6px;gap:6px">
-          <button class="btn btn-sm shrink" onclick="extViewSkill('${s.id}')" data-tip="Xem/nửa nội dung SKILL.md">👁 Xem</button>
-          <button class="btn btn-sm btn-danger shrink" onclick="extDelSkill('${s.id}')" data-tip="Gỡ skill khỏi kho">✕</button>
-        </div>
-      </div>`).join('') : '<div class="empty"><div class="big">🧩</div><strong>Chưa có skill</strong></div>';
-    const tl = document.getElementById('ext-tools');
-    tl.innerHTML = _extData.tools.length ? _extData.tools.map(t => `
-      <div class="card" style="margin:0;padding:10px 12px">
-        <strong style="font-size:13px">🔧 ${t.id}</strong>
-        <p class="desc" style="margin-top:3px">${(t.desc||'').slice(0,90)}</p>
-        <button class="btn btn-sm btn-danger shrink" style="margin-top:6px" onclick="extDelTool('${t.id}')">✕ Gỡ</button>
-      </div>`).join('') : '<div class="empty"><div class="big">🔧</div><strong>Chưa có tool mở rộng</strong></div>';
-    const mc = document.getElementById('ext-mcp');
-    mc.innerHTML = _extData.mcp.length ? _extData.mcp.map(m => `
-      <div style="display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:8px 10px">
-        <span style="flex:1;min-width:0"><strong style="font-size:13px">${m.name}</strong><br><span class="desc" style="font-size:11px">${m.command} ${(m.args||[]).join(' ')}</span></span>
-        <label class="switch"><input type="checkbox" ${m.enabled!==false?'checked':''} onchange="extMcpToggle('${m.name}',this.checked)"><span class="track"></span></label>
-        <button class="btn btn-sm btn-danger" onclick="extMcpRemove('${m.name}')" data-tip="Xóa khỏi registry">✕</button>
-      </div>`).join('') : '<div class="empty">Chưa có MCP nào</div>';
-    const pl = document.getElementById('ext-plugins');
-    pl.innerHTML = _extData.plugins.length ? _extData.plugins.map(x => `
-      <div style="display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:8px 10px">
-        <span style="flex:1"><strong style="font-size:13px">📦 ${x.name}</strong> <span class="desc" style="font-size:11px">${x.source||''}</span></span>
-        <label class="switch"><input type="checkbox" ${x.enabled!==false?'checked':''} onchange="extPluginToggle('${x.name}',this.checked)"><span class="track"></span></label>
-        <button class="btn btn-sm btn-danger" onclick="extPluginRemove('${x.name}')">✕</button>
-      </div>`).join('') : '<div class="empty">Chưa có plugin nào — dùng ô cài bên dưới</div>';
-    const adm = _extData.admin && _extData.admin.granted;
-    document.getElementById('sw-admin').checked = !!adm;
+    const r = await window.niOhAPI.extRequest({ text, zipPath: _extZipPath });
+    out.textContent = r.success ? (r.answer || '✓ Xong') : '❌ ' + (r.error || 'thất bại');
+    if (r.success) { document.getElementById('ext-req').value = ''; _extZipPath = null; document.getElementById('ext-zip-name').textContent = ''; }
+  } catch (e) { out.textContent = '❌ ' + e.message; }
+  btn.disabled = false;
+  loadExt();
+}
+const EXT_ICON = { skill: '🧠', tool: '🔧', mcp: '🔌', plugin: '📦' };
+async function loadExt() {
+  const el = document.getElementById('ext-items');
+  if (!el) return;
+  try {
+    const [list, hp] = await Promise.all([window.niOhAPI.extList(), window.niOhAPI.extHealth()]);
+    const health = (hp && hp.health) || {};
+    const items = [];
+    for (const s of list.skills) items.push({ key: 'skill:' + s.id, icon: '🧠', kind: 'Skill', name: s.id, desc: (s.description || '').slice(0, 80), off: false, del: () => extDel('skill', s.id) });
+    for (const t of list.tools) items.push({ key: 'tool:' + t.id, icon: '🔧', kind: 'Tool', name: t.id, desc: (t.desc || '').slice(0, 80), off: false, del: () => extDel('tool', t.id) });
+    for (const m of list.mcp) items.push({ key: 'mcp:' + m.name, icon: '🔌', kind: 'MCP', name: m.name, desc: m.command + ' ' + (m.args || []).join(' '), off: m.enabled === false, del: () => extDel('mcp', m.name) });
+    for (const pl of list.plugins) items.push({ key: 'plugin:' + pl.name, icon: '📦', kind: 'Plugin', name: pl.name, desc: pl.source || 'agy plugin', off: pl.enabled === false, del: () => extDel('plugin', pl.name) });
+    if (!items.length) { el.innerHTML = '<div class="empty"><div class="big">🧩</div><strong>Chưa có công cụ nào</strong><p style="font-size:12px;margin-top:4px">Gửi yêu cầu cài đặt ở khung trên.</p></div>'; }
+    else el.innerHTML = items.map(it => {
+      const h = health[it.key];
+      const st = it.off ? '<span class="chip"><span class="dot"></span> đang tắt</span>'
+        : h && h.ok ? '<span class="chip ok"><span class="dot"></span> hoạt động</span>'
+        : h ? '<span class="chip err" title="' + h.msg.replace(/"/g, '&quot;') + '"><span class="dot"></span> lỗi</span>'
+        : '<span class="chip"><span class="dot"></span> chưa kiểm tra</span>';
+      const msg = (!it.off && h && !h.ok) ? '<div class="desc" style="color:var(--err);font-size:11px;margin-top:2px">⚠ ' + h.msg + '</div>' : '';
+      return `<div style="display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:10px;padding:8px 12px">
+        <span style="font-size:16px">${it.icon}</span>
+        <span style="flex:1;min-width:0">
+          <strong style="font-size:13px">${it.name}</strong> <span class="desc" style="font-size:10px;text-transform:uppercase;letter-spacing:.5px">${it.kind}</span>
+          <div class="desc" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${it.desc}</div>${msg}
+        </span>
+        ${st}
+        <button class="btn btn-sm btn-danger" style="padding:2px 8px;font-size:11px" onclick="${'extDel(\'' + it.key.split(':')[0] + '\',\'' + it.name.replace(/'/g, '') + '\')'}" data-tip="Gỡ khỏi kho">✕</button>
+      </div>`;
+    }).join('');
+    const adm = list.admin && list.admin.granted;
+    const sw = document.getElementById('sw-admin'); if (sw) sw.checked = !!adm;
     setSt('st-admin', adm ? 'Đã cấp' : 'Chưa cấp', !!adm);
-    document.getElementById('admin-note').textContent = adm
-      ? '⚠ Ni-Oh đang có quyền tự chạy lệnh/click/sửa file với sự hỗ trợ của mắt YOLO. Tắt khi Sếp không dùng để an toàn.'
-      : 'Chưa cấp: Ni-Oh chỉ tư vấn và trả lời, không tự thao tác máy.';
-  } catch (e) { console.warn('loadExt', e); }
+  } catch (e) { el.innerHTML = '<div class="empty">⚠ Không đọc được kho: ' + e.message + '</div>'; }
+}
+async function extDel(kind, name) {
+  if (!confirm('Gỡ "' + name + '" khỏi kho?')) return;
+  const api = { skill: 'extSkillRemove', tool: 'extToolRemove', mcp: 'extMcpRemove', plugin: 'extPluginRemove' }[kind];
+  const r = await window.niOhAPI[api](name);
+  toast(r.success ? '✓ Đã gỡ' : '❌ ' + (r.error || ''));
+  loadExt();
 }
 async function setExtAdmin(on) {
-  if (on && !confirm('CẤP QUYỀN QUẢN TRỊ HỆ THỐNG cho Ni-Oh?\n\nNi-Oh sẽ tự vận hành máy như OpenClaw/Agy/Hermes: chạy lệnh, mở/đóng app, click chuột, sửa file — có mắt YOLO kiểm chứng kết quả thật sau mỗi thao tác.\n\nChỉ bật khi Sếp tin tưởng phiên làm việc hiện tại.')) {
+  if (on && !confirm('CẤP QUYỀN QUẢN TRỊ HỆ THỐNG cho Ni-Oh?\n\nNi-Oh sẽ tự vận hành máy như OpenClaw/Agy/Hermes: chạy lệnh, mở app, click, sửa file — có mắt YOLO kiểm chứng kết quả thật sau mỗi thao tác.\n\nChỉ bật khi Sếp tin tưởng phiên làm việc hiện tại.')) {
     document.getElementById('sw-admin').checked = false; return;
   }
   await window.niOhAPI.extAdmin(on); loadExt();
-  toast(on ? 'Đã cấp quyền quản trị — Ni-Oh tự vận hành được rồi' : 'Đã thu hồi quyền quản trị');
-}
-function extViewSkill(id) {
-  const s = _extData.skills.find(x => x.id === id);
-  window.niOhAPI.readAsset ? null : null;
-  extSkillEditor(id, s ? s.name : id);
-}
-async function extSkillEditor(editId, editName) {
-  const id = editId || prompt('Tên skill (ASCII, vd: my-skill):', '');
-  if (!id) return;
-  const tpl = `---\nname: ${id}\ndescription: Mô tả skill + khi nào dùng ("Dùng khi ...")\n---\n\n## Hướng dẫn\n1. ...\n`;
-  const body = prompt('Nội dung SKILL.md (markdown):', tpl);
-  if (body === null) return;
-  const r = await window.niOhAPI.extSkillSave({ id, content: body.replace(/\\n/g, '\n') });
-  toast(r.success ? '✓ Đã lưu skill "' + r.id + '" — agy dùng ngay lượt sau' : '❌ ' + r.error);
-  loadExt();
-}
-async function extDelSkill(id) {
-  if (!confirm('Gỡ skill "' + id + '"?')) return;
-  await window.niOhAPI.extSkillRemove(id); loadExt(); toast('Đã gỡ skill');
-}
-async function extToolEditor() {
-  const id = prompt('Tên tool (ASCII, vd: volume-set):', '');
-  if (!id) return;
-  const tpl = `module.exports = {\n  name: '${id}',\n  desc: 'Mô tả tool cho não Ni-Oh',\n  run: async (args, ctx) => {\n    // args: object từ não · ctx.screenContext() · ctx.speak(text)\n    return { ok: true, out: 'đã làm: ' + JSON.stringify(args) };\n  }\n};`;
-  const code = prompt('Code JS (module.exports={name,desc,run}):', tpl);
-  if (code === null) return;
-  const r = await window.niOhAPI.extToolSave({ id, code: code.replace(/\\n/g, '\n') });
-  toast(r.success ? '✓ Tool "' + r.id + '" đã nạp nóng' : '❌ ' + r.error);
-  loadExt();
-}
-async function extDelTool(id) {
-  if (!confirm('Gỡ tool "' + id + '"?')) return;
-  await window.niOhAPI.extToolRemove(id); loadExt(); toast('Đã gỡ tool');
-}
-async function extMcpEditor() {
-  const name = prompt('Tên MCP server:', 'filesystem'); if (!name) return;
-  const command = prompt('Lệnh chạy (vd: npx):', 'npx'); if (!command) return;
-  const args = (prompt('Args (cách nhau bởi space):', '-y @modelcontextprotocol/server-filesystem D:/Ni-Oh') || '').trim();
-  const r = await window.niOhAPI.extMcpAdd({ name, command, args: args ? args.split(/\s+/) : [] });
-  toast(r.success ? '✓ Đã thêm MCP "' + name + '" (nhớ bấm Đồng bộ sang agy)' : '❌ ' + (r.error || ''));
-  loadExt();
-}
-async function extMcpRemove(n) { await window.niOhAPI.extMcpRemove(n); loadExt(); }
-async function extMcpToggle(n, on) { await window.niOhAPI.extMcpToggle(n, on); loadExt(); }
-async function extSyncAgy() {
-  const st = document.getElementById('ext-sync-status');
-  st.textContent = '⏳ Đang ghi vào agy…';
-  const r = await window.niOhAPI.extSyncAgy();
-  const ok = (r.results || []).filter(x => x.ok).length;
-  st.textContent = `✓ ${ok}/${(r.results || []).length} MCP đã đồng bộ sang agy`;
-  loadExt();
-}
-async function extPluginInstall() {
-  const target = document.getElementById('ext-plugin-target').value.trim();
-  if (!target) { toast('Nhập plugin cần cài trước'); return; }
-  const st = document.getElementById('ext-plugin-status');
-  st.textContent = '⏳ agy plugin install ' + target + ' …';
-  const r = await window.niOhAPI.extPluginInstall(target);
-  st.textContent = r.success ? '✓ ' + (r.output || 'đã cài').slice(0, 80) : '❌ ' + (r.error || (r.output||'').slice(0,120));
-  loadExt();
-}
-async function extPluginRemove(n) { await window.niOhAPI.extPluginRemove(n); loadExt(); }
-async function extPluginToggle(n, on) { await window.niOhAPI.extPluginToggle(n, on); loadExt(); }
-async function extTest() {
-  const q = document.getElementById('ext-test-q').value.trim();
-  if (!q) { toast('Nhập yêu cầu thử trước'); return; }
-  const btn = document.getElementById('btn-ext-test'), out = document.getElementById('ext-test-out');
-  btn.disabled = true; out.style.display = 'block'; out.textContent = '⏳ Não agy đang chạy với kho mở rộng + cảnh mắt (tối đa 2 phút)…';
-  try {
-    const r = await window.niOhAPI.extAsk(q);
-    out.textContent = r.success ? (r.answer || r.output || JSON.stringify(r)).slice(0, 2000) : '❌ ' + (r.error || 'lỗi');
-  } catch (e) { out.textContent = '❌ ' + e.message; }
-  btn.disabled = false;
+  toast(on ? 'Đã cấp quyền quản trị' : 'Đã thu hồi quyền quản trị');
 }
 
 // ─── Toast (keyboard/mouse feedback, không alert()) ───

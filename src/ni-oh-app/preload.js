@@ -94,6 +94,9 @@ contextBridge.exposeInMainWorld('niOhAPI', {
   extToolSave: (p) => ipcRenderer.invoke('ext-tool-save', p),
   extToolRemove: (id) => ipcRenderer.invoke('ext-tool-remove', id),
   extAsk: (q) => ipcRenderer.invoke('ext-ask', q),
+  extPickZip: () => ipcRenderer.invoke('ext-pick-zip'),
+  extRequest: (p) => ipcRenderer.invoke('ext-request', p),
+  extHealth: () => ipcRenderer.invoke('ext-health'),
   extPluginInstall: (t) => ipcRenderer.invoke('ext-plugin-install', t),
 
   // Self-train cũ

@@ -1193,6 +1193,93 @@ ipcMain.handle('ext-plugin-run', async (_, argsArr) => {
   const r = await extMan.agyCli(['plugin', ...a.slice(1)], 60000);
   return { success: r.success, output: (r.output||'').slice(0,500), error: r.error };
 });
+// ─ chọn file zip từ máy (dialog hệ thống) ─
+ipcMain.handle('ext-pick-zip', async () => {
+  try {
+    const { dialog } = require('electron');
+    const r = await dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'Zip', extensions: ['zip'] }] });
+    if (r.canceled || !r.filePaths[0]) return { success: false, canceled: true };
+    return { success: true, path: r.filePaths[0] };
+  } catch (e) { return { success: false, error: e.message }; }
+});
+
+// ─ giải nén zip bằng PowerShell (core tự làm phần cơ học, không cần quyền agy) ─
+function unzipTo(zipPath, dest) {
+  return new Promise((resolve) => {
+    try { fs.mkdirSync(dest, { recursive: true }); } catch (e) {}
+    const safe = String(zipPath).replace(/'/g, "''");
+    const safeD = String(dest).replace(/'/g, "''");
+    const ps = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
+      "Expand-Archive -LiteralPath '" + safe + "' -DestinationPath '" + safeD + "' -Force"], { windowsHide: true });
+    let err = '';
+    ps.stderr.on('data', d => err += d);
+    const to = setTimeout(() => { try { ps.kill('SIGKILL'); } catch (e) {} resolve({ success: false, error: 'giải nén timeout' }); }, 60000);
+    ps.on('close', code => { clearTimeout(to); resolve(code === 0 ? { success: true, dest } : { success: false, error: (err || 'Expand-Archive exit ' + code).toString().slice(0, 200) }); });
+    ps.on('error', e => { clearTimeout(to); resolve({ success: false, error: e.message }); });
+  });
+}
+
+// ─ KHUNG YÊU CẦU: Sếp nhập tên/link/zip → não agy phân tích loại + tự cài vào kho ─
+ipcMain.handle('ext-request', async (_, payload) => {
+  const text = String((payload && payload.text) || '').trim();
+  let zipNote = '';
+  if (payload && payload.zipPath && fs.existsSync(payload.zipPath)) {
+    const dest = path.join(extMan.EXT, '_incoming', String(Date.now()));
+    const uz = await unzipTo(payload.zipPath, dest);
+    if (!uz.success) return { success: false, error: 'Giải nén thất bại: ' + uz.error };
+    zipNote = '\nFILE ZIP Sếp đưa đã giải nén tại: ' + dest + ' (đọc thư mục này để biết nó là gì).';
+  }
+  if (!text && !zipNote) return { success: false, error: 'Chưa nhập yêu cầu' };
+  const prompt =
+    'BẠN LÀ BỘ CÀI ĐẶT MỞ RỘNG của Ni-Oh. Kho mở rộng nằm tại: ' + extMan.EXT + ' (bạn được quyền đọc/ghi trong này qua --add-dir).\n' +
+    'KHO HIỆN TẠI:\n' + extMan.storePrompt() + '\n' + zipNote + '\n\n' +
+    'YÊU CẦU CỦA SẾP: ' + text + '\n\n' +
+    'NHIỆM VỤ:\n' +
+    '1. Phân tích yêu cầu thuộc loại: SKILL (markdown hướng dẫn) / TOOL (file JS) / MCP server / PLUGIN agy. Nếu Sếp đưa link GitHub, đọc repo (web) để xác định.\n' +
+    '2. Cài ĐÚNG CHỖ:\n' +
+    '   - skill → viết extensions/skills/<id-ascii>/SKILL.md, frontmatter: name + description (chứa cảkích hoạt "Dùng khi ...") + hướng dẫn markdown.\n' +
+    '   - tool → viết extensions/tools/<id>.js dạng module.exports = { name, desc, run: async (args, ctx) => ({ ok, out }) } (chỉ dùng module chuẩn Node).\n' +
+    '   - mcp → thêm object {name, command, args, enabled:true} vào extensions/mcp.json (giữ nguyên các entry cũ).\n' +
+    '   - plugin → chạy lệnh: agy plugin install <target>.\n' +
+    '3. TỰ KIỂM TRA sau cài: tool → require() thử; skill → file tồn tại + frontmatter đủ; mcp → JSON parse được. Lỗi → sửa lại ngay, không để file hỏng trong kho.\n' +
+    '4. KHÔNG được sửa bất kỳ file nào ngoài thư mục ' + extMan.EXT + '.\n' +
+    'TRẢ LỜI: tiếng Việt, dưới 50 từ, dạng: "Đã cài <loại> <tên> — <trạng thái>". Nếu không làm được (thiếu quyền/thông tin) → nói rõ lý do.';
+  const r = await agyRun(prompt, mainConfig.modelName || 'gemini-3.8-flash-high', 240000);
+  try { fs.rmSync(path.join(extMan.EXT, '_incoming'), { recursive: true, force: true }); } catch (e) {}
+  return { success: r.success, answer: r.answer || '', error: r.error || '' };
+});
+
+// ─ HEALTH: kiểm tra từng công cụ trong kho đang chạy được hay báo lỗi ─
+ipcMain.handle('ext-health', () => {
+  const out = {};
+  for (const t of extMan.listExtTools()) {
+    try {
+      const fp = path.join(extMan.TOOLS, t.file);
+      delete require.cache[require.resolve(fp)];
+      const mod = require(fp);
+      out['tool:' + t.id] = (mod && typeof mod.run === 'function')
+        ? { ok: true, msg: 'nạp OK, sẵn sàng chạy' } : { ok: false, msg: 'thiếu hàm run()' };
+    } catch (e) { out['tool:' + t.id] = { ok: false, msg: String(e.message).slice(0, 140) }; }
+  }
+  for (const s of extMan.listSkills()) {
+    out['skill:' + s.id] = (s.description && s.name)
+      ? { ok: true, msg: 'agy đọc trực tiếp, không cần khởi động lại' } : { ok: false, msg: 'thiếu name/description trong frontmatter' };
+  }
+  for (const mcp of extMan.listMcp()) {
+    if (mcp.enabled === false) { out['mcp:' + mcp.name] = { ok: true, msg: 'đang tắt' }; continue; }
+    try {
+      const w = require('child_process').spawnSync('cmd', ['/c', 'where', mcp.command], { encoding: 'utf8', timeout: 8000 });
+      out['mcp:' + mcp.name] = w.status === 0
+        ? { ok: true, msg: 'lệnh "' + mcp.command + '" khả dụng' } : { ok: false, msg: 'không tìm thấy lệnh "' + mcp.command + '" trên máy' };
+    } catch (e) { out['mcp:' + mcp.name] = { ok: false, msg: e.message }; }
+  }
+  for (const pl of extMan.listPlugins()) {
+    out['plugin:' + pl.name] = pl.enabled !== false
+      ? { ok: true, msg: 'đã bật' } : { ok: true, msg: 'đang tắt' };
+  }
+  return { success: true, health: out };
+});
+
 ipcMain.handle('ext-ask', async (_, question) => {
   // hỏi agy KÈM kho skill/tool + quyền + ngữ cảnh mắt — như agent chat thường
   const prompt = extMan.storePrompt() + '\n\nCẢNH MÀN HÌNH (mắt YOLO): ' + screenContext() +
