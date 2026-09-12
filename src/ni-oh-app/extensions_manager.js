@@ -55,7 +55,21 @@ function parseSkillFront(md) {
   return out;
 }
 // Skill nền tảng đi kèm Ni-Oh — ẩn khỏi danh sách để tránh gỡ nhầm
-const CORE_SKILLS = new Set(['pc-operation-vision', 'debug-fix', 'code-authoring', 'web-research']);
+const CORE_SKILLS = new Set([
+  // vận hành PC
+  'pc-operation-vision', 'window-control', 'process-service-control', 'file-ops', 'registry-env',
+  'package-app-management', 'input-automation', 'network-diag',
+  // thị giác
+  'screen-reading', 'ui-inspection', 'visual-verification',
+  // lập trình
+  'code-authoring', 'debug-fix', 'git-workflow', 'code-review', 'test-verification',
+  // tra cứu
+  'web-research', 'docs-reading',
+  // sản suất
+  'document-processing', 'meeting-notes', 'schedule-automation',
+  // nền tảng agent
+  'skill-authoring', 'memory-management', 'self-maintenance',
+]);
 function isCoreSkill(id) { return CORE_SKILLS.has(String(id || '')); }
 
 function listSkills() {

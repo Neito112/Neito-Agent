@@ -105,8 +105,21 @@ def main():
 
     import threading
 
-    interval = float(os.environ.get("NIOH_EYE_INTERVAL", "0.3"))     # ~3.3fps khung đổi
-    static_emit_every = float(os.environ.get("NIOH_EYE_STATIC", "2.0"))  # cảnh tĩnh → báo chậm
+    # ── BỘ ĐIỀU TỐC THÍCH ỨNG (GPU/CPU ổn định) ─────────────────────────
+    # Nguyên lý: chỉ số dao động mạnh vì YOLO bắn liên tục khi màn hình
+    # đổi luôn luôn (xem video, hoạt ảnh). Governơ đo "nhịp đổi cảnh":
+    #   • cảnh đứng yên  → chỉ gửi nhịp tim, 0 GPU
+    #   • đổi thưa       → YOLO tối đa 2.5 lần/giây
+    #   • đổi liên tục   → GIẢM xuống 1 lần/2.2s + bỏ OCR (video chạy nền
+    #     thì nhận diện mỗi giây cũng chẳng thêm thông tin mới)
+    # Nhờ GPU luôn chạy theo chu kỳ dài, tiêu thụ trung bình phẳng thay vì
+    # giật cục 1%→40%.
+    base_interval = float(os.environ.get("NIOH_EYE_INTERVAL", "0.35"))   # nhịp quét thô
+    static_emit_every = float(os.environ.get("NIOH_EYE_STATIC", "2.0"))
+    yolo_min_gap = 0.5          # trần nhanh nhất: 2 lần/giây
+    yolo_busy_gap = 2.2         # khi cảnh đổi liên tục: 1 lần/2.2s
+    busy_window = 6.0           # cửa sổ đo "liên tục": 6s gần nhất
+    busy_ratio = 0.75           # >75% khung trong cửa sổ là đổi → bận
     ocr_min_gap = float(os.environ.get("NIOH_EYE_OCR_GAP", "2.0"))
 
     pending = {"img": None, "t": 0}
@@ -128,6 +141,15 @@ def main():
 
     prev_sig = None
     last_emit = 0.0
+    last_yolo = 0.0
+    change_hist = []            # [(bool, ts)] mỗi khung trong cửa sổ 6s — nhịp đổi cảnh
+    def record_and_judge(now, changed):
+        change_hist.append((bool(changed), now))
+        cutoff = now - busy_window
+        while change_hist and change_hist[0][1] < cutoff:
+            change_hist.pop(0)
+        n = len(change_hist)
+        return n > 10 and sum(1 for c in change_hist if c[0]) / n > busy_ratio
     with mss.MSS() as sct:
         monitor = sct.monitors[1]
         while True:
@@ -135,35 +157,49 @@ def main():
             try:
                 img = sct.grab(monitor)
                 frame = np.frombuffer(img.rgb, np.uint8).reshape(img.height, img.width, 3)
-                # chữ ký cảnh: ảnh rút 32x18 grayscale — rẻ (CPU ~µs), đủ phát hiện thay đổi
-                sig = frame[::max(1, frame.shape[0] // 18), ::max(1, frame.shape[1] // 32), :].astype(np.uint16).sum(axis=2)
-                changed = bool(prev_sig is None or np.abs(sig.astype(np.int32) - prev_sig.astype(np.int32)).mean() > 2.5)
+                # chữ ký cảnh: chỉ slice mẫu nhỏ (32×18 px) rồi mới sum uint8 —
+                # không tạo mảng tạm nguyên khung (tránh 70MB cấp phát/giây)
+                sh, sw = frame.shape[0], frame.shape[1]
+                sig = frame[::max(1, sh // 18), ::max(1, sw // 32), :].sum(axis=2, dtype=np.uint8)
+                changed = bool(prev_sig is None or np.abs(sig.astype(np.int16) - prev_sig.astype(np.int16)).mean() > 2.5)
                 info = foreground_window_info()
                 # Desktop/wallpaper động (Lively, Program Manager) → giá trị thấp: bỏ YOLO+OCR
                 proc = info["process"] or ""
                 low_value = ((not info["title"]) or proc == "Lively.exe"
                              or (proc == "explorer.exe" and "Program Manager" in info["title"]))
                 changed = changed and not low_value
+                busy = record_and_judge(t0, changed)
                 if changed:
                     prev_sig = sig
-                    pending["img"] = frame.copy()
-                    results = model.predict(frame, verbose=False, conf=0.45, max_det=15,
-                                            device=device, imgsz=imgsz)
-                    classes, conf = [], {}
-                    for r in results:
-                        if r.boxes is None:
-                            continue
-                        for b in r.boxes:
-                            name = model.names[int(b.cls)]
-                            c = round(float(b.conf), 2)
-                            if name not in conf or c > conf[name]:
-                                conf[name] = c
-                            if name not in classes:
-                                classes.append(name)
-                    emit({"type": "frame", "window": info["title"], "process": info["process"],
-                          "classes": classes, "conf": conf, "text": ocr_cache["text"][:800],
-                          "ts": time.time()})
-                    last_emit = time.time()
+                    gap = yolo_busy_gap if busy else yolo_min_gap
+                    if t0 - last_yolo >= gap:
+                        last_yolo = t0
+                        if not ocr_cache["running"] and pending["img"] is None and (t0 - ocr_cache["t"]) > ocr_min_gap:
+                            pending["img"] = frame.copy()   # chỉ copy khi OCR rảnh
+                        small = np.ascontiguousarray(frame[::2, ::2]) if imgsz <= 640 else frame
+                        results = model.predict(small, verbose=False, conf=0.45, max_det=15,
+                                                device=device, imgsz=imgsz)
+                        classes, conf = [], {}
+                        for r in results:
+                            if r.boxes is None:
+                                continue
+                            for b in r.boxes:
+                                name = model.names[int(b.cls)]
+                                c = round(float(b.conf), 2)
+                                if name not in conf or c > conf[name]:
+                                    conf[name] = c
+                                if name not in classes:
+                                    classes.append(name)
+                        emit({"type": "frame", "window": info["title"], "process": info["process"],
+                              "classes": classes, "conf": conf, "text": ocr_cache["text"][:800],
+                              "ts": time.time()})
+                        last_emit = time.time()
+                    else:
+                        # Cảnh đổi nhưng chưa tới lượt YOLO: gửi khung rẻ (window + OCR cache)
+                        emit({"type": "frame", "window": info["title"], "process": info["process"],
+                              "classes": [], "conf": {}, "text": ocr_cache["text"][:800],
+                              "ts": t0, "cheap": True})
+                        last_emit = t0
                 elif time.time() - last_emit > static_emit_every:
                     prev_sig = sig
                     # cảnh tĩnh: gửi khung rẻ (không YOLO/OCR) để não giữ nhịp + tiết kiệm
@@ -174,7 +210,7 @@ def main():
             except Exception as e:
                 emit({"type": "error", "reason": str(e)[:200]})
             dt = time.time() - t0
-            time.sleep(max(0.03, interval - dt))
+            time.sleep(max(0.03, base_interval - dt))
 
 if __name__ == "__main__":
     sys.exit(main())

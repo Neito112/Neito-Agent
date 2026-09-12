@@ -117,7 +117,11 @@ function createTray() {
   tray.setToolTip('Ni-Oh Companion');
   tray.setContextMenu(menu);
   tray.on('click', () => {
-    if (dashboardWindow && dashboardWindow.isVisible()) dashboardWindow.hide();
+    if (dashboardWindow && dashboardWindow.isVisible()) {
+      dashboardWindow.hide();
+      // Dashboard ẩn = không ai nhìn thấy → dừng hẳn nhịp vẽ GPU/CPU của nó
+      try { dashboardWindow.webContents.setBackgroundThrottling(true); } catch (e) {}
+    }
     else showDashboard();
   });
 }
@@ -135,6 +139,7 @@ function hideOverlay() {
 function showDashboard(options = {}) {
   const { tab } = options;
   if (dashboardWindow && !dashboardWindow.isDestroyed()) {
+    try { dashboardWindow.webContents.setBackgroundThrottling(false); } catch (e) {}
     dashboardWindow.show(); dashboardWindow.focus();
     if (tab) dashboardWindow.webContents.send('switch-tab', tab);
   } else createDashboardWindow(tab);
@@ -1010,6 +1015,7 @@ function slugify(vn) {
 }
 
 let eyeProcess = null;
+let eyeRetryCount = 0;
 let eyeBusy = false;          // không để não nói chồng 2 trigger
 let lastFrame = null;         // khung cảnh mới nhất từ mắt
 const eyeHistory = [];        // VÒNG ĐỆM KÝ ỨC THỊ GIÁC 8 giây (mắt người nhìn liên tục, không chỉ 1 kiểu ảnh)
@@ -1035,8 +1041,19 @@ function startEye() {
   eyeProcess.stderr.on('data', d => console.warn('[Eye]', d.toString().trim().slice(0, 200)));
   eyeProcess.on('close', () => {
     eyeProcess = null;
-    if (mainConfig.realtimeScanEnabled) { // tự thử khởi động lại 1 lần
-      mainConfig.realtimeScanEnabled = false; saveConfig();
+    // Crash thật (code đã sửa lỗi) → tự thử lại tối đa 3 lần, giãn 5/15/30s.
+    // Sau 3 lần vẫn chết → tắt công tắc để không spawn lặp vô hạn.
+    if (mainConfig.realtimeScanEnabled) {
+      eyeRetryCount++;
+      const delays = [5000, 15000, 30000];
+      if (eyeRetryCount <= 3) {
+        console.warn(`[Eye] thoát mã bất thường — thử lại lần ${eyeRetryCount}/3 sau ${delays[eyeRetryCount-1]/1000}s`);
+        setTimeout(() => { if (mainConfig.realtimeScanEnabled && !eyeProcess) startEye(); }, delays[eyeRetryCount-1]);
+      } else {
+        console.warn('[Eye] 3 lần thử lại đều thất bại — tạm tắt quan sát');
+        mainConfig.realtimeScanEnabled = false; saveConfig();
+        broadcastEyeState();
+      }
     }
   });
   return { success: true, running: true };
@@ -1047,6 +1064,7 @@ function stopEye() {
 const SELF_PROCESSES = /electron\.exe$/i;
 const SELF_TITLES = /ni-oh overlay|ni-oh companion/i;
 async function onEyeMessage(msg) {
+  if (msg && msg.type === 'hello') eyeRetryCount = 0;  // mắt sống → reset đếm thử lại
   if (msg.type !== 'frame') return;
   // MÙ VỚI CHÍNH MÌNH: không được nhìn overlay/dashboard của Ni-Oh rồi bình luận
   if (SELF_PROCESSES.test(msg.process || '') && SELF_TITLES.test(msg.window || '')) return;
