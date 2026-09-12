@@ -51,17 +51,18 @@ function saveState(s) {
 function log(s, msg) {
   s.log.push({ t: new Date().toISOString(), msg: String(msg).slice(0, 300) });
   if (s.log.length > 400) s.log = s.log.slice(-300);
+  try { fs.writeFileSync(STATE, JSON.stringify(s, null, 1), 'utf8'); } catch (e) {}
 }
 
 /* ── agy JSON helper (giống concept_classifier, thêm quyền web) ─────── */
-function agyJson(prompt, { schema, images = [], model = SONNET, timeoutMs = 420000 } = {}) {
+function agyJson(prompt, { schema, images = [], model = SONNET, timeoutMs = 780000 } = {}) {
   return new Promise((resolve) => {
     const schemaFile = path.join(__dirname, '_sl_schema.json');
     fs.writeFileSync(schemaFile, JSON.stringify(schema));
     let p = prompt;
     if (images.length) p += '\n\nẢNH TRÍCH TỪ NGUỒN (dùng tool view_image đọc TỪNG ảnh, đường dẫn tuyệt đối):\n' + images.join('\n');
     const a = agyTool.agyArgs(p, model);
-    a.args.push('--dangerously-skip-permissions', '--json-schema', schemaFile, '--output-format', 'json');
+    a.args.push('--dangerously-skip-permissions', '--json-schema', schemaFile, '--output-format', 'json', '--print-timeout', Math.round(timeoutMs / 1000) - 60 + 's');
     const child = spawn(a.exe, a.args, { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], cwd: path.join(__dirname, '..', '..') });
     let out = '', err = '';
     const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch (e) {} resolve({ success: false, error: 'timeout' }); }, timeoutMs);
@@ -70,16 +71,20 @@ function agyJson(prompt, { schema, images = [], model = SONNET, timeoutMs = 4200
     child.on('close', code => {
       clearTimeout(to);
       try { fs.unlinkSync(schemaFile); } catch (e) {}
+      const pick = (o) => (o && typeof o === 'object' && !Array.isArray(o) && Object.keys(o).length) ? o : null;
       const lines = out.trim().split('\n').filter(Boolean);
       for (let i = lines.length - 1; i >= 0; i--) {
         try {
           const o = JSON.parse(lines[i]);
-          if (o.structured_output) return resolve({ success: true, data: o.structured_output });
+          if (o.structured_output && pick(o.structured_output)) return resolve({ success: true, data: o.structured_output });
+          if (o.response) {   // model in ```json ... ``` trong response text
+            const fm = String(o.response).match(/```(?:json)?\s*([\s\S]*?)```/) || String(o.response).match(/(\{[\s\S]*\})/);
+            if (fm) { try { const j = JSON.parse(fm[1]); if (pick(j)) return resolve({ success: true, data: j }); } catch (e) {} }
+          }
         } catch (e) {}
       }
-      const m = out.match(/\{[\s\S]*\}/);
-      if (m) { try { return resolve({ success: true, data: JSON.parse(m[0]) }); } catch (e) {} }
-      resolve({ success: false, error: (err || out || 'agy exit ' + code).slice(0, 250) });
+      // KHÔNG fallback thô: envelope {conversation_id,response} không phải data
+      resolve({ success: false, error: 'không parse được structured output: ' + (err || out || 'exit ' + code).slice(-250) });
     });
     child.on('error', e => { clearTimeout(to); resolve({ success: false, error: e.message }); });
   });
@@ -137,15 +142,17 @@ async function loop1Concepts(slug, srcText, images) {
   const r = await agyJson([
     `NGUỒN "${srcText.title}" (slug ${slug}) — ĐỌC HẾT nội dung (text bên dưới/ảnh kèm theo/web nếu là URL).`,
     `KHÁI NIỆM ĐÃ CÓ TRONG KHO:\n${JSON.stringify(existing, null, 1)}`,
-    srcText.body ? `NỘI DUNG NGUỒN:\n${srcText.body.slice(0, 18000)}` : `URL NGUỒN (dùng web tool đọc): ${srcText.url}`,
+    srcText.body ? `NỘI DUNG NGUỒN:\n${srcText.body.slice(0, 9000)}` : `URL NGUỒN (dùng web tool đọc): ${srcText.url}`,
     'NHIỆM VỤ VÒNG 1 — tách MỌI khái niệm hình ảnh/thuật ngữ/giao diện mà nguồn này dạy, đối chiếu kho:',
     '• KHÔNG có trong kho → action=add (kèm ocrPhrases chữ thật, visualCues, yoloClasses).',
     '• ĐÃ có y hệt → action=skip.',
     '• ĐỒNG NGHĨA (cùng một thứ, khác tên — VD "bảng điều khiển" vs "Controls panel") → action=merge, merge_into= tên trong kho, alias= cách gọi mới.',
     'TRUNG THỰC: không bịa khái niệm nguồn không nói. Kết thúc phải đánh giá coverage — nguồn còn phần chưa đọc thì MORE_TO_READ + next_hint.',
-    'KHÔNG ĐƯỢC LÀM QUA LỌT: mỗi khu vực/bảng/thao tác nguồn mô tả đều phải ra ít nhất 1 action.'
+    'KHÔNG ĐƯỢC LÀM QUA LỌT: mỗi khu vực/bảng/thao tác nguồn mô tả đều phải ra ít nhất 1 action.',
+    'TỐC ĐỘ: trả lời gọn, không giải thích dài dòng, tối đa 12 action.'
   ].join('\n\n'), { schema: CONCEPT_LOOP_SCHEMA, images });
   if (!r.success) return r;
+  if (!Array.isArray(r.data.actions)) return { success: false, error: 'v1 output thiếu actions: ' + JSON.stringify(r.data).slice(0, 150) };
   let added = 0, merged = 0, skipped = 0;
   d.concepts = d.concepts || [];
   for (const a of (r.data.actions || [])) {
@@ -198,13 +205,14 @@ async function loop2Situations(slug, srcText, images) {
   const r = await agyJson([
     `NGUỒN "${srcText.title}" (slug ${slug}).`,
     `BỘ KHÁI NIỆM TRONG KHO: ${JSON.stringify(names)}`,
-    srcText.body ? `NỘI DUNG:\n${srcText.body.slice(0, 18000)}` : `URL (dùng web tool đọc kỹ): ${srcText.url}`,
+    srcText.body ? `NỘI DUNG:\n${srcText.body.slice(0, 9000)}` : `URL (dùng web tool đọc kỹ): ${srcText.url}`,
     'NHIỆM VỤ VÒNG 2 — phát hiện TÌNH HUỐNG thực tế người dùng gặp trong nguồn (kịch bản, lỗi, mẹo, pha xử lý) + bộ khái niệm đồng hiện để nhận biết nó:',
     'Mỗi tình huống: concepts (lấy từ kho nếu có, được phép thêm mới), min_count (số khái niệm tối thiểu đồng hiện), window regex nếu đặc trưng, prompt_template (lệnh mẫu gửi não khi suy luận).',
     'SAU ĐÓ TRA NGAY TRONG NGUỒN NÀY cách giải quyết: có → answered_in_source=true + answer ≤20 từ tiếng Việt đúng theo nguồn (không tự bịa ngoài nguồn); KHÔNG có → answered_in_source=false.',
     'Mỗi nguồn phải ra tối thiểu 3 tình huống nếu nội dung đủ dài. id không dấu.'
   ].join('\n\n'), { schema: SITUATION_LOOP_SCHEMA, images });
   if (!r.success) return r;
+  if (!Array.isArray(r.data.situations)) return { success: false, error: 'v2 output thiếu situations: ' + JSON.stringify(r.data).slice(0, 150) };
   d.situations = d.situations || [];
   let newSit = 0, answered = 0, unanswered = 0;
   for (const s of (r.data.situations || [])) {
@@ -302,13 +310,15 @@ async function learnSource(state, src) {
 function nextPending(state) {
   const now = Date.now();
   return state.sources.find(s => s.status === 'pending'
-    || (s.status === 'learning' && (!s.started_at || now - Date.parse(s.started_at) > 30 * 60000)));
+    || (s.status === 'learning' && (!s.started_at || now - Date.parse(s.started_at) > 30 * 60000))
+    || (s.status === 'failed' && (s.attempts || 0) < 2 && (!s.started_at || now - Date.parse(s.started_at) > 60000)));
 }
 async function once() {
   const state = loadState();
   state.rounds = (state.rounds || 0) + 1;
   const src = nextPending(state);
   if (src) {
+    src.attempts = (src.attempts || 0) + 1;
     src.started_at = new Date().toISOString();
     await learnSource(state, src);
     saveState(state);
