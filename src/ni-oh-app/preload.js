@@ -78,6 +78,9 @@ contextBridge.exposeInMainWorld('niOhAPI', {
   saveCharacterAssets: (payload) => ipcRenderer.invoke('save-character-assets', payload),
   quickGenAsset: (payload) => ipcRenderer.invoke('quick-gen-asset', payload),
 
+  learnerStatus: () => ipcRenderer.invoke('learner-status'),
+  learnerAdd: (slug, url, note) => ipcRenderer.invoke('learner-add', { slug, url, note }),
+  learnerOnce: () => ipcRenderer.invoke('learner-once'),
   conceptsRun: (slug, mode, image) => ipcRenderer.invoke('concepts-run', { slug, mode, image }),
   situationStatus: () => ipcRenderer.invoke('situation-status'),
   situationSetAnswer: (slug, id, answer, source) => ipcRenderer.invoke('situation-set-answer', { slug, id, answer, source }),

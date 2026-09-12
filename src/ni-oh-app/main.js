@@ -1134,10 +1134,22 @@ async function idleCondenseRun() {
     const screenQuiet = !lastFrame || (Date.now() / 1000 - (lastFrame.ts || 0) > 360);
     const isIdle = (eyeOff && micOff) || (eyeOff && !mainConfig.eyeProactive) || screenQuiet;
     if (!isIdle) return;
-    const q = situationEngine.condenseQueue();
-    if (!q.length) return;
     idleBusy = true;
     setEmotion('sleepy', 0);   // nhân vật vào tư thế nghỉ — tín hiệu cho Sếp biết đang bảo trì ngầm
+    // ƯU TIÊN 1: marathon tự học nguồn (2 vòng lặp khái niệm+tình huống, gồm video)
+    try {
+      const learner = require(path.join(NIOH_ROOT, 'tools', 'agy', 'source_learner.js'));
+      const st = learner.statusOut();
+      if (st.sources_pending > 0 || st.unanswered_open > 0) {
+        console.log('[Learner] nhàn rỗi → học 1 nguồn/lượt...');
+        await learner.once();
+        idleBusy = false; scheduleIdleWorker();
+        return;                       // mỗi lượt chỉ 1 nguồn — dành CPU cho Sếp
+      }
+    } catch (e) { console.warn('[Learner]', String(e.message || e).slice(0, 120)); }
+    // ƯU TIÊN 2: nén câu combat dang dở
+    const q = situationEngine.condenseQueue();
+    if (!q.length) { idleBusy = false; scheduleIdleWorker(); return; }
     const item = q[0];         // mỗi lượt 1 câu — không tham, để dành CPU cho Sếp
     const prompt = [
       'BIÊN SOẠN CÂU GỌI VỐN cho Ni-Oh (chế độ nhàn rỗi). Tình huống game/phần mềm đang diễn ra NHANH:',
@@ -1393,6 +1405,26 @@ ipcMain.handle('ext-health', () => {
   return { success: true, health: out };
 });
 
+ipcMain.handle('learner-status', () => {
+  try { return require(path.join(NIOH_ROOT, 'tools', 'agy', 'source_learner.js')).statusOut(); }
+  catch (e) { return { error: e.message }; }
+});
+ipcMain.handle('learner-add', (_, { slug, url, note }) => {
+  try {
+    const L = require(path.join(NIOH_ROOT, 'tools', 'agy', 'source_learner.js'));
+    const st = L.loadState();
+    if (st.sources.some(s => s.url === url && s.slug === slug)) return { success: false, error: 'Nguồn đã có trong hàng đợi' };
+    st.sources.push({ slug: String(slug), url: String(url), note: String(note || ''), status: 'pending' });
+    L.saveState(st);
+    return { success: true };
+  } catch (e) { return { success: false, error: e.message }; }
+});
+ipcMain.handle('learner-once', async () => {
+  try {
+    const L = require(path.join(NIOH_ROOT, 'tools', 'agy', 'source_learner.js'));
+    return await L.once();
+  } catch (e) { return { error: e.message }; }
+});
 ipcMain.handle('concepts-run', (_, { slug, mode, image }) => {
   const script = path.join(NIOH_ROOT, 'tools', 'agy', 'concept_classifier.js');
   if (!fs.existsSync(script)) return { success: false, error: 'Thiếu concept_classifier.js' };

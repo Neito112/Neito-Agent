@@ -447,6 +447,21 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
       <div id="topic-list" class="characters-grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">
         <div class="empty" aria-busy="true">Đang tải…</div>
       </div>
+      <div class="card" style="margin-top:var(--sp-4)">
+        <h3>🎓 Marathon tự học</h3>
+        <p class="desc" style="margin-top:-4px;margin-bottom:10px">Ni-Oh khai thác nguồn chính thức, hướng dẫn sử dụng và mẹo mẹo — mỗi nguồn qua hai vòng: nạp khái niệm (thêm mới / bỏ qua trùng / gộp đồng nghĩa) rồi phát hiện tình huống kèm cách xử lý ngay trong nguồn. Tình huống không có lời giải được đưa vào hàng đợi truy vấn các nguồn khác. Video được tách phụ đề và khung hình để đọc cả chữ lẫn ảnh. Việc học chạy lúc nhàn rỗi, mỗi lượt một nguồn.</p>
+        <div class="row">
+          <select id="learner-slug" class="select shrink" style="max-width:190px" data-tip="Giao thức sẽ nhận kiến thức từ nguồn"></select>
+          <input id="learner-url" class="input" style="flex:1;min-width:120px" placeholder="URL bài viết / video hướng dẫn" />
+          <button class="btn btn-primary shrink" onclick="learnerAdd()" data-tip="Xếp nguồn vào hàng đợi tự học">＋ Xếp nguồn</button>
+        </div>
+        <div id="learner-stats" class="desc" style="margin-top:10px"></div>
+        <div id="learner-log" style="margin-top:6px;font-size:11px;line-height:1.7;color:var(--muted-foreground);max-height:120px;overflow-y:auto"></div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn btn-sm shrink" onclick="learnerOnce()" data-tip="Học ngay 1 nguồn kế tiếp (worker nhàn rỗi vẫn tự chạy định kỳ)">▶ Học 1 nguồn ngay</button>
+          <button class="btn btn-sm shrink" onclick="loadLearner()">↻ Cập nhật</button>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -712,7 +727,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCharacters();
     loadModels();
     loadAgyStatus();
-    loadTopics();
+    loadTopics(); loadLearner && loadLearner();
     document.getElementById('setting-mic-mode').value = config.micMode || 'off';
     refreshMicChip();
     syncSwitches(); loadOverview(); loadSoul();
@@ -837,7 +852,7 @@ async function trainTopic() {
     const r = await window.niOhAPI.trainTopic(topic);
     st.textContent = r.success ? '✅ ' + (r.message || 'Xong') : '❌ ' + (r.error || 'lỗi');
     st.className = 'status-text shrink ' + (r.success ? 'ok' : 'err');
-    if (r.success) loadTopics();
+    if (r.success) loadTopics(); loadLearner && loadLearner();
   } catch (e) {
     st.textContent = '❌ ' + (e.message || e);
     st.className = 'status-text shrink err';
@@ -992,6 +1007,38 @@ async function loadTopics() {
   }
 }
 
+let _learnerTopics = [];
+async function loadLearner() {
+  try {
+    const st = await window.niOhAPI.learnerStatus();
+    const sel = document.getElementById('learner-slug');
+    if (sel && !_learnerTopics.length) {
+      const vs = await window.niOhAPI.getVisionStatus();
+      _learnerTopics = vs.topics || [];
+      sel.innerHTML = _learnerTopics.map(t => `<option value="${t.slug}">${t.topic}</option>`).join('');
+    }
+    const el = document.getElementById('learner-stats');
+    if (el) el.innerHTML = `Đã học <strong>${st.sources_learned||0}/${st.sources_total||0}</strong> nguồn · chờ <strong>${st.sources_pending||0}</strong> · tình huống chưa có lời giải: <strong>${st.unanswered_open||0}</strong> · lượt worker: <strong>${st.rounds||0}</strong>`;
+    const lg = document.getElementById('learner-log');
+    if (lg) lg.innerHTML = (st.recent_log || []).slice().reverse().map(l => `<div>· ${l.msg}</div>`).join('');
+  } catch (e) { /* im lặng */ }
+}
+async function learnerAdd() {
+  const slug = document.getElementById('learner-slug').value;
+  const url = document.getElementById('learner-url').value.trim();
+  if (!slug || !url) { toast('Chọn giao thức và dán URL nguồn'); return; }
+  const r = await window.niOhAPI.learnerAdd(slug, url, '');
+  toast(r.success ? '✓ Đã xếp nguồn vào hàng đợi tự học' : '❌ ' + (r.error || ''));
+  if (r.success) document.getElementById('learner-url').value = '';
+  loadLearner();
+}
+async function learnerOnce() {
+  toast('Đang học 1 nguồn — có thể mất vài phút...');
+  const r = await window.niOhAPI.learnerOnce();
+  toast(r.error ? '❌ ' + r.error : `✓ Lượt học xong (${r.did === 'source' ? r.status : 'dọn hàng đợi'})`);
+  loadLearner(); loadTopics(); loadLearner && loadLearner();
+}
+
 async function buildConcepts(slug) {
   toast('Đang phân loại khái niệm hình ảnh (Sonnet)...');
   const r1 = await window.niOhAPI.conceptsRun(slug, 'describe');
@@ -1000,7 +1047,7 @@ async function buildConcepts(slug) {
   const r2 = await window.niOhAPI.conceptsRun(slug, 'situations');
   if (!r2.success) { toast('❌ Tình huống: ' + (r2.error || 'lỗi')); return; }
   toast(`✓ Xong: ${r2.situations} tình huống kích hoạt đã sẵn`);
-  loadTopics();
+  loadTopics(); loadLearner && loadLearner();
 }
 
 async function retrainTopic(t) {
@@ -1222,7 +1269,7 @@ async function openTopicModal(slug, name) {
   document.getElementById('tm-retrain').onclick = () => { closeTopicModal(); document.getElementById('train-topic-input').value = name || slug; trainTopic(); };
   document.getElementById('tm-delete').onclick = async () => {
     if (!confirm('Xóa toàn bộ "' + (_tmSlug) + '"? Không khôi phục được nếu chưa commit.')) return;
-    await window.niOhAPI.deleteTopic(_tmSlug); closeTopicModal(); loadTopics(); toast('Đã xóa chủ đề');
+    await window.niOhAPI.deleteTopic(_tmSlug); closeTopicModal(); loadTopics(); loadLearner && loadLearner(); toast('Đã xóa chủ đề');
   };
   document.getElementById('tm-add').onclick = async () => {
     const cue = prompt('Tên kiến thức (cue) — VD: "nhựa nguyên bản":');
@@ -1238,7 +1285,7 @@ async function openTopicModal(slug, name) {
 function closeTopicModal() { document.getElementById('topic-modal').style.display = 'none'; }
 async function delEntry(slug, cue) {
   await window.niOhAPI.deleteEntry(slug, cue);
-  openTopicModal(slug); loadTopics();
+  openTopicModal(slug); loadTopics(); loadLearner && loadLearner();
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeTopicModal(); closeAssetModal(); } });
 
