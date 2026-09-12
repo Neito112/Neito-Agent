@@ -78,6 +78,24 @@ contextBridge.exposeInMainWorld('niOhAPI', {
   saveCharacterAssets: (payload) => ipcRenderer.invoke('save-character-assets', payload),
   quickGenAsset: (payload) => ipcRenderer.invoke('quick-gen-asset', payload),
 
+  // Kho mở rộng: skill / tool / mcp / plugin / admin
+  extList: () => ipcRenderer.invoke('ext-list'),
+  extAdmin: (on) => ipcRenderer.invoke('ext-admin', on),
+  extOpenFolder: () => ipcRenderer.invoke('ext-open-folder'),
+  extMcpAdd: (e) => ipcRenderer.invoke('ext-mcp-add', e),
+  extMcpRemove: (n) => ipcRenderer.invoke('ext-mcp-remove', n),
+  extMcpToggle: (n, on) => ipcRenderer.invoke('ext-mcp-toggle', n, on),
+  extPluginAdd: (e) => ipcRenderer.invoke('ext-plugin-add', e),
+  extPluginRemove: (n) => ipcRenderer.invoke('ext-plugin-remove', n),
+  extPluginToggle: (n, on) => ipcRenderer.invoke('ext-plugin-toggle', n, on),
+  extSyncAgy: () => ipcRenderer.invoke('ext-sync-agy'),
+  extSkillSave: (p) => ipcRenderer.invoke('ext-skill-save', p),
+  extSkillRemove: (id) => ipcRenderer.invoke('ext-skill-remove', id),
+  extToolSave: (p) => ipcRenderer.invoke('ext-tool-save', p),
+  extToolRemove: (id) => ipcRenderer.invoke('ext-tool-remove', id),
+  extAsk: (q) => ipcRenderer.invoke('ext-ask', q),
+  extPluginInstall: (t) => ipcRenderer.invoke('ext-plugin-install', t),
+
   // Self-train cũ
   runSelfTrain: (opts) => ipcRenderer.invoke('run-self-train', opts),
   unlearnLastRule: () => ipcRenderer.invoke('unlearn-last-rule'),

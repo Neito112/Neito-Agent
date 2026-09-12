@@ -181,6 +181,9 @@ function createDashboardWindow(openTab) {
 
 // ─── AI Provider: Antigravity CLI (agy) — dùng tool đóng gói trong dự án ──
 const agyTool = require(path.join(NIOH_ROOT, 'tools', 'agy', 'resolver.js'));
+const extMan = require(path.join(APP_DIR, 'extensions_manager.js'));
+// Args agy + cờ KHO MỞ RỘNG (skill/tool/mcp/plugin) + quyền admin nếu đã cấp
+function agyArgsX(prompt, model) { return agyTool.agyArgs(prompt, model, extMan.agyFlags()); }
 // Chạy agy BẤT ĐỒNG BỘ — execSync từng làm treo cứng (AppHang) toàn bộ app khi agy nghĩ lâu
 function agyRun(prompt, model, timeoutMs) {
   return new Promise((resolve) => {
@@ -188,7 +191,7 @@ function agyRun(prompt, model, timeoutMs) {
     if (!st.available) return resolve({ success:false, provider:'antigravity', error:'agy chưa sẵn sàng — chạy tools\\agy\\install_agy.bat' });
     let a, child;
     try {
-      a = agyTool.agyArgs(prompt, model);
+      a = agyArgsX(prompt, model);
       child = spawn(a.exe, a.args, { windowsHide: true, stdio: ['ignore','pipe','pipe'] });
     } catch (e) { return resolve({ success:false, provider:'antigravity', error: e.message }); }
     let out = '', err = '', done = false;
@@ -433,6 +436,10 @@ async function askAI(rawQuestion) {
     if (kb0 && kb0.score >= 5 && kb0.factsText) ctx.push('Kiến thức đã học về chủ đề này (xác thực web nếu cần):\n' + kb0.factsText.slice(0, 700));
   } catch (e) {}
   const qLower = String(rawQuestion).toLowerCase();
+  // Khi câu hỏi dạng thao tác/tra cứu → não được biết KHO MỞ RỘNG (skill/tool/mcp/plugin + quyền admin)
+  if (/mở|chạy|cài|gỡ|xóa file|viết|sửa|tạo|click|bấm|mở app|terminal|powershell|docker|pip|npm|tool|skill|mcp|plugin|giúp tao|giúp tôi|làm ơn|tự động|oper/.test(qLower)) {
+    try { ctx.push('KHO MỞ RỘNG & QUYỀN:\n' + extMan.storePrompt()); } catch (e) {}
+  }
   if (/ni-oh|dự án|project|protocol|giao thức|app của (tôi|tao|mày)/.test(qLower)) {
     const pd = projectDigest();
     if (pd) ctx.push('Dữ liệu dự án Ni-Oh:\n' + pd);
@@ -1080,7 +1087,7 @@ async function chitAboutScreen() {
     try {
       if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('thinking', 15);
       const r = await new Promise((resolve) => {
-        const a = agyTool.agyArgs(prompt, mainConfig.modelName || 'gemini-3.8-flash-low');
+        const a = agyArgsX(prompt, mainConfig.modelName || 'gemini-3.8-flash-low');
         const child = spawn(a.exe, a.args, { windowsHide: true });
         const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch(e){} resolve({ success:false, error:'agy timeout' }); }, 45000);
         let out = '', err = '';
@@ -1115,6 +1122,84 @@ ipcMain.handle('get-soul', () => { try { return fs.existsSync(SOUL_FILE) ? fs.re
 ipcMain.handle('save-soul', (_, text) => { try { fs.mkdirSync(path.dirname(SOUL_FILE), { recursive: true }); fs.writeFileSync(SOUL_FILE, String(text || ''), 'utf8'); return { success: true }; } catch (e) { return { success: false, error: e.message }; } });
 
 // ─── TOOL registry (dashboard liệt kê) ───
+// ═══ KHO MỞ RỘNG: skills / tools / mcp / plugin / admin ═══
+ipcMain.handle('ext-list', () => {
+  extMan.ensureStore();
+  return { skills: extMan.listSkills(), tools: extMan.listExtTools(),
+    mcp: extMan.listMcp(), plugins: extMan.listPlugins(),
+    admin: extMan.adminState(), dir: extMan.EXT };
+});
+ipcMain.handle('ext-admin', (_, on) => extMan.setAdmin(!!on));
+ipcMain.handle('ext-open-folder', () => { extMan.ensureStore(); require('child_process').exec('explorer "' + extMan.EXT + '"', { windowsHide: true }, () => {}); return { success: true }; });
+ipcMain.handle('ext-mcp-add', (_, e) => extMan.addMcp(e || {}));
+ipcMain.handle('ext-mcp-remove', (_, name) => extMan.removeMcp(name));
+ipcMain.handle('ext-mcp-toggle', (_, name, on) => extMan.toggleMcp(name, on));
+ipcMain.handle('ext-plugin-add', (_, e) => extMan.addPlugin(e || {}));
+ipcMain.handle('ext-plugin-remove', (_, name) => extMan.removePlugin(name));
+ipcMain.handle('ext-plugin-toggle', (_, name, on) => extMan.togglePlugin(name, on));
+ipcMain.handle('ext-sync-agy', async () => {
+  // đồng bộ registry MCP sang agy thật (agy mcp add) + import plugin
+  const out = [];
+  for (const srv of extMan.listMcp().filter(s => s.enabled)) {
+    const r = await extMan.agyCli(['mcp', 'add', srv.name, '--', srv.command, ...(srv.args || [])], 20000);
+    out.push({ name: srv.name, ok: r.success, msg: (r.output || r.error || '').slice(0, 120) });
+  }
+  return { success: true, results: out };
+});
+ipcMain.handle('ext-skill-save', (_, payload) => {
+  // payload {id, content} — ghi/updateskill trong kho (bất biến core, chỉ thêm file)
+  try {
+    const id = String(payload.id || '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+    if (!id) return { success: false, error: 'Tên skill không hợp lệ' };
+    const dir = path.join(extMan.SKILLS, id);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'SKILL.md'), String(payload.content || ''), 'utf8');
+    return { success: true, id };
+  } catch (e) { return { success: false, error: e.message }; }
+});
+ipcMain.handle('ext-skill-remove', (_, id) => {
+  try {
+    const safe = String(id).replace(/[^a-z0-9-]/g, '');
+    fs.rmSync(path.join(extMan.SKILLS, safe), { recursive: true, force: true });
+    return { success: true };
+  } catch (e) { return { success: false, error: e.message }; }
+});
+ipcMain.handle('ext-tool-save', (_, payload) => {
+  try {
+    const id = String(payload.id || '').toLowerCase().replace(/[^a-z0-9-]+/g, '-');
+    if (!id) return { success: false, error: 'Tên tool không hợp lệ' };
+    const code = String(payload.code || '');
+    if (!/module\.exports/.test(code)) return { success: false, error: 'Code phải có module.exports = {name, desc, run}' };
+    const fp = path.join(extMan.TOOLS, id + '.js');
+    fs.writeFileSync(fp, code, 'utf8');
+    try { require(fp); } catch (e) { fs.unlinkSync(fp); return { success: false, error: 'Tool lỗi khi nạp: ' + e.message }; }
+    return { success: true, id };
+  } catch (e) { return { success: false, error: e.message }; }
+});
+ipcMain.handle('ext-tool-remove', (_, id) => {
+  try { fs.unlinkSync(path.join(extMan.TOOLS, String(id).replace(/[^a-z0-9-]/g, '') + '.js')); return { success: true }; }
+  catch (e) { return { success: false, error: e.message }; }
+});
+ipcMain.handle('ext-plugin-install', async (_, target) => {
+  const t = String(target || '').trim();
+  if (!t) return { success:false, error:'Thiếu tên plugin' };
+  const r = await extMan.agyCli(['plugin', 'install', t], 60000);
+  if (r.success) extMan.addPlugin({ name: t, source: 'agy' });
+  return { success: r.success, output: (r.output || '').slice(0, 400), error: r.error };
+});
+ipcMain.handle('ext-plugin-run', async (_, argsArr) => {
+  const a = Array.isArray(argsArr) ? argsArr.map(String) : [];
+  if (!a.length || !/^plugin$/.test(a[0])) return { success:false, error:'Chỉ cho phép phụ lệnh plugin' };
+  const r = await extMan.agyCli(['plugin', ...a.slice(1)], 60000);
+  return { success: r.success, output: (r.output||'').slice(0,500), error: r.error };
+});
+ipcMain.handle('ext-ask', async (_, question) => {
+  // hỏi agy KÈM kho skill/tool + quyền + ngữ cảnh mắt — như agent chat thường
+  const prompt = extMan.storePrompt() + '\n\nCẢNH MÀN HÌNH (mắt YOLO): ' + screenContext() +
+    '\n\nYÊU CẦU CỦA SẾP: ' + question +
+    '\nTrả lời tiếng Việt, ngắn gọn để đọc TTS. Nếu cần thao tác máy và có quyền → nêu việc sẽ làm rồi làm.';
+  return await agyRun(prompt, mainConfig.modelName || 'gemini-3.8-flash-high', 120000);
+});
 ipcMain.handle('get-tools', () => toolRegistry.toolCatalog());
 
 // ─── Topic chi tiết: xem / xóa entry / thêm entry ───
@@ -1288,7 +1373,7 @@ ipcMain.handle('quick-gen-asset', (_, payload) => {
       // Mặc định: agy (đọc ảnh mẫu + tool sinh ảnh trong workspace)
       const agyPrompt = 'Tạo 1 ảnh nhân vật VTuber/trợ lý desktop theo mô tả: "' + desc + '".' + refNote +
         ' Lưu file PNG vào thư mục hiện tại với tên ni-oh-asset.png rồi trả lời đúng 1 từ: DONE. Không làm gì khác.';
-      const a = agyTool.agyArgs(agyPrompt, modelId || 'gemini-3.8-flash-medium');
+      const a = agyArgsX(agyPrompt, modelId || 'gemini-3.8-flash-medium');
       const child = spawn(a.exe, a.args, { windowsHide: true, cwd: NIOH_ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
       let out = '';
       child.stdout.on('data', d => out += d);
@@ -1349,7 +1434,7 @@ ipcMain.handle('train-topic', async (_, topic) => {
   ].join('\n');
 
   return new Promise((resolve) => {
-    const a = agyTool.agyArgs(prompt, mainConfig.trainModel || 'gemini-3.8-flash-high');
+    const a = agyArgsX(prompt, mainConfig.trainModel || 'gemini-3.8-flash-high');
     const child = spawn(a.exe, a.args, { windowsHide: true, cwd: NIOH_ROOT });
     const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch(e){} resolve({ success:false, error:'Train timeout 240s' }); }, 240000);
     let out = '', err = '';
