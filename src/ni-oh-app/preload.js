@@ -73,6 +73,7 @@ contextBridge.exposeInMainWorld('niOhAPI', {
   ollamaPull: (name) => ipcRenderer.invoke('ollama-pull', name),
   getOllamaModelDir: () => ipcRenderer.invoke('ollama-model-dir'),
   setOllamaModelDir: () => ipcRenderer.invoke('ollama-set-model-dir'),
+  openOllamaApp: () => ipcRenderer.invoke('open-ollama-app'),
   onOllamaPull: (cb) => ipcRenderer.on('ollama-pull', (_, p) => cb(p)),
   onOllamaInstall: (cb) => ipcRenderer.on('ollama-install', (_, p) => cb(p)),
 

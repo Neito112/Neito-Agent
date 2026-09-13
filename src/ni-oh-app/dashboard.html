@@ -1057,7 +1057,7 @@ async function renderOllamaBlock(elId, role) {
   }).join('');
   el.innerHTML = '<div class="row" style="gap:6px;margin:6px 0;align-items:center">' +
       '<button class="btn btn-sm" style="flex:0 0 auto" onclick="olToggle(\'' + elId + '\')">' + (open ? '▾ Ẩn' : '📋 Hiện') + ' danh sách model tối ưu cho máy (' + mine.length + ')</button>' +
-      '<button class="btn btn-sm" style="flex:0 0 auto" onclick="olChooseDir()" data-tip="Ollama là thành phần đính kèm của app — chọn thư mục chứa model (OLLAMA_MODELS),serve tự khởi động lại">📁 Nơi lưu model</button>' +
+      '<button class="btn btn-sm" style="flex:0 0 auto" onclick="olOpenApp()" data-tip="Mở app Ollama — muốn đổi nơi lưu model thì chỉnh trong đó; bên Ni-Oh chỉ việc tải và theo dõi tiến độ">🚀 Mở Ollama</button>' +
       '<span class="desc ol-dir-desc" style="flex:1;min-width:120px;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span></div>' +
     '<div style="padding-left:6px"' + (open ? '' : ' hidden') + '>' + rows + '</div>';
   olShowDir();
@@ -1066,14 +1066,12 @@ function olToggle(elId) { _olOpen[elId] = !_olOpen[elId]; renderOllamaAll(); }
 async function olShowDir() {
   try {
     const d = await window.niOhAPI.getOllamaModelDir();
-    document.querySelectorAll('.ol-dir-desc').forEach(el => { el.textContent = 'Lưu tại: ' + d.dir + (d.custom ? '' : ' (mặc định)'); el.title = d.dir; });
+    document.querySelectorAll('.ol-dir-desc').forEach(el => { el.textContent = 'Model lưu tại: ' + d.dir; el.title = 'Đổi nơi lưu: bấm 🚀 Mở Ollama → Settings của Ollama'; });
   } catch (e) {}
 }
-async function olChooseDir() {
-  const r = await window.niOhAPI.setOllamaModelDir();
-  if (r && r.canceled) return;
-  if (r && r.applied) { toast('Đổi nơi lưu model → ' + r.dir + ' (serve mới dùng từ model tải sau khi đổi)'); _olCatalog = null; renderOllamaAll(); loadModels(); }
-  else toast('Không đổi được biến OLLAMA_MODELS');
+async function olOpenApp() {
+  const r = await window.niOhAPI.openOllamaApp();
+  if (!r || !r.success) toast('Không mở được Ollama: ' + ((r && r.error) || '?'));
 }
 async function ollamaPull(id, btn) {
   if (btn) { btn.disabled = true; btn.textContent = '⬇ kết nối…'; }

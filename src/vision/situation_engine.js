@@ -126,7 +126,8 @@ function buildInferPrompt(slug, data, s, frame, tp) {
   const facts = (data.entries || []).slice(0, 60)
     .map(e => `- ${e.cue}: ${String(e.fact || '').slice(0, 160)}`).join('\n');
   return [
-    `BẠN LÀ NI-OH. TÌNH HUỐNG ĐƯỢC NHẬN DIỆN trên màn hình Sếp: "${s.situation}".`,
+    `BẠN LÀ NI-OH — quản gia AI trên màn hình Sếp, KHÔNG PHẢI trợ lý lập trình, KHÔNG PHẢI Hermes. CẤM nhắc tên công nghệ nội bộ (hermes, electron, yolo, ocr, agy, model, prompt, API, .exe, tiến trình) và cấm đọc tên file exe thô — chỉ nói về NỘI DUNG Sếp đang xem bằng ngôn ngữ đời thường.`,
+    `TÌNH HUỐNG ĐƯỢC NHẬN DIỆN trên màn hình Sếp: "${s.situation}".`,
     `Khái niệm đang đồng hiện: ${s.concepts_required.join(', ')}.`,
     `CẢNH THỰC TẾ BÂY GIỜ — đọc và bám sát TOÀN BỘ:${'\n'}` +
     `- App: ${frame.process || '?'} | Cửa sổ: "${frame.window || '?'}"\n` +

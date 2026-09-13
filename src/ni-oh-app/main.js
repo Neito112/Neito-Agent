@@ -199,6 +199,27 @@ const extMan = require(path.join(APP_DIR, 'extensions_manager.js'));
 const situationEngine = require(path.join(NIOH_ROOT, 'src', 'vision', 'situation_engine.js'));
 // Args agy + cờ KHO MỞ RỘNG (skill/tool/mcp/plugin) + quyền admin nếu đã cấp
 function agyArgsX(prompt, model) { return agyTool.agyArgs(prompt, model, extMan.agyFlags()); }
+// Đường NÓI (bình luận màn hình/tình huống): chạy agy CÔ LẬP trong temp rỗng.
+// Lý do: agy cwd=D:\Ni-Oh sẽ nạp bộ nhớ dự án + transcript cũ (đầy 'hermes.exe' từ OCR)
+// → model trả lời bằng cái đầu coding agent, nói lạc cả tính cách Ni-Oh; và index cả repo
+// mỗi câu → spike CPU/disk, lag cả máy mỗi lần Alt-Tab.
+const AGY_ISO_DIR = path.join(require('os').tmpdir(), 'nioh-voice-iso');
+try { fs.mkdirSync(AGY_ISO_DIR, { recursive: true }); } catch (e) {}
+function agyArgsVoice(prompt, model) {
+  const a = agyTool.agyArgs(prompt, model, extMan.agyFlags());
+  a.cwd = AGY_ISO_DIR;   // project trống → não agy không lẫn ký ức coding của D:\Ni-Oh
+  return a;
+}
+// Luật giọng nói: chỉ nói về THỨ SẾP NHÌN THẤY — cấm lộ ống nghiệm bên trong
+const VOICE_GUARD = `
+LUẬT GIỌNG NÓI (tuyệt đối):
+- Bạn là NI-OH — quản gia AI trên màn hình Sếp. KHÔNG PHẢI trợ lý lập trình, KHÔNG PHẢI Hermes.
+- CẤM nhắc tên công nghệ/hệ thống nội bộ: hermes, electron, yolo, ocr, agy, model, prompt, API, tiến trình, giao thức.
+- CẤM đọc tên file exe/tiêu đề cửa sổ thô (vd 'hermes.exe'). Chỉ nói về NỘI DUNG Sếp đang xem bằng ngôn ngữ đời thường.
+- Không có trong CẢNH THỰC TẾ thì không tồn tại — không bịa, không chào hỏi xã giao rỗng.`;
+function voiceGuarded(text) {
+  return /hermes|electron|yolo|ocr|agy|api|prompt|tiến trình|process\.|\.exe/i.test(String(text || ''));
+}
 // Chạy agy BẤT ĐỒNG BỘ — execSync từng làm treo cứng (AppHang) toàn bộ app khi agy nghĩ lâu
 function agyRun(prompt, model, timeoutMs) {
   return new Promise((resolve) => {
@@ -698,9 +719,10 @@ async function speakText(text, rate) {
     saveConfig();
     if (overlayWindow && !overlayWindow.isDestroyed() && overlayWindow.isVisible()) {
       const wc = overlayWindow.webContents;
-      wc.send('say', normalizeForSpeech(text));
-      // CHỈ phát ở overlay — không nhân bản ra audioWindow (tránh tiếng chồng tiếng)
-      wc.send('play-file', { url: fileUrl(r.file), id: Date.now(), rate });
+      // CHỈ phát ở overlay — không nhân bản ra audioWindow (tránh tiếng chồng tiếng).
+      // Chữ đi KÈM file tiếng (caption): overlay nở bóng đúng khoảnh khắc audio cất
+      // → miệng/tiếng/chữ đồng bộ, không còn cảnh chữ hiện trước giọng cả giây.
+      wc.send('play-file', { url: fileUrl(r.file), id: Date.now(), rate, caption: normalizeForSpeech(text) });
     } else {
       playAudioSilent(r.file);
     }
@@ -1094,7 +1116,14 @@ async function ensureOllamaUp() {
 function ollamaModelDir() {
   const v = (process.env.OLLAMA_MODELS || '').trim();
   if (v) return v;
-  try {   // đọc user env var (setx ghi ở đó, không phải env của process này)
+  // Đọc HKCU\Environment trực tiếp bằng .NET (bền hơn parse output reg.exe —
+  // trong Electron execSync+pipe từng cho kết quả rỗng không rõ nguyên nhân)
+  try {
+    const ps = "([Microsoft.Win32.Registry]::CurrentUser.OpenSubKey('Environment')).GetValue('OLLAMA_MODELS',$null,'DoNotExpandEnvironmentNames')";
+    const out = require('child_process').execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', ps], { timeout: 8000, windowsHide: true }).toString().trim();
+    if (out) return out;
+  } catch (e) {}
+  try {   // fallback: reg.exe
     const out = require('child_process').execSync('reg query "HKCU\Environment" /v OLLAMA_MODELS', { stdio: ['ignore', 'pipe', 'ignore'] }).toString();
     const m = out.match(/OLLAMA_MODELS\s+REG_[A-Z_]+\s+(.+)/);
     if (m) return m[1].trim();
@@ -1116,6 +1145,25 @@ function sendUI(channel, payload) {
   try { if (dashboardWindow && !dashboardWindow.isDestroyed()) dashboardWindow.webContents.send(channel, payload); } catch (e) {}
   try { if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send(channel, payload); } catch (e) {}
 }
+ipcMain.handle('open-ollama-app', () => {
+  const { spawn } = require('child_process');
+  const dir = path.dirname(findOllamaExe() || '');
+  const cands = [
+    path.join(dir, 'ollama app.exe'),
+    path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Ollama', 'ollama app.exe'),
+    findOllamaExe()
+  ];
+  for (const c of cands) {
+    try {
+      if (c && fs.existsSync(c)) {
+        const ch = spawn(c, [], { detached: true, stdio: 'ignore' }); ch.unref();
+        return { success: true, exe: c };
+      }
+    } catch (e) {}
+  }
+  require('electron').shell.openExternal('https://ollama.com/download');
+  return { success: true, note: 'chưa cài GUI Ollama — mở trang tải' };
+});
 ipcMain.handle('ollama-model-dir', () => {
   const d = ollamaModelDir() || require('path').join(process.env.USERPROFILE || '', '.ollama', 'models');
   return { dir: d, custom: !!ollamaModelDir(), exists: require('fs').existsSync(d) };
@@ -1300,8 +1348,11 @@ async function onHearQuestion(text) {
     if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('thinking', 25);
     const r = await askAI(text.trim());
     if (r.success) {
-      if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('say', normalizeForSpeech(r.answer));
-      await speakText(r.answer);
+      // KHÔNG gửi 'say' tách rời nữa: speakText đính caption vào file tiếng,
+      // overlay nở bóng đúng khoảnh khắc audio cất → hết cảnh chữ chạy trước giọng.
+      const done = await speakText(r.answer).catch(() => ({ success: false }));
+      if (!(done && done.success) && overlayWindow && !overlayWindow.isDestroyed())
+        overlayWindow.webContents.send('say', normalizeForSpeech(r.answer));
     }
   } finally { answeringVoice = false; }
 }
@@ -1517,13 +1568,9 @@ async function handleSwitchEvent(msg) {
     if (!isBannedSpeech(line)) await speakText(line, 1.1);
     return;
   }
-  if (ev.kind === 'tabback') {
-    setTimeout(() => {
-      if (!mainConfig.eyeProactive || eyeBusy || answeringVoice) return;
-      const f = lastFrame;
-      if (f && f.process === ev.proc && (Date.now() / 1000 - (f.ts || 0)) < 12) chitAboutScreen(true);
-    }, P.debounce_scene_ms);
-  }
+  // tabback (Alt-Tab qua lại app đã biết): IM LẶNG tuyệt đối — không chào, không spawn LLM.
+  // Sếp chỉ cần đúng 1 câu vào lần ĐẦU mở app/game (nhánh launch ở trên). Mỗi lần tab mà
+  // gọi agy là mỗi lần nạp lại não dự án → lag cả máy. Loại bỏ hẳn đường này.
 }
 
 // Chạy 1 tình huống: instant = đọc data luôn (0 suy luận); infer = não suy luận rồi lưu vĩnh viễn
@@ -1538,8 +1585,8 @@ async function runSituation(hit) {
     visionBrain.bumpStat('situation_infer');
     if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('thinking', 20);
     const r = await new Promise((resolve) => {
-      const a = agyArgsX(hit.prompt, mainConfig.modelName || 'gemini-3.8-flash-low');
-      const child = spawn(a.exe, a.args, { windowsHide: true });
+      const a = agyArgsVoice(hit.prompt, mainConfig.modelName || 'gemini-3.8-flash-low');
+      const child = spawn(a.exe, a.args, { windowsHide: true, cwd: a.cwd });
       const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch(e){} resolve({ success:false, error:'agy timeout' }); }, 60000);
       let out = '';
       child.stdout.on('data', d => out += d);
@@ -1857,7 +1904,9 @@ async function chitAboutScreen(eventNow) {
     const fresh = msg && (Date.now() / 1000 - (msg.ts || 0)) < 12;
     if (!fresh || eyeBusy || answeringVoice) return;   // mắt chưa thấy gì mới → im lặng
     // Cảnh YouTube/video: chỉ được nói về thứ Sếp ĐANG XEM, cấm bình luận nút/bản quyền
+    const soul = soulPrompt();
     const prompt =
+      (soul ? `HỒ SƠ TÂM HỒN (sống theo — cao nhất):\n${soul}\n\n` : '') + VOICE_GUARD + '\n\n' +
       `BẠN LÀ NI-OH — ${eventNow ? 'Sếp vừa QUAY LẠI màn hình này, nói về NỘI DUNG vừa xuất hiện' : 'vừa LIẾC'} lúc ${new Date().toLocaleTimeString('vi-VN')}.\n` +
       `CẢNH THỰC TẾ (nguồn duy nhất, không có trong này là không tồn tại):\n` +
       `- App on top: ${msg.process || '?'} | Cửa sổ: "${msg.window || '?'}"\n` +
@@ -1871,8 +1920,8 @@ async function chitAboutScreen(eventNow) {
       if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('thinking', 15);
       const r = await new Promise((resolve) => {
         const urgent = situationEngine.tempo() === situationEngine.pacing().tempo_urgency_threshold;
-        const a = agyArgsX(prompt, urgent ? 'gemini-3.8-flash-low' : (mainConfig.modelName || 'gemini-3.8-flash-low'));
-        const child = spawn(a.exe, a.args, { windowsHide: true });
+        const a = agyArgsVoice(prompt, urgent ? 'gemini-3.8-flash-low' : (mainConfig.modelName || 'gemini-3.8-flash-low'));
+        const child = spawn(a.exe, a.args, { windowsHide: true, cwd: a.cwd });
         const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch(e){} resolve({ success:false, error:'agy timeout' }); }, urgent ? 20000 : 45000);
         let out = '', err = '';
         child.stdout.on('data', d => out += d);
@@ -1882,7 +1931,7 @@ async function chitAboutScreen(eventNow) {
       });
       if (r.success) {
         const ans = r.answer.replace(/^["']|["']$/g, '').trim();
-        if (ans && !/^SKIP\.?$/i.test(ans) && !isBannedSpeech(ans)) await speakText(ans);
+        if (ans && !/^SKIP\.?$/i.test(ans) && !isBannedSpeech(ans) && !voiceGuarded(ans)) await speakText(ans);
       }
     } finally { eyeBusy = false; }
   } finally { scheduleChit(); }
