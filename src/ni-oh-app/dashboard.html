@@ -217,7 +217,7 @@ input[type="range"] { width:100%; accent-color: var(--accent); }
 .modelcombo > input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); background:rgba(7,8,10,.85); }
 .mc-arrow { position:absolute; right:4px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:6px 5px; font-size:12px; line-height:1; border-radius:6px; }
 .mc-arrow:hover { color:var(--text); background:var(--accent-soft); }
-.mc-list { position:absolute; z-index:80; left:0; right:0; top:calc(100% + 4px); max-height:280px; overflow:auto; background:#0b0c0e; border:1px solid var(--border-strong); border-radius:var(--radius-sm); box-shadow:0 12px 32px rgba(0,0,0,.55); box-shadow:0 12px 32px rgba(0,0,0,.55); padding:4px; }
+.mc-list { position:fixed; z-index:400; max-height:280px; overflow:auto; background:#0b0c0e; border:1px solid var(--border-strong); border-radius:var(--radius-sm); box-shadow:0 12px 32px rgba(0,0,0,.55); box-shadow:0 12px 32px rgba(0,0,0,.55); padding:4px; }
 .mc-item { display:flex; gap:8px; align-items:baseline; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:13px; font-size:13px; }
 .mc-item:hover { background:var(--accent-soft); }
 .mc-item.sel { background:rgba(126,255,180,.10); }
@@ -414,10 +414,10 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
             <option value="ollama">Ollama (local)</option>
             <option value="gemini">Google Gemini</option>
           </select>
-        </div>
-        <div class="field shrink" id="api-key-group" style="display:none; margin:0;">
-          <label for="setting-api-key">API key</label>
-          <input type="password" id="setting-api-key" placeholder="sk-…" autocomplete="off">
+          <div id="api-key-group" style="display:none; margin-top:6px">
+            <label for="setting-api-key" style="margin-top:6px">API key</label>
+            <input type="password" id="setting-api-key" placeholder="sk-…" autocomplete="off">
+          </div>
         </div>
         <div class="field" style="margin:0">
           <label for="setting-model-name">Model</label>
@@ -448,10 +448,10 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
             <option value="ollama">Ollama (local)</option>
             <option value="gemini">Google Gemini</option>
           </select>
-        </div>
-        <div class="field shrink" id="train-key-group" style="display:none; margin:0;">
-          <label for="setting-train-key">API key</label>
-          <input type="password" id="setting-train-key" placeholder="sk-…" autocomplete="off">
+          <div id="train-key-group" style="display:none; margin-top:6px">
+            <label for="setting-train-key" style="margin-top:6px">API key</label>
+            <input type="password" id="setting-train-key" placeholder="sk-…" autocomplete="off">
+          </div>
         </div>
         <div class="field" style="margin:0">
           <label for="setting-train-model">Model</label>
@@ -965,11 +965,32 @@ function mcRender(k, qRaw) {
     el.onmousedown = (e) => { e.preventDefault(); inp.value = el.dataset.mc; mcClose(k); };
   });
 }
-function mcOpen(k, all) { _mcOpen[k] = true; const list = document.getElementById('mc-' + k); list.hidden = false; mcRender(k, all ? '' : undefined); }
+function mcPlace(k) {   // list là portal trong body → tính tọa độ theo ô input
+  const list = document.getElementById('mc-' + k), inp = mcInput(k);
+  if (!list || !inp) return;
+  const r = inp.getBoundingClientRect();
+  list.style.left = r.left + 'px';
+  list.style.width = r.width + 'px';
+  const below = innerHeight - r.bottom - 10;
+  if (below > 140 || r.top > below) { list.style.top = (r.bottom + 4) + 'px'; list.style.maxHeight = Math.max(120, Math.min(280, below)) + 'px'; }
+  else { list.style.top = 'auto'; list.style.bottom = (innerHeight - r.top + 4) + 'px'; list.style.maxHeight = Math.max(120, Math.min(280, r.top - 10)) + 'px'; }
+}
+function mcOpen(k, all) {
+  _mcOpen[k] = true;
+  const list = document.getElementById('mc-' + k);
+  if (list.parentElement !== document.body) document.body.appendChild(list);  // thoát stacking context của .card (backdrop-filter)
+  list.hidden = false;
+  mcPlace(k);
+  mcRender(k, all ? '' : undefined);
+}
 function mcClose(k) { _mcOpen[k] = false; const list = document.getElementById('mc-' + k); if (list) list.hidden = true; }
 function mcCloseSoon(k) { setTimeout(() => mcClose(k), 150); }
 function mcToggle(k) { mcOpen(k, true); }  // bấm ▾ lúc nào cũng xổ TOÀN BỘ danh sách
-function mcFilter(k) { if (_mcOpen[k]) mcRender(k); else mcOpen(k); }
+function mcFilter(k) { if (_mcOpen[k]) { mcPlace(k); mcRender(k); } else mcOpen(k); }
+function mcCloseAll() { mcClose('chat'); mcClose('train'); }
+document.addEventListener('scroll', mcCloseAll, true);
+window.addEventListener('resize', mcCloseAll);
+
 function mcKeys(ev, k) {
   if (ev.key === 'Escape') { mcClose(k); }
   else if (ev.key === 'Enter') { mcClose(k); }
