@@ -156,6 +156,30 @@ const TOOLS = {
     name: 'Trạng thái tự học', desc: 'Không args — trả về: bật/tắt, số nguồn chờ, số tình huống chưa lời giải, model đang dùng để học.',
     run: async (args, ctx) => ctx.main && ctx.main.status ? ok(await ctx.main.status()) : bad('cầu nối tự học chưa sẵn sàng')
   },
+  check_game_support: {
+    name: 'Kiểm tra hỗ trợ game/app', desc: 'args:{name} — Sếp hỏi \'em có hỗ trợ game X không\' thì GỌI NGAY tool này trước khi trả lời. Trả về found:true+kho dữ liệu (đã hỗ trợ → xác nhận + hỏi cần giúp gì) hoặc found:false (chưa có → hỏi Sếp có muốn thu thập dữ liệu ngay không; đồng ý thì train_topic, không thì protocol_stub đặt tên để trống chờ lệnh sau)',
+    run: async (args, ctx) => {
+      const b = ctx.main; if (!b || !b.support) return bad('cầu nối chưa sẵn sàng');
+      const r = b.support(String(args.name || ''));
+      return ok(r ? Object.assign({ found: true }, r) : { found: false, name: String(args.name || '') });
+    }
+  },
+  protocol_stub: {
+    name: 'Tạo giao thức trống chờ lệnh', desc: 'args:{name} — tạo file giao thức rỗng cho game/app chưa có dữ liệu (KHÔNG học gì), chờ lệnh sau',
+    run: async (args, ctx) => {
+      const b = ctx.main; if (!b || !b.stub) return bad('cầu nối chưa sẵn sàng');
+      const r = b.stub(String(args.name || ''));
+      return r.error ? bad(r.error) : ok(r);
+    }
+  },
+  self_learn_roster: {
+    name: 'Tự học phủ hết chủ đề', desc: 'args:{slug,stage?,max?} — cơ chế cho game có HÀNG TRĂM mục (tướng/item/nút): stage=lists lập danh sách đầy đủ từ wiki/trang chủ; stage=concepts biên soạn khái niệm nhận diện từng batch 12 (resume được); stage=sits đúc tình huống; stage=status (mặc định) xem tiến độ. Sau khi xong chạy direct_importer nạp vào kho. Chậm — báo Sếp là em cày nền.',
+    run: async (args, ctx) => {
+      const b = ctx.main; if (!b || !b.roster) return bad('cầu nối roster chưa sẵn sàng');
+      const r = await b.roster(String(args.slug || ''), String(args.stage || 'status'), args.max ? +args.max : 0);
+      return r.error ? bad(r.error) : ok(r);
+    }
+  },
   self_learn_toggle: {
     name: 'Bật/TẮT tự học', desc: 'args:{on:true|false} — bật hoặc tắt worker marathon tự học chạy lúc nhàn rỗi.',
     run: async (args, ctx) => {

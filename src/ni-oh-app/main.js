@@ -329,7 +329,9 @@ function classifyMode(q, sc, kb) {
   const s = String(q).toLowerCase();
   if (kb && kb.direct) return 'instant';                       // KB có sẵn → 0 request
   if (/\b(là gì|ở đâu|sao|tại sao|thế nào|hướng dẫn|cách |check|tra cứu|tìm|search|update|giá|meta|phiên bản|code|lỗi|fix|dạy|học|train|giao thức|chủ đề|marathon)\b/.test(s)) return 'lookup';
-  if (/(tự học|marathon|giao thức|mở mắt|bắt đầu học|dạy thêm)/.test(s)) return 'lookup';   // lệnh thao tác → được dùng tool
+  if (/(tự học|marathon|giao thức|mở mắt|bắt đầu học|dạy thêm|check_game_support)/i.test(s)) return 'lookup';
+  const sNfd = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/d/g, 'd');   // bỏ dấu: khớp mẫu ổn định không cần liệt kê mọi tổ hợp dấu
+  if (/(ho tro|ho tro|game tro|choi game|lam duoc game|game .{0,16}(khong|ko|hem|day|nay|chu)|da ho tro .*(game|app))/.test(sNfd)) return 'lookup';   // 'em có hỗ trợ game X không?' → lookup để được gọi check_game_support
   if (s.length <= 18 && !sc) return 'chat';                    // câu ngắn, không liên quan màn hình → chuyện trò
   if (/\b(cái này|kia|đó|màn hình|nhìn|thấy|trên hình)\b/.test(s)) return 'screen';
   return 'chat';
@@ -389,6 +391,40 @@ function personaPrompt() {
 
 // ═══ Ngữ cảnh sống: mắt YOLO + KB dự án + dữ liệu protocol ═══
 let _projDigest = null, _projDigestAt = 0;
+function slugVi(v) {   // Việt → slug: NFD bỏ dấu, đ→d (luật skill, cấm map tay)
+  return String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+// 'hỗ trợ game X không?' → tìm trong kho vision theo slug/tên/alias (fuzzy nhẹ)
+function gameSupport(name) {
+  const want = slugVi(name), wn = want.replace(/-/g, ' ');
+  const dir = path.join(NIOH_ROOT, 'memory', 'vision');
+  let best = null;
+  for (const f of fs.readdirSync(dir)) {
+    if (!f.endsWith('.json') || f === 'stats.json' || f === 'triggers.json') continue;
+    const slug = f.slice(0, -5);
+    let d = null; try { d = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); } catch (e) {}
+    const names = [slug, (d && (d.name || d.title)) || ''].map(s => slugVi(s));
+    const alias = ((d && d.aliases) || []).map(a => slugVi(a));
+    const hit = names.concat(alias).some(s => s && (s === want || s.includes(want) || want.includes(s) || s.replace(/-/g,' ') === wn));
+    if (hit && (!best || (d ? (d.concepts || []).length + (d.situations || []).length : 0) > best.data)) {
+      best = { slug, name: (d && (d.name || d.title)) || slug, concepts: (d.concepts || []).length, situations: (d.situations || []).length, answered: (d.situations || []).filter(s => String(s.answer || '').trim()).length, data: d ? (d.concepts || []).length + (d.situations || []).length : 0 };
+    }
+  }
+  return best;
+}
+
+// Tạo giao thức rỗng chờ lệnh (không tự học gì)
+function protocolStub(name) {
+  const slug = slugVi(name);
+  if (!slug) return { error: 'tên rỗng' };
+  const f = path.join(NIOH_ROOT, 'memory', 'vision', slug + '.json');
+  if (fs.existsSync(f)) return { exists: true, slug };
+  const body = { slug, name: String(name).trim(), concepts: [], situations: [], entries: [], tier: 'foundation', origin: 'manual', note: 'giao thức chờ lệnh — chưa nạp dữ liệu', createdAt: new Date().toISOString() };
+  fs.writeFileSync(f, JSON.stringify(body, null, 1));
+  return { created: true, slug };
+}
+
 function projectDigest() {
   if (_projDigest && Date.now() - _projDigestAt < 300000) return _projDigest;
   try {
@@ -699,7 +735,9 @@ ipcMain.handle('ask-question', async (_, question) => {
   // ── Bước 1: hỏi KB vĩnh viễn trước (0 token) — TRỪ câu hỏi phụ thuộc màn hình
   // (cảnh luôn đổi → đáp án cũ trong KB là sai, phải để não nhìn cảnh thật) ──
   const kb = visionBrain.searchKB(question, activeTopic());
-  if (kb && kb.direct && kb.entry.answer && !isScreenBound(question)) {
+  // câu hỏi 'em có hỗ trợ game X không' phải qua tool check_game_support, không nuốt bằng đáp án KB cũ
+  const isSupportProbe = /h[ôo]\s*tr[ợo]|c[óo]\s*(bi[ếe]t|l[àa]m|gi[úu]p|help)|game\s+\S+\s*(kh[ôo]ng|ko|hem|ch[aư]a)/i.test(String(question));
+  if (kb && kb.direct && kb.entry.answer && !isScreenBound(question) && !isSupportProbe) {
     visionBrain.bumpStat('kb_hits');
     visionBrain.bumpStat('saved_tokens_est', 400);
     const answer = String(kb.entry.answer);
@@ -850,19 +888,105 @@ ipcMain.handle('get-agy-models', () => new Promise((resolve) => {
 }));
 
 // Ollama models
-ipcMain.handle('get-ollama-models', () => {
-  return new Promise((resolve)=>{
-    const req = http.request({hostname:'127.0.0.1',port:11434,path:'/api/tags',method:'GET',timeout:5000},(res)=>{
-      let b=''; res.on('data',c=>b+=c);
-      res.on('end',()=>{ try{ const j=JSON.parse(b);
-        resolve((j.models||[]).map(m=>({id:m.name,label:m.name})));
-      }catch(e){ resolve([]); }});
+// ── Ollama: catalog chọn lọc + tải nền có tiến độ ──
+// ── Danh sách model THẬT từ API provider (cache 10 phút) ──
+const _modelCache = {};
+function cachedFetch(key, url, headers, parse, ttl) {
+  if (_modelCache[key] && Date.now() - _modelCache[key].at < (ttl || 600000)) return Promise.resolve(_modelCache[key].data);
+  return new Promise((resolve) => {
+    const lib = url.startsWith('https') ? https : http;
+    const rq = lib.get(url, { headers: headers || {}, timeout: 9000 }, res => {
+      let b = ''; res.on('data', c => b += c);
+      res.on('end', () => {
+        let out = []; try { out = parse(b); } catch (e) {}
+        _modelCache[key] = { at: Date.now(), data: out };
+        resolve(out);
+      });
     });
-    req.on('error',()=>resolve([]));
-    req.on('timeout',()=>{req.destroy();resolve([]);});
-    req.end();
+    rq.on('error', () => resolve(_modelCache[key] ? _modelCache[key].data : []));
+    rq.on('timeout', () => { rq.destroy(); resolve(_modelCache[key] ? _modelCache[key].data : []); });
+  });
+}
+ipcMain.handle('get-openrouter-models', async () => {
+  // danh sách công khai, không cần key; chỉ giữ model sinh text (tránh image/embedding lẫn vào)
+  return cachedFetch('or', 'https://openrouter.ai/api/v1/models', {}, b => {
+    const j = JSON.parse(b);
+    const list = (j.data && j.data.data) || j.data || [];
+    return list
+      .filter(m => m && m.id && (!m.output_modalities || m.output_modalities.includes('text')))
+      .filter(m => !/image|audio|embed|tts|transcribe|rerank/i.test(m.id))
+      .map(m => ({
+        id: m.id,
+        label: (m.name || m.id) + ' · ' + (((m.context_length || 0) / 1000) | 0) + 'K' + (/:free$/.test(m.id) ? ' · Free' : ''),
+        free: /:free$/.test(m.id) || (m.pricing && m.pricing.prompt === '0')
+      }))
+      .sort((a, b2) => (b2.free ? 1 : 0) - (a.free ? 1 : 0) || a.label.localeCompare(b2.label))
+      .slice(0, 60);
   });
 });
+ipcMain.handle('get-gemini-models', async () => {
+  const key = mainConfig.apiKey || process.env.GEMINI_API_KEY || '';
+  if (!key) return [];
+  return cachedFetch('gem:' + key.slice(-6), 'https://generativelanguage.googleapis.com/v1beta/models?key=' + encodeURIComponent(key) + '&pageSize=200', {}, b => {
+    const j = JSON.parse(b);
+    return (j.models || [])
+      .filter(m => (m.supportedGenerationMethods || []).includes('generateContent') && !/embedding|imagen|tts|voice|live|music/i.test(m.name))
+      .map(m => ({ id: m.name.replace(/^models\//, ''), label: (m.displayName || m.name.replace(/^models\//, '')) }));
+  });
+});
+
+function ollamaTags() {   // 1 Promise, dùng chung — cùng code handler get-ollama-models đã chạy ổn
+  return new Promise((resolve) => {
+    const req = http.request({ hostname: '127.0.0.1', port: 11434, path: '/api/tags', method: 'GET', timeout: 5000 }, (res) => {
+      let b = ''; res.on('data', c => b += c);
+      res.on('end', () => { try { const j = JSON.parse(b); resolve((j.models || []).map(m => m.name)); } catch (e) { resolve([]); } });
+    });
+    req.on('error', () => resolve([]));
+    req.on('timeout', () => { req.destroy(); resolve([]); });
+    req.end();
+  });
+}
+ipcMain.handle('get-ollama-catalog', async () => {
+  const ollamaMod = require('./ollama_models.js');
+  const installed = await ollamaTags();
+  return ollamaMod.catalog(installed);
+});
+const _pullSockets = {};
+function sendUI(channel, payload) {
+  try { if (dashboardWindow && !dashboardWindow.isDestroyed()) dashboardWindow.webContents.send(channel, payload); } catch (e) {}
+  try { if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send(channel, payload); } catch (e) {}
+}
+ipcMain.handle('ollama-pull', (e, name) => {
+  const model = String(name || '').replace(/[^a-z0-9:._-]/gi, '');
+  if (!model) return { error: 'model rỗng' };
+  if (_pullSockets[model]) return { started: false, model, note: 'đang tải dở rồi' };
+  const body = JSON.stringify({ model, stream: true });
+  const req = http.request({ hostname: '127.0.0.1', port: 11434, path: '/api/pull', method: 'POST', timeout: 3600000, headers: { 'Content-Type': 'application/json' } }, res => {
+    let acc = '';
+    res.on('data', c => {
+      acc += c.toString(); let i;
+      while ((i = acc.indexOf('\n')) >= 0) {
+        const line = acc.slice(0, i).trim(); acc = acc.slice(i + 1);
+        if (!line) continue;
+        let j; try { j = JSON.parse(line); } catch (e2) { continue; }
+        if (j.error) { sendUI('ollama-pull', { model, status: 'error', error: j.error }); continue; }
+        const done = /success/.test(j.status || '');
+        let pct = null;
+        if (j.completed != null && j.total) pct = Math.min(99, Math.floor(j.completed / j.total * 100));
+        sendUI('ollama-pull', { model, status: j.status, done, pct });
+        if (done) { delete _pullSockets[model]; broadcastConfig(); }
+      }
+    });
+    res.on('end', () => { delete _pullSockets[model]; });
+  });
+  req.on('error', () => { delete _pullSockets[model]; sendUI('ollama-pull', { model, status: 'error', error: 'ollama serve chưa chạy?' }); });
+  req.on('timeout', () => { req.destroy(); delete _pullSockets[model]; sendUI('ollama-pull', { model, status: 'error', error: 'timeout' }); });
+  _pullSockets[model] = true;
+  req.write(body); req.end();
+  return { started: true, model };
+});
+
+ipcMain.handle('get-ollama-models', async () => (await ollamaTags()).map(m => ({ id: m, label: m })));
 
 ipcMain.handle('get-characters', () => {
   const dir = path.join(APP_DIR, 'assets', 'characters');
@@ -1803,6 +1927,26 @@ const selfLearningBridge = {
       });
     });
   },
+  roster(slug, stage, maxBatches) {   // phủ HẾT khái niệm theo danh sách chính thức (hàng trăm tướng/item)
+    return new Promise((resolve) => {
+      const script = path.join(NIOH_ROOT, 'tools', 'agy', 'coverage_roster.js');
+      const { spawn: sp2 } = require('child_process');
+      const s = String(slug || '').replace(/[^a-z0-9_-]/g, '');
+      const st = (['lists', 'concepts', 'sits', 'status'].includes(stage) ? stage : 'status');
+      const args = [script, s, '--' + st].concat(maxBatches ? ['--max', String(maxBatches)] : []);
+      const ch = sp2('node', args, { windowsHide: true, cwd: NIOH_ROOT });
+      let out = '';
+      const to = setTimeout(() => { try { ch.kill('SIGKILL'); } catch (e) {} resolve({ error: 'timeout — roster vẫn chạy dở, kiểm tra bằng --status rồi chạy tiếp (resume được)' }); }, st === 'status' ? 20000 : 20 * 60 * 1000);
+      ch.stdout.on('data', d => out += d);
+      ch.on('close', () => {
+        clearTimeout(to);
+        try { resolve(JSON.parse(out.slice(out.indexOf('{')))); } catch (e) { resolve({ raw: out.slice(-400) }); }
+      });
+      ch.on('error', () => { clearTimeout(to); resolve({ error: 'spawn fail' }); });
+    });
+  },
+  support(name) { return gameSupport(name); },
+  stub(name) { return protocolStub(name); },
   async once() {
     try { return await require(path.join(NIOH_ROOT, 'tools', 'agy', 'source_learner.js')).once(); }
     catch (e) { return { error: e.message }; }

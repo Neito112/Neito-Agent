@@ -406,11 +406,15 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
         </div>
         <div class="field" style="margin:0">
           <label for="setting-model-name">Model</label>
-          <select id="setting-model-name"></select>
+          <div class="row" style="gap:4px;margin:0">
+            <select id="setting-model-name" style="flex:1"></select>
+            <button class="btn icon-btn" onclick="loadModels()" data-tip="Nạp lại danh sách model của nhà cung cấp này" aria-label="Nạp lại danh sách model">↻</button>
+          </div>
         </div>
         <button class="btn btn-primary icon-btn" onclick="saveModelSettings()" title="Lưu cấu hình hội thoại" aria-label="Lưu cấu hình hội thoại">💾</button>
       </div>
       <p class="desc" id="model-hint">Model qua Antigravity CLI (agy). Không cần API key.</p>
+      <div id="ol-chat" style="margin-top:8px"></div>
     </div>
     <div class="card">
       <h3>🧠 Model dùng để tự học</h3>
@@ -430,11 +434,15 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
         </div>
         <div class="field" style="margin:0">
           <label for="setting-train-model">Model</label>
-          <select id="setting-train-model"></select>
+          <div class="row" style="gap:4px;margin:0">
+            <select id="setting-train-model" style="flex:1"></select>
+            <button class="btn icon-btn" onclick="loadTrainModels()" data-tip="Nạp lại danh sách model của nhà cung cấp này" aria-label="Nạp lại danh sách model">↻</button>
+          </div>
         </div>
         <button class="btn btn-primary icon-btn" onclick="saveTrainSettings()" title="Lưu cấu hình tự học" aria-label="Lưu cấu hình tự học">💾</button>
       </div>
       <p class="desc" id="kb-stats" style="margin-top:6px">—</p>
+      <div id="ol-train" style="margin-top:8px"></div>
       <div class="section-title" style="margin-top:var(--sp-4)">Đã train — mắt YOLO đang dùng</div>
       <div id="topic-list" class="characters-grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">
         <div class="empty" aria-busy="true">Đang tải…</div>
@@ -488,6 +496,7 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
             <select id="vc-model"></select>
           </div>
         </div>
+        <div id="ol-voice" style="margin-top:8px"></div>
         <div class="field" style="margin-top:var(--sp-2)">
           <label for="vc-desc">Mô tả giọng bạn muốn (nguồn text-only sẽ viết lại style cho chuẩn)</label>
           <textarea id="vc-desc" rows="2" placeholder="vd: ấm áp, trầm kiểu phát thanh viên nam miền Bắc, hơi vang, tốc độ vừa phải…" style="width:100%"></textarea>
@@ -835,6 +844,7 @@ function applyConfig(config) {
     const p = config.modelProvider || 'antigravity';
     document.getElementById('api-key-group').style.display =
       (p === 'openrouter' || p === 'gemini') ? 'block' : 'none';
+    renderOllamaAll();
   }
 
   document.getElementById('setting-train-provider').value = config.trainProvider || 'antigravity';
@@ -884,19 +894,18 @@ async function loadModels() {
     if (provider === 'antigravity') {
       models = await window.niOhAPI.getAgYModels();
     } else if (provider === 'ollama') {
-      models = await window.niOhAPI.getOllamaModels();
-      if (!models.length) models = [{ id:'qwen2.5:7b', label:'qwen2.5:7b (mặc định)' }];
+      const cat = await ollamaCatalog();
+      models = cat.filter(m => m.roles.includes('chat') && m.installed).map(m => ({ id: m.id, label: m.id + ' — ' + m.note }));
+      if (!models.length) {
+        models = await window.niOhAPI.getOllamaModels();
+        if (!models.length) models = [{ id:'qwen-vi:latest', label:'(chưa tải — xem danh sách bên dưới)' }];
+      }
     } else if (provider === 'openrouter') {
-      models = [
-        { id:'upstage/solar-pro4:free', label:'Solar Pro 4 (Free)' },
-        { id:'minimax/minimax-m3:free', label:'MiniMax M3 (Free)' },
-        { id:'deepseek/deepseek-v4-flash-0731', label:'DeepSeek v4 Flash' }
-      ];
+      models = await window.niOhAPI.getOpenRouterModels();
+      if (!models.length) models = [{ id:'upstage/solar-pro4:free', label:'(không tải được danh sách OpenRouter)' }];
     } else if (provider === 'gemini') {
-      models = [
-        { id:'gemini-3.6-flash', label:'Gemini 3.6 Flash' },
-        { id:'gemini-3.1-flash-lite', label:'Gemini 3.1 Flash Lite' }
-      ];
+      models = await window.niOhAPI.getGeminiModels();
+      if (!models.length) models = [{ id:'gemini-2.5-flash', label:'(cần Gemini API key để lấy danh sách)' }];
     }
     selectEl.innerHTML = models.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
     if (mainConfig?.modelName && models.some(m => m.id === mainConfig.modelName)) {
@@ -911,13 +920,24 @@ function onProviderChange() {
   const provider = document.getElementById('setting-model-provider').value;
   document.getElementById('api-key-group').style.display =
     (provider === 'openrouter' || provider === 'gemini') ? 'block' : 'none';
+  renderOllamaAll();
   const hint = document.getElementById('model-hint');
   if (provider === 'antigravity') hint.textContent = 'Antigravity CLI — tích hợp sẵn trong dự án, không cần khóa API.';
-  else if (provider === 'ollama') hint.textContent = 'Ollama cục bộ — yêu cầu ollama serve đang chạy.';
+  else if (provider === 'ollama') hint.textContent = 'Ollama cục bộ — ollama serve phải đang chạy. Danh sách tuyển chọn + tải model bên dưới.';
   else if (provider === 'openrouter') hint.textContent = 'Yêu cầu khóa API OpenRouter.';
   else if (provider === 'gemini') hint.textContent = 'Yêu cầu khóa API Google Gemini.';
   loadModels();
 }
+
+document.addEventListener('change', (ev) => {
+  // đổi API key (openrouter/gemini) → danh sách model động phải nạp lại
+  if (ev.target && (ev.target.id === 'setting-api-key' || ev.target.id === 'setting-train-key')) {
+    const mp = document.getElementById('setting-model-provider');
+    const tp = document.getElementById('setting-train-provider');
+    if (mp && (mp.value === 'openrouter' || mp.value === 'gemini')) loadModels();
+    if (tp && (tp.value === 'openrouter' || tp.value === 'gemini')) loadTrainModels();
+  }
+});
 
 async function saveModelSettings() {
   const config = {
@@ -930,6 +950,53 @@ async function saveModelSettings() {
   refreshChips();
   toast('Đã lưu Chat: ' + config.modelProvider + ' · ' + config.modelName);
 }
+// ─── Catalog Ollama: model tối ưu cho máy — ẨN mặc định, nút 📋 mới hiện lên ───
+let _olCatalog = null, _olProg = {}, _olOpen = {};
+async function ollamaCatalog() {
+  if (_olCatalog) return _olCatalog;
+  try { _olCatalog = await window.niOhAPI.getOllamaCatalog() || []; } catch (e) { _olCatalog = []; }
+  return _olCatalog;
+}
+function ollamaRoleLabel(r) { return r === 'chat' ? '💬 trả lời' : r === 'train' ? '🧠 tự học' : '🎤 voice'; }
+async function renderOllamaBlock(elId, role) {
+  const el = document.getElementById(elId); if (!el) return;
+  const cat = await ollamaCatalog();
+  const mine = cat.filter(m => m.roles.includes(role));
+  const open = _olOpen[elId];
+  const rows = mine.map(m => {
+    const prog = _olProg[m.id];
+    if (m.installed) return '<div class="row" style="gap:8px;align-items:center;margin:3px 0"><span style="width:160px;font-size:12px">✅ ' + m.id + '</span><span class="desc" style="flex:1">' + m.size + ' · ' + m.note + '</span></div>';
+    const btnTxt = prog && prog.status === 'downloading' ? '⬇ ' + (prog.pct != null ? prog.pct + '%' : '…') : (prog && prog.status === 'error' ? '⬇ thử lại' : '⬇ Tải ' + m.size);
+    return '<div class="row" style="gap:8px;align-items:center;margin:3px 0"><span style="width:160px;font-size:12px">' + m.id + '</span><span class="desc" style="flex:1">' + m.size + ' · ' + m.note + '</span><button class="btn btn-sm shrink" data-olpull="' + m.id + '" onclick="ollamaPull(this.dataset.olpull,this)">' + btnTxt + '</button></div>';
+  }).join('');
+  el.innerHTML = '<button class="btn btn-sm" style="margin:6px 0" onclick="olToggle(\'' + elId + '\')">' + (open ? '▾ Ẩn' : '📋 Hiện') + ' danh sách model tối ưu cho máy (' + mine.length + ')</button>' +
+    '<div style="padding-left:6px"' + (open ? '' : ' hidden') + '>' + rows + '</div>';
+}
+function olToggle(elId) { _olOpen[elId] = !_olOpen[elId]; renderOllamaAll(); }
+async function ollamaPull(id, btn) {
+  if (btn) { btn.disabled = true; btn.textContent = '⬇ kết nối…'; }
+  await window.niOhAPI.ollamaPull(id);
+}
+window.niOhAPI.onOllamaPull && window.niOhAPI.onOllamaPull(p => {
+  if (!p || !p.model) return;
+  if (p.done) { delete _olProg[p.model]; _olCatalog = null; renderOllamaAll(); loadModels(); loadTrainModels(); toast('Tải xong ' + p.model); return; }
+  if (p.status === 'error') { _olProg[p.model] = { status: 'error' }; renderOllamaAll(); toast('Lỗi tải ' + p.model + ': ' + (p.error || '')); return; }
+  _olProg[p.model] = { status: 'downloading', pct: p.pct };
+  // CHỈ cập nhật nhãn nút — không dựng lại dropdown khi đang tải (lỗi đổi model bất động)
+  document.querySelectorAll('button[data-olpull="' + p.model + '"]').forEach(b => { b.disabled = true; b.textContent = '⬇ ' + (p.pct != null ? p.pct + '%' : '…'); });
+});
+function renderOllamaAll() {
+  const cp = document.getElementById('setting-model-provider'), tp = document.getElementById('setting-train-provider');
+  const paint = (prov, elId, role) => {
+    const el = document.getElementById(elId); if (!el) return;
+    if (prov && prov.value === 'ollama') renderOllamaBlock(elId, role);
+    else el.innerHTML = '';   // tắt hẳn khi provider khác — khỏi lẫn sang
+  };
+  paint(cp, 'ol-chat', 'chat');
+  paint(tp, 'ol-train', 'train');
+}
+
+
 // ─── Danh sách chủ đề đã train ───
 async function loadTopics() {
   const el = document.getElementById('topic-list');
@@ -1022,6 +1089,7 @@ function onTrainProviderChange() {
   document.getElementById('train-key-group').style.display =
     (provider === 'openrouter' || provider === 'gemini') ? 'block' : 'none';
   loadTrainModels();
+  renderOllamaAll();
 }
 
 async function loadTrainModels() {
@@ -1031,17 +1099,19 @@ async function loadTrainModels() {
     let models = [];
     if (provider === 'antigravity') models = await window.niOhAPI.getAgYModels();
     else if (provider === 'openrouter') {
-      models = [
-        { id:'meta-llama/llama-3.3-70b-instruct:free', label:'Llama 3.3 70B (Free)' },
-        { id:'deepseek/deepseek-chat-v3-0324:free', label:'DeepSeek V3 (Free)' },
-        { id:'google/gemini-2.0-flash-001', label:'Gemini 2.0 Flash' }
-      ];
+      models = await window.niOhAPI.getOpenRouterModels();
+      if (!models.length) models = [{ id:'meta-llama/llama-3.3-70b-instruct:free', label:'(không tải được danh sách OpenRouter)' }];
     }
     else if (provider === 'ollama') {
-      models = await window.niOhAPI.getOllamaModels();
-      if (!models.length) models = [{ id:'qwen2.5:7b', label:'qwen2.5:7b (mặc định)' }];
+      const cat = await ollamaCatalog();
+      models = cat.filter(m => m.roles.includes('train') && m.installed).map(m => ({ id: m.id, label: m.id + ' — ' + m.note }));
+      if (!models.length) {
+        models = await window.niOhAPI.getOllamaModels();
+        if (!models.length) models = [{ id:'qwen2.5:7b-instruct-q4_K_M', label:'(chưa tải — xem danh sách bên dưới)' }];
+      }
     } else if (provider === 'gemini') {
-      models = [{ id:'gemini-3.6-flash', label:'Gemini 3.6 Flash' }, { id:'gemini-3.1-pro-high', label:'Gemini 3.1 Pro' }];
+      models = await window.niOhAPI.getGeminiModels();
+      if (!models.length) models = [{ id:'gemini-2.5-flash', label:'(cần Gemini API key để lấy danh sách)' }];
     }
     selectEl.innerHTML = models.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
     if (mainConfig?.trainModel && models.some(m => m.id === mainConfig.trainModel)) selectEl.value = mainConfig.trainModel;
@@ -1512,6 +1582,9 @@ function onVcSource() {
   const ms = document.getElementById('vc-model');
   ms.innerHTML = (s.models || []).map(m => `<option value="${m.id}">${m.label}</option>`).join('') || '<option value="">—</option>';
   ms.disabled = !(s.models || []).length;
+  const olc = document.getElementById('ol-voice');
+  if (olc) olc.innerHTML = '';
+  if (id === 'ollama' && olc) renderOllamaBlock('ol-voice', 'vc-model', 'voice', '');
   document.getElementById('vc-note').textContent = (s.note || '') + (s.needs === 'sample' ? ' · Nguồn này CẦN tệp âm thanh mẫu để clone.' : '') + (s.needs === 'key' ? ' · Nguồn này cần API key đã nạp ở tab Model AI.' : '');
   document.getElementById('vc-sample-chip').style.display = s.needs === 'sample' ? '' : '';
 }
