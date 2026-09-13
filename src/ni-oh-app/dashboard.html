@@ -468,88 +468,59 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
   <!-- ══ Panel: Voice ══ -->
   <section class="panel" id="panel-voice" role="tabpanel" aria-labelledby="tab-voice" hidden>
     <h2>Giọng nói</h2>
-    <p class="subtitle">Engine đọc, giọng, tốc độ — tùy biến từ file mẫu.</p>
+    <p class="subtitle">Hai dòng: chọn giọng đang dùng — và đúc giọng mới.</p>
 
-    <div class="card">
-      <h3>🎤 Engine &amp; giọng đọc</h3>
-      <div class="row">
-        <div class="field" style="margin:0">
-          <label for="setting-voice-provider">Engine</label>
-          <select id="setting-voice-provider" onchange="onVoiceProviderChange()">
-            <option value="vieneu">VieNeu TTS — giọng Việt chuẩn</option>
-            <option value="edge-tts">Edge TTS — online, miễn phí</option>
-            <option value="piper">Piper TTS — offline</option>
-          </select>
+    <div class="card" style="padding:var(--sp-3) var(--sp-4)">
+      <!-- DÒNG 1: chọn voice + test -->
+      <div class="row" style="gap:var(--sp-2); align-items:flex-end">
+        <div class="field" style="margin:0; flex:1 1 260px">
+          <label for="vsel">Giọng đang dùng</label>
+          <select id="vsel" onchange="onVoiceSelChange()"></select>
         </div>
-        <div class="field" style="margin:0">
-          <label for="setting-voice-name">Tên giọng</label>
-          <input type="text" id="setting-voice-name" placeholder="Ngọc Linh" autocomplete="off" list="vieneu-presets">
-          <datalist id="vieneu-presets">
-            <option value="Ngọc Linh"><option value="Trúc Ly"><option value="Ngọc Huyền"><option value="Thùy Dung">
-            <option value="Đoan Trang"><option value="Mai Anh"><option value="Thục Đoan"><option value="Ngọc Trân">
-            <option value="Mỹ Duyên"><option value="Quỳnh Anh"><option value="Kim Thanh"><option value="Minh Quân">
-            <option value="Minh Đức"><option value="Phạm Tuyên"><option value="Thái Sơn"><option value="Xuân Vĩnh">
-            <option value="Thanh Bình"><option value="Minh Triết"><option value="Quang Sơn"><option value="Đức Trí">
-            <option value="Mạnh Dũng"><option value="Anh Khôi"><option value="Adam">
-          </datalist>
-        </div>
-        <div class="field shrink" style="margin:0; min-width:120px">
-          <label for="setting-voice-speed">Tốc độ <span id="speed-val" class="status-text">1.0x</span></label>
-          <input type="range" id="setting-voice-speed" min="0.5" max="2.0" step="0.1" value="1.0">
-        </div>
-        <button class="btn btn-primary icon-btn" onclick="saveVoiceSettings()" title="Lưu cấu hình giọng" aria-label="Lưu cấu hình giọng">💾</button>
-        <button class="btn shrink" id="btn-test-voice" onclick="testVoice()" title="Phát mẫu giọng đang chọn">▶ Test giọng</button>
+        <button class="btn shrink" id="btn-test-voice" onclick="testVoice()" title="Nghe thử đúng giọng vừa chọn">▶ Test giọng</button>
       </div>
-      <div class="row" style="margin-top: var(--sp-3)">
-        <button class="btn shrink" onclick="document.getElementById('voice-sample').click()">🎧 Tạo giọng mới từ file mẫu</button>
-        <input type="file" id="voice-sample" accept="audio/*" style="display:none" onchange="onVoiceSampleSelected(this)">
-        <span class="status-text shrink" id="voice-sample-status" role="status"></span>
-      </div>
-      <p class="desc">VieNeu (mặc định): giọng Việt chuẩn, chạy local trên RTX 3060 — lần test đầu chờ load model ~1 phút, các lần sau tức thì. File mẫu giọng riêng: WAV/MP3 10–30 giây, bấm "Tạo giọng mới từ file mẫu".</p>
-    </div>
+      <div style="height:1px;background:var(--border);margin:var(--sp-3) 0"></div>
 
-    <div class="card">
-      <h3>🏭 Xưởng đúc giọng — Voice Packs đa profile</h3>
-      <p class="desc" style="margin-top:-4px">Mỗi kịch bản phản xạ (lõi là VĂN BẢN) được đúc .wav cho MỌI giọng trong kho → đổi giọng tức thì, hot-reload 2s không restart.</p>
-      <div class="row">
-        <div class="field" style="margin:0; flex:2 1 220px">
-          <label for="vp-list">Giọng đang dùng (active_voice_profile)</label>
-          <select id="vp-list"></select>
+      <!-- DÒNG 2: tạo giọng mới + file mẫu; mở rộng = nguồn/model + mô tả + demo -->
+      <div class="row" style="gap:var(--sp-2); align-items:flex-end">
+        <div class="field" style="margin:0; flex:1 1 260px">
+          <label for="vc-name">Tạo giọng mới — tên profile</label>
+          <input type="text" id="vc-name" placeholder="vd: Giong_Thach Sanh" autocomplete="off">
         </div>
-        <button class="btn shrink" onclick="switchVoiceProfile()" title="Tráo con trỏ profile — combat_loop nạp lại RAM trong 2 giây">🔀 Đổi giọng</button>
-        <button class="btn shrink" id="btn-vp-catchup" onclick="catchupSync(this)" title="Quét KB × profile, đúc bù mọi file wav còn thiếu">🧩 Đúc bù thiếu</button>
-        <span class="status-text shrink" id="vp-status"></span>
+        <button class="btn shrink" onclick="document.getElementById('vc-sample').click()" title="Chọn wav/mp3 5–20 giây làm chất giọng gốc (clone)">🎧 Tệp âm thanh mẫu</button>
+        <input type="file" id="vc-sample" accept="audio/*" style="display:none" onchange="onVcSample(this)">
+        <span class="status-text shrink" id="vc-sample-chip"></span>
+        <button class="btn shrink" id="vc-expand-btn" onclick="vcToggleAdv()" title="Chọn nguồn AI tạo giọng + mô tả mong muốn">⚙️</button>
       </div>
-      <div class="row" style="margin-top:var(--sp-3)">
-        <div class="field shrink" style="margin:0; min-width:180px">
-          <label for="vp-new-name">Tên giọng mới</label>
-          <input type="text" id="vp-new-name" placeholder="vd: Giong_Goku" autocomplete="off">
+      <div id="vc-adv" hidden style="margin-top:var(--sp-3); border-top:1px dashed var(--border); padding-top:var(--sp-3)">
+        <div class="row" style="gap:var(--sp-2); align-items:flex-end">
+          <div class="field" style="margin:0; flex:1 1 200px">
+            <label for="vc-source">Nguồn tạo giọng</label>
+            <select id="vc-source" onchange="onVcSource()"></select>
+          </div>
+          <div class="field" style="margin:0; flex:1 1 180px">
+            <label for="vc-model">Model tạo giọng</label>
+            <select id="vc-model"></select>
+          </div>
         </div>
-        <div class="field shrink" style="margin:0; min-width:180px">
-          <label for="vp-new-voice">Chất giọng gốc</label>
-          <select id="vp-new-voice"></select>
+        <div class="field" style="margin-top:var(--sp-2)">
+          <label for="vc-desc">Mô tả giọng bạn muốn (nguồn text-only sẽ viết lại style cho chuẩn)</label>
+          <textarea id="vc-desc" rows="2" placeholder="vd: ấm áp, trầm kiểu phát thanh viên nam miền Bắc, hơi vang, tốc độ vừa phải…" style="width:100%"></textarea>
         </div>
-        <label style="align-self:end; font-size:12px; display:flex; gap:4px; align-items:center; padding-bottom:8px">
-          <input type="checkbox" id="vp-new-activate" checked> kích hoạt ngay</label>
-        <button class="btn btn-primary shrink" id="btn-vp-create" onclick="createVoiceProfile(this)" title="Đúc TOÀN BỘ lịch sử kịch bản sang giọng mới (giữ VRAM thấp, trả bộ nhớ cho game sau khi xong)">🏭 Tạo Giọng Mới</button>
       </div>
-      <p class="desc">Đúc mới = chạy nền hàng chục phút với kho lớn; VRAM được torch.empty_cache() giải phóng ngay khi xong — game không thiếu bộ nhớ.</p>
-    </div>
-
-    <div class="card">
-      <h3>🎙 Micro — thu nhận câu hỏi bằng giọng nói</h3>
-      <div class="row">
-        <div class="field" style="margin:0; flex:2 1 200px">
-          <label for="setting-mic-mode">Chế độ nghe</label>
-          <select id="setting-mic-mode" onchange="applyMicMode()">
-            <option value="off">Tắt</option>
-            <option value="always">Luôn nghe (im lặng ~1 giây là Ni-Oh trả lời)</option>
-            <option value="ptt">Giữ để nói (bấm nút 🎙 giữ xuống)</option>
-          </select>
-        </div>
-        <span class="chip shrink" id="mic-state"><span class="dot"></span> —</span>
+      <div class="row" style="gap:var(--sp-2); margin-top:var(--sp-3); align-items:center">
+        <button class="btn btn-primary shrink" id="btn-vc-go" onclick="voiceForge(this)">✨ Tạo giọng</button>
+        <span class="status-text shrink" id="vc-status" role="status"></span>
       </div>
-      <p class="desc">Nhận diện tiếng Việt bằng faster-whisper (chạy local, GPU). Không gửi âm thanh đi đâu cả.</p>
+      <div id="vc-demo" hidden style="margin-top:var(--sp-3)">
+        <audio id="vc-demo-audio" controls style="width:100%"></audio>
+        <div class="row" style="gap:var(--sp-2); margin-top:var(--sp-2); align-items:center">
+          <label style="font-size:12px; display:flex; gap:4px; align-items:center"><input type="checkbox" id="vc-activate" checked> dùng làm giọng mặc định</label>
+          <button class="btn btn-sm shrink" onclick="adoptForgedVoice()">✓ Xác nhận lưu &amp; nạp</button>
+          <button class="btn btn-sm shrink" onclick="rejectForgedVoice()">✗ Bỏ, làm lại</button>
+        </div>
+      </div>
+      <p class="desc" id="vc-note"></p>
     </div>
   </section>
 
@@ -741,7 +712,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (tEl) tEl.textContent = tab.textContent.trim().replace(/^\S+\s+/, '');
       if (tab.dataset.tab === 'overview') loadOverview();
       if (tab.dataset.tab === 'ext') loadExt();
-      if (tab.dataset.tab === 'voice') loadVoicePacks();
+      if (tab.dataset.tab === 'voice') loadVoiceTab();
     });
   });
 
@@ -757,7 +728,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadModels();
     loadAgyStatus();
     loadTopics(); loadLearner && loadLearner();
-    document.getElementById('setting-mic-mode').value = config.micMode || 'off';
     refreshMicChip();
     syncSwitches(); loadOverview(); loadSoul();
   });
@@ -769,11 +739,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Speed slider live value
-  const speedSlider = document.getElementById('setting-voice-speed');
-  speedSlider.addEventListener('input', () => {
-    document.getElementById('speed-val').textContent = `${parseFloat(speedSlider.value).toFixed(1)}x`;
-  });
-
+  const _oldSpeed = null; if (_oldSpeed) {}
   // Enter key on rows
   document.querySelectorAll('[role="tab"]').forEach((t, i, arr) => {
     t.addEventListener('keydown', (e) => {
@@ -901,10 +867,7 @@ function applyConfig(config) {
   document.getElementById('api-key-group').style.display =
     (p === 'openrouter' || p === 'gemini') ? 'block' : 'none';
 
-  document.getElementById('setting-voice-provider').value = config.voiceProvider || 'vieneu';
-  document.getElementById('setting-voice-name').value = config.voiceName || '';
-  document.getElementById('setting-voice-speed').value = config.voiceSpeed || 1;
-  document.getElementById('speed-val').textContent = `${parseFloat(config.voiceSpeed || 1).toFixed(1)}x`;
+  // (tab voice mới: profile list — load lại khi mở tab)
 
   document.getElementById('setting-train-provider').value = config.trainProvider || 'antigravity';
   document.getElementById('setting-train-key').value = config.trainKey || '';
@@ -1092,8 +1055,9 @@ async function retrainTopic(t) {
 
 // ─── Microphone ───
 async function applyMicMode() {
-  const mode = document.getElementById('setting-mic-mode').value;
-  const r = await window.niOhAPI.setMicMode(mode);
+  const ms = document.getElementById('setting-mic-mode');
+  if (!ms) return;                       // mic đã về tab Tổng quan (switch) — giữ hàm cho nút cũ
+  const r = await window.niOhAPI.setMicMode(ms.value);
   refreshMicChip(r);
 }
 async function refreshMicChip(r) {
@@ -1110,61 +1074,12 @@ async function refreshMicChip(r) {
 }
 
 // ─── Voice ───
-async function testVoice() {
-  const btn = document.getElementById('btn-test-voice');
-  btn.disabled = true; btn.textContent = '⏳ …';
-  try {
-    await window.niOhAPI.saveConfig({
-      voiceProvider: document.getElementById('setting-voice-provider').value,
-      voiceName: document.getElementById('setting-voice-name').value || 'Ngọc Linh',
-      voiceSpeed: parseFloat(document.getElementById('setting-voice-speed').value) || 1.0,
-      ttsEnabled: true
-    });
-    const r = await window.niOhAPI.testVoice();
-    btn.textContent = r.success ? '▶ Test giọng' : '✗ Lỗi — thử lại';
-    if (!r.success) setTimeout(() => btn.textContent = '▶ Test giọng', 4000);
-  } catch (e) {
-    btn.textContent = '✗ Lỗi'; setTimeout(() => btn.textContent = '▶ Test giọng', 4000);
-  } finally { btn.disabled = false; }
-}
 
-function onVoiceProviderChange() { /* voice không cần key */ }
+function onVoiceProviderChange() { /* engine chọn theo profile giọng */ }
 
-async function saveVoiceSettings() {
-  const config = {
-    voiceProvider: document.getElementById('setting-voice-provider').value,
-    voiceName: document.getElementById('setting-voice-name').value,
-    voiceSpeed: parseFloat(document.getElementById('setting-voice-speed').value)
-  };
-  await window.niOhAPI.saveConfig(config);
-  mainConfig = { ...mainConfig, ...config };
-  refreshChips();
-  toast('Đã lưu giọng: ' + config.voiceProvider + ' · ' + config.voiceName);
-}
+async function saveVoiceSettings() { /* thay bằng voiceForge flow */ }
 
-async function onVoiceSampleSelected(input) {
-  if (input.files.length === 0) return;
-  const file = input.files[0];
-  const status = document.getElementById('voice-sample-status');
-  status.textContent = '⏳ Đang train giọng từ ' + file.name + '…';
-  status.className = 'status-text shrink';
-  try {
-    const result = await window.niOhAPI.trainVoiceFromSample(file.path || URL.createObjectURL(file));
-    if (result.success) {
-      status.textContent = `✅ ${result.voiceName || 'Giọng mới'} đã sẵn sàng`;
-      status.className = 'status-text shrink ok';
-      if (result.voiceName) document.getElementById('setting-voice-name').value = result.voiceName;
-    } else {
-      status.textContent = '❌ ' + (result.error || 'lỗi');
-      status.className = 'status-text shrink err';
-    }
-  } catch (e) {
-    status.textContent = '❌ ' + (e.message || e);
-    status.className = 'status-text shrink err';
-  }
-  input.value = '';
-}
-
+async function onVoiceSampleSelected(input) { onVcSample(input); }
 // ─── Self-Train ───
 function onTrainProviderChange() {
   const provider = document.getElementById('setting-train-provider').value;
@@ -1621,42 +1536,89 @@ function toast(msg) {
   t._h = setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .4s'; }, 2200);
 }
 
-// ─── 🏭 Xưởng đúc giọng (Module B/C/D Agent_Data) ───
-async function loadVoicePacks() {
+// ─── Tab GIỌNG NÓI: 2 dòng — chọn voice + đúc giọng mới ───
+let _vcSample = '', _vcCfg = null, _forged = null;
+async function loadVoiceTab() {
   try {
-    const [pr, pf] = await Promise.all([window.niOhAPI.voicePresets(), window.niOhAPI.voiceProfiles()]);
-    const sel = document.getElementById('vp-new-voice');
-    if (sel && pr && pr.success) sel.innerHTML = (pr.voices || []).map(v => `<option value="${v.id}">${v.id} — ${v.desc}</option>`).join('');
-    const lst = document.getElementById('vp-list');
-    if (lst && pf && pf.success) {
+    const [pf, vc, pr] = await Promise.all([window.niOhAPI.voiceProfiles(), window.niOhAPI.voiceConfig(), window.niOhAPI.voicePresets()]);
+    _vcCfg = vc && vc.success ? vc.cfg : null;
+    const vsel = document.getElementById('vsel');
+    if (vsel && pf && pf.success) {
       const cfg = pf.cfg || {}; const act = cfg.active_voice_profile || '';
-      lst.innerHTML = Object.entries(cfg.profiles || {}).map(([k, m]) => `<option value="${k}" ${k === act ? 'selected' : ''}>${k} — ${m.voice || ''}${k === act ? ' (đang dùng)' : ''}</option>`).join('');
+      vsel.innerHTML = Object.entries(cfg.profiles || {}).map(([k, m]) => `<option value="${k}" ${k === act ? 'selected' : ''}>${k} — ${(m.voice || '')}${k === act ? ' (đang dùng)' : ''}</option>`).join('') || '<option value="">(chưa có profile — tạo giọng mới bên dưới)</option>';
+    }
+    const src = document.getElementById('vc-source');
+    if (src && _vcCfg) {
+      src.innerHTML = Object.entries(_vcCfg.sources || {}).map(([id, s]) => `<option value="${id}">${s.label}${s.role === 'locked' || s.needs === 'key' ? '' : ''}</option>`).join('');
+      onVcSource();
     }
   } catch (e) {}
 }
-async function switchVoiceProfile() {
-  const v = (document.getElementById('vp-list') || {}).value; if (!v) return;
-  const r = await window.niOhAPI.voiceSwitch(v);
-  document.getElementById('vp-status').textContent = r.success ? '✓ ' + r.message : '❌ ' + r.error;
-  if (r.success) loadVoicePacks();
+function onVoiceSelChange() { /* user đổi dropdown — chưa áp dụng tới khi bấm Test/lưu */ }
+async function testVoice() {
+  const btn = document.getElementById('btn-test-voice');
+  btn.disabled = true; btn.textContent = '⏳ …';
+  try {
+    const prof = (document.getElementById('vsel') || {}).value;
+    const r = await window.niOhAPI.testVoiceProfile(prof);
+    btn.textContent = r.success ? '▶ Test giọng' : '✗ ' + String(r.error || 'lỗi').slice(0, 24);
+    if (!r.success) setTimeout(() => btn.textContent = '▶ Test giọng', 4000);
+  } catch (e) { btn.textContent = '✗ Lỗi'; setTimeout(() => btn.textContent = '▶ Test giọng', 4000); }
+  finally { btn.disabled = false; }
 }
-async function catchupSync(btn) {
-  btn.disabled = true; const st = document.getElementById('vp-status'); st.textContent = 'đang quét & đúc bù…';
-  const r = await window.niOhAPI.voiceCatchup();
-  st.textContent = r.success ? '✓ ' + ((r.log || '').split('\n').slice(-2).join(' ')) : '❌ ' + (r.error || r.log || '').slice(0, 80);
+function vcToggleAdv() {
+  const el = document.getElementById('vc-adv');
+  el.hidden = !el.hidden;
+  document.getElementById('vc-expand-btn').textContent = el.hidden ? '⚙️' : '⚙️▾';
+}
+function onVcSource() {
+  const id = document.getElementById('vc-source').value;
+  const s = (_vcCfg && _vcCfg.sources && _vcCfg.sources[id]) || {};
+  const ms = document.getElementById('vc-model');
+  ms.innerHTML = (s.models || []).map(m => `<option value="${m.id}">${m.label}</option>`).join('') || '<option value="">—</option>';
+  ms.disabled = !(s.models || []).length;
+  document.getElementById('vc-note').textContent = (s.note || '') + (s.needs === 'sample' ? ' · Nguồn này CẦN tệp âm thanh mẫu để clone.' : '') + (s.needs === 'key' ? ' · Nguồn này cần API key đã nạp ở tab Model AI.' : '');
+  document.getElementById('vc-sample-chip').style.display = s.needs === 'sample' ? '' : '';
+}
+function onVcSample(input) {
+  if (!input.files.length) return;
+  const f = input.files[0];
+  _vcSample = window.niOhAPI.filePathFor(f) || '';
+  document.getElementById('vc-sample-chip').textContent = '🎧 ' + f.name;
+  input.value = '';
+}
+async function voiceForge(btn) {
+  const name = (document.getElementById('vc-name').value || '').trim();
+  const source = document.getElementById('vc-source').value;
+  const model = document.getElementById('vc-model').value;
+  const desc = (document.getElementById('vc-desc').value || '').trim();
+  const st = document.getElementById('vc-status');
+  if (!name) { st.textContent = 'Đặt tên profile giọng trước đã'; return; }
+  btn.disabled = true; st.textContent = '⏳ đang đúc demo…';
+  try {
+    const r = await window.niOhAPI.voiceForgeDemo({ name, source, model, desc, samplePath: _vcSample });
+    if (r.success) {
+      _forged = { ...(r.data || {}), name };
+      const dem = document.getElementById('vc-demo');
+      dem.hidden = false;
+      document.getElementById('vc-demo-audio').src = 'file:///' + String(r.file).replace(/\\/g, '/');
+      st.textContent = '✓ Xong demo — nghe thử rồi xác nhận';
+    } else { st.textContent = '❌ ' + (r.error || 'lỗi').slice(0, 90); }
+  } catch (e) { st.textContent = '❌ ' + (e.message || e); }
   btn.disabled = false;
 }
-async function createVoiceProfile(btn) {
-  const name = (document.getElementById('vp-new-name').value || '').trim();
-  const voice = document.getElementById('vp-new-voice').value;
-  const activate = document.getElementById('vp-new-activate').checked;
-  if (!name) return toast('Đặt tên giọng mới trước');
-  btn.disabled = true; const st = document.getElementById('vp-status');
-  st.textContent = `đang đúc toàn bộ kịch bản sang “${name}” (${voice})… giữ máy chạy nền`;
-  const r = await window.niOhAPI.voiceCreate({ name, voice, activate });
-  st.textContent = r.success ? '✓ ' + ((r.log || '').split('\n').slice(-2).join(' ')).slice(0, 120) : '❌ ' + (r.error || (r.log || '').slice(-120));
-  btn.disabled = false; loadVoicePacks();
+async function adoptForgedVoice() {
+  const st = document.getElementById('vc-status');
+  if (!_forged) { st.textContent = 'Chưa có demo nào để lưu'; return; }
+  const r = await window.niOhAPI.voiceForgeAdopt({ ..._forged, activate: document.getElementById('vc-activate').checked, name: document.getElementById('vc-name').value.trim() });
+  st.textContent = r.success ? '✓ Đã lưu profile · ' + (r.message || '') : '❌ ' + (r.error || 'lỗi');
+  if (r.success) { loadVoiceTab(); document.getElementById('vc-demo').hidden = true; }
 }
+function rejectForgedVoice() {
+  _forged = null; document.getElementById('vc-demo').hidden = true;
+  document.getElementById('vc-status').textContent = 'Đã bỏ demo — chỉnh rồi bấm Tạo lại';
+}
+
 </script>
 </body>
 </html>

@@ -102,14 +102,15 @@ def sync_missing(dry=False):
     if not kb:
         print('KB trống — khỏi sync')
         return 0
-    todo = []          # (profile, label, text, out)
+    todo = []          # (profile, label, text, voice, sway, ref)
     for prof in ad.profiles():
         meta = (ad.load_config().get('profiles') or {}).get(prof) or {}
         voice, sway = meta.get('voice') or 'Ngọc Linh', meta.get('sway', -1)
+        ref = meta.get('ref_audio') or ''
         for label, text in kb.items():
             if os.path.isfile(ad.wav_path(label, prof)):
                 continue
-            todo.append((prof, label, text, voice, sway))
+            todo.append((prof, label, text, voice, sway, ref))
     if not todo:
         print(f'đủ wav cho {len(ad.profiles())} profile · {len(kb)} label — không phải đúc')
         return 0
@@ -118,14 +119,18 @@ def sync_missing(dry=False):
         return 0
     # gom theo profile để 1 mẻ batch/profile (đúng bài toán VRAM: model nóng 1 lần)
     byp = {}
-    for prof, label, text, voice, sway in todo:
-        byp.setdefault((prof, voice, sway), []).append({'text': text, 'out': ad.wav_path(label, prof).replace('\\', '/')})
+    for prof, label, text, voice, sway, ref in todo:
+        it = {'text': text, 'out': ad.wav_path(label, prof).replace(chr(92), '/'), 'sway': sway}
+        if ref: it['ref_audio'] = ref
+        elif voice: it['voice'] = voice
+        byp.setdefault(prof, []).append(it)
     total = 0
     with TTSBridge() as b:
-        for (prof, voice, sway), items in byp.items():
-            done, fails = b.batch(items, voice, sway)
+        for prof, items in byp.items():
+            done, fails = b.batch(items, None)
             total += done
-            print(f'✓ {prof} ({voice}): +{done} wav' + (f' · lỗi {len(fails)}' if fails else ''))
+            tag = 'clone' if items[0].get('ref_audio') else items[0].get('voice', '?')
+            print(f'✓ {prof} ({tag}): +{done} wav' + (f' · lỗi {len(fails)}' if fails else ''))
     return total
 
 
@@ -144,8 +149,40 @@ def on_new_situation(label, text, sync_now=True):
     return True
 
 
+def compile_one(label, text):
+    """Nóng: 1 tình huống mới → ghi lõi text + đúc ngay label này cho MỌI profile."""
+    changed = ad.upsert_kb(label, text)
+    if not changed:
+        return False
+    lab = ad.norm_label(label)
+    todo = []
+    for prof in ad.profiles():
+        meta = (ad.load_config().get('profiles') or {}).get(prof) or {}
+        voice, sway = meta.get('voice') or 'Ngọc Linh', meta.get('sway', -1)
+        wp = ad.wav_path(lab, prof)
+        if os.path.isfile(wp):
+            os.remove(wp)          # text đổi → giọng cũ không còn khớp chữ → đúc lại
+        todo.append((prof, voice, sway, lab, text))
+    if not todo:
+        return True
+    byp = {}
+    for prof, voice, sway, lab, txt in todo:
+        byp.setdefault((prof, voice, sway), []).append({'text': txt, 'out': ad.wav_path(lab, prof).replace(chr(92), '/')})
+    with TTSBridge() as b:
+        for (prof, voice, sway), items in byp.items():
+            done, fails = b.batch(items, voice, sway)
+            print(f'once ✓ {prof} ({voice}): +{done} wav' + (f' · lỗi {len(fails)}' if fails else ''))
+    return True
+
+
 if __name__ == '__main__':
     ad.ensure_tree()
+    if len(sys.argv) > 1 and sys.argv[1] == 'once':
+        lab = sys.argv[sys.argv.index('--label') + 1]
+        txt = sys.argv[sys.argv.index('--text') + 1]
+        ok = compile_one(lab, txt)
+        print('ONCE_OK' if ok else 'ONCE_SKIP (đã có sẵn trong KB/wav)')
+        sys.exit(0)
     if '--add-profile' in sys.argv:                      # quick: thêm profile rỗng rồi sync bù
         i = sys.argv.index('--add-profile')
         name = sys.argv[i + 1]

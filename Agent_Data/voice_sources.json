@@ -1,0 +1,40 @@
+{
+  "_comment": "NGUỒN API cho 'Tạo giọng mới' — đúng 4 nguồn Sếp chốt: ollama(local), openrouter, agy, google-studio. GIỚI HẠN THẬT: chỉ model có khả năng SINH ÂU THANH trực tiếp mới được chọn làm model tạo; nguồn text-only (agy, ollama chưa có model audio) đảm nhận phần BIÊN SOẠN mô tả giọng, VieNeu local (clone ref_audio từ tệp mẫu) là người cất tiếng. App không tự giữ key — 2 nguồn cần key đọc từ tab Model AI.",
+  "demo_text": "Xin chào Sếp, đây là giọng mới của Ni-Oh. Nghe có ổn không ạ?",
+  "sources": {
+    "ollama": {
+      "label": "Ollama — local",
+      "needs": "none",
+      "models": [],
+      "note": "Model audio trên máy tự quét lúc mở. Chưa có model TTS nào → giọng mới sẽ do VieNeu local đúc (clone từ tệp mẫu), Ollama chỉ khi cần thiết kế style."
+    },
+    "openrouter": {
+      "label": "OpenRouter — cần key",
+      "needs": "key",
+      "models": [
+        { "id": "google/gemini-2.5-flash-preview-tts", "label": "Gemini 2.5 Flash TTS (audio out)" },
+        { "id": "google/gemini-2.5-pro-preview-tts", "label": "Gemini 2.5 Pro TTS (audio out)" }
+      ],
+      "note": "Chỉ model sinh audio. Key đọc từ tab Model AI."
+    },
+    "agy": {
+      "label": "Antigravity CLI (Gemini)",
+      "needs": "none",
+      "models": [
+        { "id": "gemini-3.1-pro-high", "label": "Gemini 3.1 Pro — thiết kế style" },
+        { "id": "gemini-3.8-flash-low", "label": "Gemini 3.8 Flash — thiết kế style" }
+      ],
+      "note": "agy KHÔNG xuất file audio — nó viết công thức giọng từ mô tả của Sếp, VieNeu local (clone tệp mẫu nếu có) mới là người cất tiếng."
+    },
+    "google-studio": {
+      "label": "Google AI Studio — cần key",
+      "needs": "key",
+      "models": [
+        { "id": "gemini-2.5-flash-preview-tts", "label": "Gemini 2.5 Flash TTS (audio out)" },
+        { "id": "gemini-2.5-pro-preview-tts", "label": "Gemini 2.5 Pro TTS (audio out)" },
+        { "id": "gemini-3.1-flash-tts-preview", "label": "Gemini 3.1 Flash TTS Preview (audio out)" }
+      ],
+      "note": "Gemini TTS trực tiếp, giọng Tây — hợp làm giọng nhân vật lạ, không thay được tiếng Việt chuẩn của VieNeu."
+    }
+  }
+}

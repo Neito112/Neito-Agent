@@ -9,6 +9,7 @@ Protocol: mỗi dòng stdin là 1 JSON request, mỗi dòng stdout là 1 JSON re
   lệnh quản trị:
   {"cmd":"voices"}                  → danh sách preset giọng
   {"cmd":"batch","items":[{"text":"..","out":".."}..]} → đúc nhiều câu 1 mẻ (nhanh hơn loop đơn)
+  {"ref_audio":"C:/..sample.wav"} → clone giọng từ file mẫu (thay cho voice preset)
   {"cmd":"release"}                 → torch.cuda.empty_cache() (trả VRAM)
   {"cmd":"exit"}                    → release + thoát sạch
 """
@@ -104,7 +105,14 @@ def main():
                 with _lock:
                     for it in (req.get("items") or []):
                         try:
-                            wav = tts.infer(it.get("text", ""), voice=voice, **kwargs) if voice else tts.infer(it.get("text", ""), **kwargs)
+                            iv = it.get("voice") or voice
+                            ikw = dict(kwargs)
+                            if "sway" in it: ikw["sway"] = float(it["sway"])
+                            iref = it.get("ref_audio")
+                            if iref and os.path.isfile(iref):
+                                wav = tts.infer(it.get("text", ""), ref_audio=iref, **ikw)
+                            else:
+                                wav = tts.infer(it.get("text", ""), voice=iv, **ikw) if (iv or ikw) else tts.infer(it.get("text", ""))
                             tts.save(wav, it.get("out"))
                             done += 1
                         except Exception as e:
@@ -121,8 +129,13 @@ def main():
             kwargs = {}
             if "sway" in req:
                 kwargs["sway"] = float(req["sway"])
+            # clone giọng từ file mẫu thật — VieNeu nhận ref_audio (wav路径)
+            ref = req.get("ref_audio")
             with _lock:
-                wav = tts.infer(text, voice=voice, **kwargs) if voice else tts.infer(text, **kwargs)
+                if ref and os.path.isfile(ref):
+                    wav = tts.infer(text, ref_audio=ref, **({k: v for k, v in kwargs.items() if k == 'sway'}))
+                else:
+                    wav = tts.infer(text, voice=voice, **kwargs) if voice else tts.infer(text, **kwargs)
                 tts.save(wav, out)
             emit({"id": rid, "ok": True, "out": out, "voice": voice or "default"})
         except Exception as e:

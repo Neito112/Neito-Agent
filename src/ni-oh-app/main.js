@@ -733,7 +733,7 @@ ipcMain.handle('ask-question', async (_, question) => {
 // ─── STATE MACHINE biểu cảm + canned clips (học từ video BMO: mỗi chuyển state =
 //     đổi mặt + phát voice clip NGẪU NHIÊN đồng giọng Ngọc Linh — chống 'canned' mà
 //     không tốn một lần gọi TTS nào lúc chuyển trạng thái) ───
-const STATE_FACE = { wake: 'alert', listening: null, thinking: 'thinking', speaking: 'talking', done: 'happy', error: 'error', sleep: 'sleepy' };
+const STATE_FACE = { wake: 'alert', listening: null, thinking: 'thinking', speaking: 'talking', done: 'happy', error: 'error', sleep: 'sleepy', alert: 'alert' };
 let _stateClips = null, _stateClipsMtime = 0;
 function stateClips() {
   const man = path.join(NIOH_ROOT, 'assets', 'voices', 'manifest.json');
@@ -772,6 +772,23 @@ async function speakOrShow(wc, answer, rate) {
 }
 
 ipcMain.handle('speak', async (_, text) => await speakText(text));
+// Cầu thử (CDP/dev): bắn 1 khung hình giả vào đúng pipeline mắt — dùng để
+// xác nhận chuỗi matchCombat→wav→overlay chạy thật, không cần mở game.
+ipcMain.handle('debug-eye-frame', async (_, msg) => {
+  if (!msg || !msg.window) return { ok: false, error: 'thiếu window' };
+  const fired = await onEyeMessage(Object.assign({ type: 'frame' }, msg));
+  return { ok: true, fired: !!fired };
+});
+// Reflex RAM: đọc wav trong Agent_Data trả base64 — overlay dựng Blob một lần,
+// các nhịp sau phát thẳng từ RAM (đúng mô hình dict PCM của combat_loop).
+ipcMain.handle('read-wav', async (_, fp) => {
+  try {
+    const root = path.join(NIOH_ROOT, 'Agent_Data');
+    const full = path.resolve(String(fp || ''));
+    if (!full.startsWith(root)) return { success: false, error: 'ngoài Agent_Data' };
+    return { success: true, b64: fs.readFileSync(full).toString('base64') };
+  } catch (e) { return { success: false, error: e.message }; }
+});
 
 // Dashboard: nút test giọng — đọc 1 câu mẫu bằng đúng engine+voice đang chọn
 ipcMain.handle('test-voice', async () => {
@@ -1122,16 +1139,24 @@ async function onEyeMessage(msg) {
   const cutoff = Date.now() / 1000 - 8;
   while (eyeHistory.length && (eyeHistory[0].ts || 0) < cutoff) eyeHistory.shift();
   // ── SITUATION ENGINE: đếm khái niệm đồng hiện → bắn câu có sẵn / suy luận 1 lần ──
+  let reflexFired = false;
   try {
     situationEngine.registerFrame(msg);
     situationEngine.accumulateConcepts(msg);
+    // COMBAT REFLEX chạy TRƯỚC: dấu hiệu cấp bách từ data train → wav RAM, không LLM.
+    // Không nổ (nhịp buồn/không khớp) → mới tới đường engine thường + switch event.
+    if (!answeringVoice) { try { reflexFired = scanCombatReflex(msg); } catch (e) {} }
     if (mainConfig.eyeProactive && !eyeBusy && !answeringVoice) {
-      const hit = situationEngine.evaluate(msg);
-      if (hit) { runSituation(hit); }
-      else handleSwitchEvent(msg);   // không có tình huống → xét sự kiện đổi cửa sổ
+      if (reflexFired) { /* reflex đã nói — không nói chồng */ }
+      else {
+        const hit = situationEngine.evaluate(msg);
+        if (hit) { runSituation(hit); }
+        else handleSwitchEvent(msg);   // không có tình huống → xét sự kiện đổi cửa sổ
+      }
     }
   } catch (e) {}
   scheduleIdleWorker();
+  return reflexFired;
 }
 
 // ═══ SWITCH EVENT — đổi cửa sổ game/ứng dụng (thiết kế: Gemini 3.1 Pro) ═══
@@ -1213,6 +1238,198 @@ async function runSituation(hit) {
   finally { eyeBusy = false; }
 }
 
+// ═══ COMBAT REFLEX — TỰ nhận diện cấp bách, tốc độ theo NHỊP SỰ KIỆN ═══
+// Sếp chốt: KHÔNG có nút bật/tắt — mắt YOLO thường trực, data train (tình
+// huống + answer) chính là tín hiệu. Dấu hiệu đồng hiện → nổ reflex. Nhịp sự
+// kiện (E/S) tăng → cooldown ngắn + nói nhanh (chỉ dẫn cũ CẮT được bằng chỉ
+// dẫn mới — tình huống thay đổi liên tục trong combat). Nguội → tự nhả hết:
+// không process riêng, không dict RAM riêng, không tốn thêm VRAM.
+const AD_CONF = path.join(NIOH_ROOT, 'Agent_Data', 'system_config.json');
+let _adCache = null, _adMtime = 0;
+function agentCfg() {
+  let st; try { st = fs.statSync(AD_CONF); } catch (e) { return null; }
+  if (_adCache && _adMtime === st.mtimeMs) return _adCache;
+  try { _adCache = JSON.parse(fs.readFileSync(AD_CONF, 'utf8')); _adMtime = st.mtimeMs; }
+  catch (e) { return _adCache && _adCache.__st === st.mtimeMs ? _adCache : null; }
+  _adCache.__st = st.mtimeMs;
+  return _adCache;
+}
+function normLabel(s) {
+  return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+let _kbSig = '', _kbIdx = null;   // KB text → index label→file (đọc rẻ, chỉ parse khi đổi)
+function kbIndex() {
+  const fp = path.join(NIOH_ROOT, 'Agent_Data', 'knowledge_base.json');
+  let st; try { st = fs.statSync(fp); } catch (e) { return null; }
+  const sig = String(st.mtimeMs);
+  if (_kbIdx && _kbSig === sig) return _kbIdx;
+  try { _kbIdx = JSON.parse(fs.readFileSync(fp, 'utf8')); _kbSig = sig; } catch (e) { return null; }
+  return _kbIdx;
+}
+function reflexWav(label) {
+  const kb = kbIndex(); if (!kb) return null;
+  const key = normLabel(label); if (!kb[key]) return null;
+  const cfg = agentCfg(); const packs = path.join(NIOH_ROOT, 'Agent_Data', 'Voice_Packs');
+  const prof = (cfg && cfg.active_voice_profile) || 'Giong_Mac_Dinh';
+  const direct = path.join(packs, prof, key + '.wav');
+  if (fs.existsSync(direct)) return direct;
+  try {
+    for (const d of fs.readdirSync(packs)) {
+      const fp = path.join(packs, d, key + '.wav');
+      if (fs.existsSync(fp)) return fp;
+    }
+  } catch (e) {}
+  return null;
+}
+
+let _ceWin = [];                       // timestamp sự kiện cấp bách (cửa sổ 20s)
+let _lastSig = '';                     // tập tình huống khung trước — đổi mới tính là sự kiện
+const _reflexCd = new Map();           // label → ts lần phát (đổi theo tempo — chống lặp)
+const _inferOnce = new Set();          // nhãn chưa wav: suy luận đúng 1 lần/phiên
+let _lastReflexSpeak = 0;
+let _missCount = 0;
+const MISS_LOG = path.join(NIOH_ROOT, 'memory', 'reflex', 'unhandled_logs.txt');
+function logReflexMiss(label, conf) {
+  try {
+    fs.mkdirSync(path.dirname(MISS_LOG), { recursive: true });
+    fs.appendFileSync(MISS_LOG, `${new Date().toISOString().slice(0, 19)}\t${label}\t${(conf || 0).toFixed ? (conf).toFixed(2) : conf}\n`);
+    _missCount++;
+  } catch (e) {}
+}
+
+function scanCombatReflex(msg) {
+  // ĐỌC data đã train — matchCombat chỉ tính trong RAM, không ghi file.
+  let matches;
+  try { matches = situationEngine.matchCombat(msg); } catch (e) { return false; }
+  if (!matches || !matches.length) return false;
+  const now = Date.now();
+  // SỰ KIỆN = tập tình huống ĐỔI so với khung trước (cảnh đứng yên KHÔNG phải
+  // combat — chống màn hình menu tĩnh bị hiểu nhầm là “nhiều dấu hiệu”).
+  const sig = matches.map(m => m.slug + ':' + m.id).sort().join('|');
+  if (sig === _lastSig) return false;
+  _lastSig = sig;
+  // NHỊP SỰ KIỆN: mỗi lần đổi tập tình huống là 1 vạch → E/S 20s quyết định tốc.
+  _ceWin.push(now);
+  while (_ceWin.length && now - _ceWin[0] > 20000) _ceWin.shift();
+  const es = _ceWin.length / 20;
+  if (es < 0.15) return false;                    // <3 lần đổi/20s: nhường engine thường
+  const urgent = es >= 1.2;
+  const rate = Math.min(1.5, 1.0 + es * 0.22);          // nóng → nói nhanh hơn
+  const cdS = Math.max(400, 20000 / Math.max(1, _ceWin.length));  // nóng → bắn dày hơn
+  const best = matches.find(m => m.situation.answer && String(m.situation.answer).trim()) || matches[0];
+  const s = best.situation;
+  const label = s.id || best.slug + '-' + s.id;
+  if ((_reflexCd.get(label) || 0) > now - cdS) return false;
+  _reflexCd.set(label, now);
+  // wav đã đúc (KB text + Voice_Packs) → thẳng loa, 0 qua TTS sống
+  const wav = reflexWav(label);
+  if (wav) {
+    const url = fileUrl(wav);
+    if (overlayWindow && !overlayWindow.isDestroyed() && overlayWindow.isVisible()) {
+      const kbNow = kbIndex();
+      overlayWindow.webContents.send('reflex-say', { url, text: (kbNow && kbNow[normLabel(label)]) || String(s.answer || ''), rate });
+    } else {
+      playAudioSilent(wav);
+    }
+    _lastReflexSpeak = Date.now();
+    fireState('alert');                                  // mặt ALERT đồng bộ chỉ dẫn
+    return true;
+  }
+  // MISS: log cho refiller + suy luận ĐÚNG 1 lần bằng model route — câu mới sẽ
+  // tự đúc wav (Module C) → các nhịp sau thuần RAM.
+  logReflexMiss(label, 0.9);
+  if (!urgent || _inferOnce.has(label) || answeringVoice || Date.now() - _lastReflexSpeak < 4000) return;
+  _inferOnce.add(label);
+  queueMicrotask(() => {
+    try {
+      const hit = { infer: true, slug: best.slug, situation: s,
+        prompt: situationEngine.buildInferPrompt(best.slug, situationEngine.loadTopic(best.slug), s, msg, 'urgent'),
+        save: (ans) => {
+          situationEngine.setAnswer(best.slug, s.id, ans, 'inferred');
+          compileLabelToWav(label, String(ans).slice(0, 90));   // Module C: nóng, mọi profile
+        } };
+      runSituation(hit);
+    } catch (e) {}
+  });
+  return true;
+}
+
+// ── Đúc 1 kịch bản → wav cho MỌI profile qua daemon batch (nền, 1 mẻ) ──
+const _compileQ = [];
+let _compileBusy = false, _compileNotified = 0;
+function jsUpsertKb(key, text) {
+  const fp = path.join(NIOH_ROOT, 'Agent_Data', 'knowledge_base.json');
+  let kb = {}; try { kb = JSON.parse(fs.readFileSync(fp, 'utf8')); } catch (e) {}
+  if (kb[key] === text) return false;
+  kb[key] = String(text);
+  const tmp = fp + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(kb, null, 1));
+  fs.renameSync(tmp, fp);                       // atomic — cùng luật python side
+  _kbSig = '';                                   // ép cache index đọc lại
+  return true;
+}
+function fileM(fp) { try { return fs.statSync(fp).mtimeMs; } catch (e) { return 0; } }
+function compileLabelToWav(label, text, force) {
+  const key = normLabel(label);
+  if (!key || !text) return;
+  const changed = jsUpsertKb(key, String(text).slice(0, 160));  // LÕI TEXT đi trước wav → giọng và chữ đồng nhất vĩnh viễn
+  if (changed && force !== false) {
+    // text đổi thật → mọi wav cũ của label này là giọng CŠ → xoá, đúc lại cả 2 profile
+    try {
+      const packs = path.join(NIOH_ROOT, 'Agent_Data', 'Voice_Packs');
+      for (const d of fs.readdirSync(packs)) {
+        const wp = path.join(packs, d, key + '.wav');
+        if (fs.existsSync(wp)) fs.unlinkSync(wp);
+      }
+    } catch (e) {}
+  }
+  const i = _compileQ.findIndex(c => c.key === key);
+  if (i >= 0) { if (_compileQ[i].text === text) return; _compileQ[i] = { key, text }; }
+  else _compileQ.push({ key, text });
+  pumpCompile();
+}
+function pumpCompile() {
+  if (_compileBusy || !_compileQ.length) return;
+  const cfg = agentCfg();
+  if (!cfg) { _compileQ.length = 0; return; }
+  const packs = path.join(NIOH_ROOT, 'Agent_Data', 'Voice_Packs');
+  const c = _compileQ.shift();
+  const items = [];
+  for (const prof of Object.keys(cfg.profiles || {})) {
+    const meta = (cfg.profiles || {})[prof] || {};
+    const out = path.join(packs, prof, c.key + '.wav');
+    if (fs.existsSync(out)) continue;
+    const it = { text: c.text, out: out.replace(/\\/g, '/'), sway: typeof meta.sway === 'number' ? meta.sway : -1 };
+    if (meta.ref_audio) it.ref_audio = meta.ref_audio;          // profile clone → đúng luật Module C
+    else it.voice = meta.voice || 'Ngọc Linh';
+    items.push(it);
+  }
+  if (!items.length) return pumpCompile();
+  _compileBusy = true;
+  vieBatch(items, (done) => {
+    _compileBusy = false;
+    if (done) { _kbSig = ''; kbIndex(); const n = Date.now(); if (n - _compileNotified > 1500) { _compileNotified = n; if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('pack-changed', n); } }
+    pumpCompile();
+  });
+}
+function vieBatch(items, cb) {
+  vieSpawn();
+  if (!vieDaemon) return cb(0);
+  const id = ++vieReqId;
+  let done = 0;
+  const to = setTimeout(() => { viePending.delete(id); cb(done); }, 300000);
+  viePending.set(id, (msg) => {
+    clearTimeout(to);
+    const fails = (msg && msg.fails) || [];
+    done = (msg && msg.done) || 0;
+    if (done || fails.length) cb(done);
+    else cb(0);
+  });
+  try { vieDaemon.stdin.write(JSON.stringify({ id, cmd: 'batch', items }) + '\n'); }
+  catch (e) { clearTimeout(to); viePending.delete(id); cb(0); }
+}
+
 // ═══ WORKER NHÀN RỖI — nén câu tình huống + cô đọng KB khi không có gì làm ═══
 // Kích hoạt: (mắt+tai đều TẮT) HOẶC (mắt bật nhưng màn hình im lặng ≥6 phút).
 // Việc: lấy condense_due → Sonnet viết lại ≤6 từ (answer_urgent) → lần combat
@@ -1245,7 +1462,7 @@ async function idleCondenseRun() {
     } catch (e) { console.warn('[Learner]', String(e.message || e).slice(0, 120)); }
     // ƯU TIÊN 2: nén câu combat dang dở
     const q = situationEngine.condenseQueue();
-    if (!q.length) { idleBusy = false; scheduleIdleWorker(); return; }
+    if (!q.length) { await reflexBackfillBatch(); idleBusy = false; scheduleIdleWorker(); return; }
     const item = q[0];         // mỗi lượt 1 câu — không tham, để dành CPU cho Sếp
     const prompt = [
       'BIÊN SOẠN CÂU GỌI VỐN cho Ni-Oh (chế độ nhàn rỗi). Tình huống game/phần mềm đang diễn ra NHANH:',
@@ -1270,8 +1487,32 @@ async function idleCondenseRun() {
         visionBrain.bumpStat('condensed_ok');
       }
     }
+    // ƯU TIÊN 3: sau khi nén xong cũng tranh thủ nạp thêm mẻ reflex
+    await reflexBackfillBatch();
   } catch (e) { /* im lặng */ }
   finally { idleBusy = false; scheduleIdleWorker(); }
+}
+// Hấp data train (tình huống+answer) vào Voice_Packs: mỗi lượt nhàn 1 mẻ 24,
+// ĐÚC QUA QUEUE COMPILE SẴN CÓ (daemon nóng, không spawn model thứ hai).
+async function reflexBackfillBatch() {
+  try {
+    const py = path.join(NIOH_ROOT, 'yolo_env', 'Scripts', 'python.exe');
+    const out = await new Promise((resolve) => {
+      const ch = spawn(py, [path.join(NIOH_ROOT, 'scripts', 'kb_backfill.py'), '--cap', '24', '--emit'],
+                      { windowsHide: true, cwd: NIOH_ROOT });
+      let buf = ''; const to = setTimeout(() => { try { ch.kill(); } catch (e) {} resolve(''); }, 20000);
+      ch.stdout.on('data', d => buf += d);
+      ch.on('close', () => { clearTimeout(to); resolve(buf); });
+      ch.on('error', () => { clearTimeout(to); resolve(''); });
+    });
+    let n = 0;
+    for (const line of String(out).split('\n')) {
+      if (!line.trim().startsWith('{')) continue;
+      let c; try { c = JSON.parse(line); } catch (e) { continue; }
+      if (c.label && c.text) { compileLabelToWav(c.label, c.text); n++; }
+    }
+    if (n) console.log(`[ReflexKB] mẻ nhàn rỗi +${n} kịch bản vào hàng đợi đúc wav`);
+  } catch (e) {}
 }
 function setEmotion(mood, sec) {
   try { if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('emotion', mood, sec); } catch (e) {}
@@ -1692,6 +1933,240 @@ ipcMain.handle('voice-switch', async (_, profile) => {
   } catch (e) { return { success: false, error: e.message }; }
 });
 ipcMain.handle('voice-catchup', async () => await vbufRun(['self_training_sync.py'], 30 * 60 * 1000));
+
+// ═══ TAB GIỌNG NÓI 2 DÒNG — chọn profile · forge demo → adopt ═══
+ipcMain.handle('voice-config', () => {
+  try {
+    const fp = path.join(NIOH_ROOT, 'Agent_Data', 'voice_sources.json');
+    return { success: true, cfg: JSON.parse(fs.readFileSync(fp, 'utf8')) };
+  } catch (e) { return { success: false, error: e.message }; }
+});
+function activeProfile() {
+  try {
+    const fp = path.join(NIOH_ROOT, 'Agent_Data', 'system_config.json');
+    const cfg = JSON.parse(fs.readFileSync(fp, 'utf8'));
+    const k = cfg.active_voice_profile;
+    return { key: k, meta: (cfg.profiles || {})[k] || {} };
+  } catch (e) { return { key: null, meta: {} }; }
+}
+// Test đúng giọng ĐANG CHỌN trong dropdown (profile) — 0 phụ thuộc key
+ipcMain.handle('test-voice-profile', async (_, profile) => {
+  try {
+    const fp = path.join(NIOH_ROOT, 'Agent_Data', 'system_config.json');
+    const cfg = JSON.parse(fs.readFileSync(fp, 'utf8'));
+    const k = profile || cfg.active_voice_profile;
+    const m = (cfg.profiles || {})[k];
+    if (!m) return { success: false, error: 'profile không tồn tại' };
+    const wav = reflexWav('state_done_0') || reflexWav('wake') || null;
+    // có canned clip của đúng profile? đơn giản hơn: synth 1 câu qua daemon đúng voice
+    const out = path.join(TEMP_DIR, 'nioh_test_' + Date.now() + '.wav');
+    const r = await new Promise((resolve) => {
+      vieSpawn();
+      if (!vieDaemon) return resolve({ ok: false, error: 'daemon chết' });
+      const id = ++vieReqId;
+      const to = setTimeout(() => { viePending.delete(id); resolve({ ok: false, error: 'timeout 120s (lần đầu load model ~1 phút)' }); }, 120000);
+      viePending.set(id, (msg) => { clearTimeout(to); resolve(msg); });
+      vieDaemon.stdin.write(JSON.stringify({ id, text: 'Đây là giọng ' + (m.voice || k) + ' của Ni-Oh.', voice: m.voice || 'Ngọc Linh', out: out.replace(/\\/g, '/'), sway: typeof m.sway === 'number' ? m.sway : -1 }) + '\n');
+    });
+    if (!r.ok) return { success: false, error: r.error || 'lỗi' };
+    if (overlayWindow && !overlayWindow.isDestroyed() && overlayWindow.isVisible())
+      overlayWindow.webContents.send('play-file', { url: fileUrl(out), id: Date.now(), rate: 1 });
+    else playAudioSilent(out);
+    return { success: true };
+  } catch (e) { return { success: false, error: e.message }; }
+});
+// Ollama chỉ dùng được nếu model CÓ KHẢ NĂNG AUDIO — quét tag /api/show
+function ollamaTtsModels() {
+  return new Promise((resolve) => {
+    const http = require('http');
+    http.get({ host: '127.0.0.1', port: 11434, path: '/api/tags', timeout: 4000 }, res => {
+      let b = ''; res.on('data', c => b += c); res.on('end', async () => {
+        let names = []; try { names = (JSON.parse(b).models || []).map(m => m.name); } catch (e) {}
+        const audio = [];
+        for (const n of names.slice(0, 12)) {
+          const ok = await new Promise(rs => {
+            const req = http.request({ host: '127.0.0.1', port: 11434, path: '/api/show', method: 'POST', timeout: 3000 }, r2 => {
+              let s = ''; r2.on('data', c => s += c); r2.on('end', () => { try { const j = JSON.parse(s); const f = (j.model_info || {}); rs(Object.keys(f).some(k => /speech|audio|tts|mel|vocoder/i.test(k))); } catch (e) { rs(false); } });
+            });
+            req.on('error', () => rs(false)); req.on('timeout', () => { req.destroy(); rs(false); });
+            req.write(JSON.stringify({ model: n })); req.end();
+          });
+          if (ok) audio.push(n);
+        }
+        resolve(audio);
+      });
+    }).on('error', () => resolve([]));
+  });
+}
+ipcMain.handle('voice-ollama-audio-models', async () => ({ success: true, models: await ollamaTtsModels() }));
+
+const FORGE_TMP = path.join(NIOH_ROOT, 'Agent_Data', 'forge');
+ipcMain.ensureForgeTmp = () => { try { fs.mkdirSync(FORGE_TMP, { recursive: true }); } catch (e) {} };
+
+function pcmToWav(raw, rate) {
+  const hdr = Buffer.alloc(44);
+  hdr.write('RIFF', 0); hdr.writeUInt32LE(36 + raw.length, 4); hdr.write('WAVE', 8);
+  hdr.write('fmt ', 12); hdr.writeUInt32LE(16, 16); hdr.writeUInt16LE(1, 20); hdr.writeUInt16LE(1, 22);
+  hdr.writeUInt32LE(rate, 24); hdr.writeUInt32LE(rate * 2, 28); hdr.writeUInt16LE(2, 32); hdr.writeUInt16LE(16, 34);
+  hdr.write('data', 36); hdr.writeUInt32LE(raw.length, 40);
+  return Buffer.concat([hdr, raw]);
+}
+// Đúc DEMO theo nguồn — tuyệt đối không đụng kho/profile cho tới khi adopt
+ipcMain.handle('voice-forge-demo', async (_, o) => {
+  const { name, source, model, desc, samplePath } = o || {};
+  if (!name) return { success: false, error: 'Thiếu tên giọng' };
+  ipcMain.ensureForgeTmp();
+  const demoText = 'Xin chào Sếp, đây là giọng mới của Ni-Oh. Nghe có ổn không ạ?';
+  const out = path.join(FORGE_TMP, normLabel(name) + '_demo.wav');
+  try {
+    if (source === 'vieneu') {
+      const ref = samplePath && fs.existsSync(samplePath) ? samplePath : null;
+      const r = await new Promise((resolve) => {
+        vieSpawn();
+        if (!vieDaemon) return resolve({ ok: false, error: 'daemon VieNeu không khởi động được' });
+        const id = ++vieReqId;
+        const to = setTimeout(() => { viePending.delete(id); resolve({ ok: false, error: 'timeout 150s' }); }, 150000);
+        viePending.set(id, (msg) => { clearTimeout(to); resolve(msg); });
+        const req = { id, text: demoText, out: out.replace(/\\/g, '/'), sway: -1 };
+        if (ref) req.ref_audio = ref.replace(/\\/g, '/');
+        else req.voice = 'Ngọc Linh';
+        vieDaemon.stdin.write(JSON.stringify(req) + '\n');
+      });
+      if (!r.ok) return { success: false, error: r.error || 'VieNeu lỗi' };
+      return { success: true, file: out, data: { source: 'vieneu', model: 'v3turbo', voice: ref ? '(clone sample)' : 'Ngọc Linh', sway: -1, sample: ref || '', desc: desc || '' } };
+    }
+    if (source === 'ollama') {
+      const models = await ollamaTtsModels();
+      if (!models.length) {
+        // không có model audio trên máy → Ollama (qwen-vi) BIÊN SOẠN mô tả, VieNeu clone/dựng tiếng
+        const mtext = model || 'qwen-vi:latest';
+        let styled = desc || 'đẹp, rõ ràng';
+        try {
+          const body = JSON.stringify({ model: mtext, prompt: 'VIẾT LẠI mô tả giọng đọc tiếng Việt ≤25 từ cho nhân vật AI. CHỈ in mô tả. Mong muốn: ' + (desc || 'nữ, ấm, chuyên nghiệp').slice(0, 300), stream: false });
+          const http2 = require('http');
+          const got = await new Promise((resolve) => {
+            const rq = http2.request({ host: '127.0.0.1', port: 11434, path: '/api/generate', method: 'POST', timeout: 60000 }, rs => {
+              let s = ''; rs.on('data', c => s += c); rs.on('end', () => { try { resolve(JSON.parse(s).response || ''); } catch (e) { resolve(''); } });
+            });
+            rq.on('error', () => resolve('')); rq.on('timeout', () => { rq.destroy(); resolve(''); });
+            rq.write(body); rq.end();
+          });
+          if (got && got.length > 5) styled = got.split('\n').pop().slice(0, 200);
+        } catch (e) {}
+        const rr = await new Promise((resolve) => {
+          vieSpawn();
+          if (!vieDaemon) return resolve({ ok: false, error: 'daemon VieNeu không chạy' });
+          const id = ++vieReqId;
+          const to = setTimeout(() => { viePending.delete(id); resolve({ ok: false, error: 'timeout' }); }, 150000);
+          viePending.set(id, (msg) => { clearTimeout(to); resolve(msg); });
+          const req = { id, text: demoText, out: out.replace(/\\/g, '/'), sway: -1 };
+          if (samplePath && fs.existsSync(samplePath)) req.ref_audio = samplePath.replace(/\\/g, '/');
+          else { req.voice = 'Ngọc Linh'; req.style = styled; }
+          vieDaemon.stdin.write(JSON.stringify(req) + '\n');
+        });
+        if (!rr.ok) return { success: false, error: rr.error };
+        return { success: true, file: out, data: { source: 'ollama', model: mtext + ' (style) · VieNeu (tiếng)', voice: samplePath ? '(clone sample)' : 'Ngọc Linh', sway: -1, desc: styled, sample: (samplePath && fs.existsSync(samplePath)) ? samplePath : '' } };
+      }
+      const m = model && models.includes(model) ? model : models[0];
+      const r = await new Promise((resolve) => {
+        const http = require('http');
+        const body = JSON.stringify({ model: m, messages: [{ role: 'user', content: demoText }], format: '' });
+        const req = http.request({ host: '127.0.0.1', port: 11434, path: '/api/generate', method: 'POST', timeout: 120000 }, res => {
+          let s = ''; res.on('data', c => s += c); res.on('end', () => {
+            try {
+              const j = JSON.parse(s);
+              if (j.response && j.response.length > 50) { fs.writeFileSync(out, Buffer.from(j.response, 'base64')); resolve({ ok: true }); }
+              else resolve({ ok: false, error: 'Ollama không trả audio cho model này' });
+            } catch (e) { resolve({ ok: false, error: e.message }); }
+          });
+        });
+        req.on('error', e => resolve({ ok: false, error: e.message })); req.on('timeout', () => { req.destroy(); resolve({ ok: false, error: 'timeout' }); });
+        req.write(body); req.end();
+      });
+      if (!r.ok) return { success: false, error: r.error };
+      return { success: true, file: out, data: { source: 'ollama', model: m, desc: desc || '' } };
+    }
+    if (source === 'openrouter' || source === 'google-studio') {
+      const key = mainConfig.apiKey;
+      if (!key) return { success: false, error: 'Nguồn này cần API key — nạp ở tab Model AI trước (app không tự giữ key)' };
+      if (source === 'openrouter') {
+        const http = require('https');
+        const body = JSON.stringify({ model: model || 'google/gemini-2.5-flash-preview-tts', messages: [{ role: 'user', content: desc ? desc + '\nNói đúng 1 câu tiếng Việt demo.' : 'Say in Vietnamese, warm: ' + demoText }], modalities: ['audio'], audio: { voice: 'Kore', format: 'pcm16' } });
+        const r = await new Promise((resolve) => {
+          const req = http.request({ host: 'openrouter.ai', path: '/api/v1/chat/completions', method: 'POST', timeout: 120000, headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } }, res => {
+            let s = ''; res.on('data', c => s += c); res.on('end', () => { try { const j = JSON.parse(s); const a = j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.audio; if (a && a.data) { const raw = Buffer.from(a.data, 'base64'); fs.writeFileSync(out, raw.slice(0, 12).toString('ascii').startsWith('RIFF') ? raw : pcmToWav(raw, 24000)); resolve({ ok: true }); } else resolve({ ok: false, error: (j.error && j.error.message) || 'không có audio output' }); } catch (e) { resolve({ ok: false, error: e.message }); } });
+          });
+          req.on('error', e => resolve({ ok: false, error: e.message })); req.write(body); req.end();
+        });
+        if (!r.ok) return { success: false, error: r.error };
+        return { success: true, file: out, data: { source: 'openrouter', model: model || 'google/gemini-2.5-flash-preview-tts', desc: desc || '' } };
+      }
+      // google-studio TTS
+      const http = require('https');
+      const r = await new Promise((resolve) => {
+        const body = JSON.stringify({ contents: [{ parts: [{ text: demoText }] }], generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } } } });
+        const req = http.request({ host: 'generativelanguage.googleapis.com', path: '/v1beta/models/' + encodeURIComponent(model || 'gemini-2.5-flash-preview-tts') + ':generateContent?key=' + key, method: 'POST', timeout: 120000, headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } }, res => {
+          let s = ''; res.on('data', c => s += c); res.on('end', () => { try { const j = JSON.parse(s); const p = j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts && j.candidates[0].content.parts.find(x => x.inlineData); if (p) { const raw = Buffer.from(p.inlineData.data, 'base64'); fs.writeFileSync(out, pcmToWav(raw, 24000)); resolve({ ok: true }); } else resolve({ ok: false, error: (j.error && j.error.message) || 'không có audio' }); } catch (e) { resolve({ ok: false, error: e.message }); } });
+        });
+        req.on('error', e => resolve({ ok: false, error: e.message })); req.write(body); req.end();
+      });
+      if (!r.ok) return { success: false, error: r.error };
+      return { success: true, file: out, data: { source: 'google-studio', model: model || 'gemini-2.5-flash-preview-tts', desc: desc || '' } };
+    }
+    if (source === 'agy') {
+      if (!desc) return { success: false, error: 'Nguồn agy chỉ BIÊN SOẠN mô tả — hãy nhập mô tả giọng mong muốn' };
+      const prompt = ['VIẾT LẠI MÔ TẢ GIỌNG ĐỌC cho Ni-Oh (voice actor) bằng tiếng Việt, ≤30 từ, đúng 1 câu mô tả âm sắc/tốc độ/cảm xúc. CHỈ in nội dung mô tả.',
+        'Mong muốn: ' + desc.slice(0, 400)].join('\n');
+      const a = agyArgsX(prompt, model || 'gemini-3.1-pro-high');
+      const r = await new Promise((resolve) => {
+        const ch = spawn(a.exe, a.args, { windowsHide: true, cwd: NIOH_ROOT });
+        let out2 = ''; const to = setTimeout(() => { try { ch.kill('SIGKILL'); } catch (e) {} resolve(''); }, 180000);
+        ch.stdout.on('data', d => out2 += d); ch.on('close', () => { clearTimeout(to); resolve(out2.trim()); });
+        ch.on('error', () => { clearTimeout(to); resolve(''); });
+      });
+      const styled = r.split('\n').pop().slice(0, 300) || desc;
+      // VieNeu clone/dựng giọng theo mô tả đã chốt, agy chỉ là người viết kịch bản style
+      const rr = await new Promise((resolve) => {
+        vieSpawn();
+        if (!vieDaemon) return resolve({ ok: false, error: 'daemon chết' });
+        const id = ++vieReqId;
+        const to = setTimeout(() => { viePending.delete(id); resolve({ ok: false, error: 'timeout' }); }, 150000);
+        viePending.set(id, (msg) => { clearTimeout(to); resolve(msg); });
+        const req = { id, text: demoText, out: out.replace(/\\/g, '/'), sway: -1, style: styled };
+        if (samplePath && fs.existsSync(samplePath)) req.ref_audio = samplePath.replace(/\\/g, '/');
+        else req.voice = 'Ngọc Linh';
+        vieDaemon.stdin.write(JSON.stringify(req) + '\n');
+      });
+      if (!rr.ok) return { success: false, error: rr.error };
+      return { success: true, file: out, data: { source: 'agy', model: model || 'gemini-3.1-pro-high', voice: samplePath ? '(clone)' : 'Ngọc Linh', sway: -1, desc: styled, sample: samplePath || '' } };
+    }
+    return { success: false, error: 'Nguồn không khả dụng cho tạo giọng' };
+  } catch (e) { return { success: false, error: e.message }; }
+});
+// Adopt: demo OK → đăng ký profile vào system_config + copy wav + hot-reload + sync Multi-Voice
+ipcMain.handle('voice-forge-adopt', async (_, o) => {
+  try {
+    const { name, source, model, voice, sway, sample, desc, activate } = o || {};
+    const key = normLabel(name);
+    if (!key) return { success: false, error: 'Tên không hợp lệ' };
+    const fp = path.join(NIOH_ROOT, 'Agent_Data', 'system_config.json');
+    const cfg = JSON.parse(fs.readFileSync(fp, 'utf8'));
+    cfg.profiles = cfg.profiles || {};
+    const meta = { voice: voice || (source === 'vieneu' ? 'Ngọc Linh' : name), sway: typeof sway === 'number' ? sway : -1, desc: (desc || '') + ' · ' + source + ':' + (model || '') };
+    if (sample && fs.existsSync(sample)) meta.ref_audio = sample.replace(/\\/g, '/');
+    cfg.profiles[key] = meta;
+    if (activate !== false) cfg.active_voice_profile = key;
+    const tmp = fp + '.tmp'; fs.writeFileSync(tmp, JSON.stringify(cfg, null, 1)); fs.renameSync(tmp, fp);
+    _adCache = null; _kbSig = '';
+    const packDir = path.join(NIOH_ROOT, 'Agent_Data', 'Voice_Packs', key);
+    fs.mkdirSync(packDir, { recursive: true });
+    const demo = path.join(FORGE_TMP, key + '_demo.wav');
+    if (fs.existsSync(demo)) fs.copyFileSync(demo, path.join(packDir, 'wake.wav'));
+    if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('pack-changed', Date.now());
+    vbufRun(['self_training_sync.py'], 30 * 60 * 1000);   // Multi-Sync: bù wav mọi label cho profile mới (nền)
+    return { success: true, message: 'profile "' + key + '" đã kích hoạt — đang đúc bù toàn bộ kịch bản', profile: key };
+  } catch (e) { return { success: false, error: e.message }; }
+});
 
 // ─── Mở thư mục trong Explorer ───
 ipcMain.handle('open-folder', (_, which) => {

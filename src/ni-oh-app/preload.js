@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 contextBridge.exposeInMainWorld('niOhAPI', {
   // Config
@@ -31,6 +31,10 @@ contextBridge.exposeInMainWorld('niOhAPI', {
   onPlayFile: (cb) => ipcRenderer.on('play-file', (_, m) => cb(m)),
   onThinking: (cb) => ipcRenderer.on('thinking', (_, sec) => cb(sec)),
   onUiState: (cb) => ipcRenderer.on('ui-state', (_, m) => cb(m)),
+  onReflexSay: (cb) => ipcRenderer.on('reflex-say', (_, m) => cb(m)),
+  debugEyeFrame: (m) => ipcRenderer.invoke('debug-eye-frame', m),
+  readWav: (fp) => ipcRenderer.invoke('read-wav', fp),
+  onPackChanged: (cb) => ipcRenderer.on('pack-changed', (_, n) => cb(n)),
 
   // Character
   getCharacters: () => ipcRenderer.invoke('get-characters'),
@@ -57,6 +61,7 @@ contextBridge.exposeInMainWorld('niOhAPI', {
 
   // Voice training from sample
   trainVoiceFromSample: (filePath) => ipcRenderer.invoke('train-voice-from-sample', filePath),
+  filePathFor: (file) => { try { return webUtils.getPathForFile(file) || ''; } catch (e) { return ''; } },
 
   // Model lists
   getAgYModels: () => ipcRenderer.invoke('get-agy-models'),
@@ -80,6 +85,11 @@ contextBridge.exposeInMainWorld('niOhAPI', {
   voiceCreate: (payload) => ipcRenderer.invoke('voice-create', payload),
   voiceSwitch: (profile) => ipcRenderer.invoke('voice-switch', profile),
   voiceCatchup: () => ipcRenderer.invoke('voice-catchup'),
+  voiceConfig: () => ipcRenderer.invoke('voice-config'),
+  testVoiceProfile: (p) => ipcRenderer.invoke('test-voice-profile', p),
+  voiceOllamaAudioModels: () => ipcRenderer.invoke('voice-ollama-audio-models'),
+  voiceForgeDemo: (payload) => ipcRenderer.invoke('voice-forge-demo', payload),
+  voiceForgeAdopt: (payload) => ipcRenderer.invoke('voice-forge-adopt', payload),
   addConcept: (slug, concept) => ipcRenderer.invoke('add-concept', slug, concept),
   deleteConcept: (slug, name) => ipcRenderer.invoke('delete-concept', slug, name),
   deleteSituation: (slug, id) => ipcRenderer.invoke('delete-situation', slug, id),
