@@ -916,6 +916,7 @@ async function loadCharacters() {
 async function loadModels() {
   const selectEl = document.getElementById('setting-model-name');
   const provider = document.getElementById('setting-model-provider').value;
+  mcSetModels('chat', [{ id: '…', label: 'đang nạp danh sách ' + provider }]);  // xóa list provider cũ ngay
   try {
     let models = [];
     if (provider === 'antigravity') {
@@ -938,9 +939,13 @@ async function loadModels() {
     mcSetModels('chat', models);
     selectEl.value = mainConfig?.modelName || (models[0] ? models[0].id : '');
   } catch (e) {
+    mcSetModels('chat', [{ id: selectEl.value || '', label: '⚠ Lỗi nạp danh sách — bấm ↻ thử lại' }]);
     selectEl.placeholder = 'Không tải được danh sách model — bấm ↻ thử lại';
   }
 }
+
+// Danh sách Gemini chuẩn (fallback khi API không với tới được — tên vẫn gọi đúng)
+const GEMINI_STATIC = ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
 
 // ── ComboBox model: gõ tự do để tìm theo từ khóa, bấm ▾ để xem toàn bộ danh sách ──
 const _mcModels = { chat: [], train: [] };
@@ -1176,6 +1181,7 @@ function onTrainProviderChange() {
 async function loadTrainModels() {
   const selectEl = document.getElementById('setting-train-model');
   const provider = document.getElementById('setting-train-provider').value;
+  mcSetModels('train', [{ id: '…', label: 'đang nạp danh sách ' + provider }]);
   try {
     let models = [];
     if (provider === 'antigravity') models = await window.niOhAPI.getAgYModels();
@@ -1198,6 +1204,7 @@ async function loadTrainModels() {
     mcSetModels('train', models);
     selectEl.value = mainConfig?.trainModel || (models[0] ? models[0].id : '');
   } catch (e) {
+    mcSetModels('train', [{ id: selectEl.value || '', label: '⚠ Lỗi nạp danh sách — bấm ↻ thử lại' }]);
     selectEl.placeholder = 'Không tải được danh sách model — bấm ↻ thử lại';
   }
 }
