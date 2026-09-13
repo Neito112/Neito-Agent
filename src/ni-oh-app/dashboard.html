@@ -980,16 +980,21 @@ async function loadTopics() {
     const stEl = document.getElementById('kb-stats');
     if (stEl) {
       const st = vs.stats || {};
-      stEl.textContent = `KB: ${vs.topics?.length || 0} chủ đề · ${vs.totalEntries || 0} kiến thức vĩnh viễn` +
+      const sp = vs.split || {};
+      stEl.textContent = `KB: ${vs.topics?.length || 0} chủ đề · ${vs.totalEntries || 0} kiến thức vĩnh viễn · 📚 nền tảng ${sp.base_concepts || 0} kn/${sp.base_answered || 0} th-có-câu · 🧬 đúc kết ${sp.user_concepts || 0} kn/${sp.user_answered || 0} th` +
         (st.kb_hits !== undefined ? ` · đã tiết kiệm ${st.kb_hits} request agy (~${st.saved_tokens_est || 0} token)` : '');
     }
     const rows = (vs.topics || []).map(t => {
       const name = t.topic || t.slug;
+      const uc = t.user_concepts || 0, us = t.user_situations || 0;   // đúc kết theo người dùng
+      const userTag = (uc || us) ? ` · 🧬 ${uc + us} đúc kết` : '';
       const stChip = t.concept_state === 'activated'
-        ? `<span class="chip ok" style="font-size:10px;padding:1px 7px"><span class="dot"></span> ${t.concepts} khái niệm · ${t.answered}/${t.situations} sẵn câu</span>`
+        ? `<span class="chip ok" style="font-size:10px;padding:1px 7px"><span class="dot"></span> 📚 ${t.concepts - uc} nền tảng · ${t.answered}/${t.situations} sẵn câu${userTag}</span>`
         : t.concept_state === 'concepts_ready'
-        ? `<span class="chip" style="font-size:10px;padding:1px 7px"><span class="dot"></span> ${t.concepts} khái niệm · chờ gắn tình huống</span>`
-        : `<span class="chip" style="font-size:10px;padding:1px 7px"><span class="dot"></span> chưa nạp khái niệm</span>`;
+        ? `<span class="chip" style="font-size:10px;padding:1px 7px"><span class="dot"></span> 📚 ${t.concepts} khái niệm · chờ gắn tình huống${userTag}</span>`
+        : t.concept_state === 'loading_concepts'
+        ? `<span class="chip" style="font-size:10px;padding:1px 7px"><span class="dot"></span> 📥 đang nạp ${t.concepts} khái niệm…${userTag}</span>`
+        : `<span class="chip" style="font-size:10px;padding:1px 7px"><span class="dot"></span> chưa nạp khái niệm${userTag}</span>`;
       return `<div class="card" style="margin:0; padding:10px 12px; cursor:pointer" data-tip="Mở xem chi tiết ${t.entries} kiến thức đã train — xóa/từng cái, thêm mới, hoặc train lại" onclick="openTopicModal('${t.slug}','${name.replace(/'/g, '')}')">
         <strong style="font-size:13px">🧠 ${name}</strong>
         <p class="desc" style="margin-top:2px">${t.entries} kiến thức · mắt theo: ${(t.yolo_watch||[]).slice(0,3).join(', ')||'—'}</p>

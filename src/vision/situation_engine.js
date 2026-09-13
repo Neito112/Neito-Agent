@@ -175,6 +175,7 @@ function evaluate(frame) {
           t.answer = String(answer).slice(0, 300);
           t.answer_saved_at = new Date().toISOString();
           t.answer_source = 'inferred';
+          t.origin = 'inferred'; t.tier = 'user';   // sinh ra từ chính phiên dùng của Sếp
         }
         saveTopic(slug, d);
       }
@@ -202,6 +203,7 @@ function accumulateConcepts(frame) {
     if (_accum[np] === 3) {          // xuất hiện 3 lần ở các khung khác nhau → khái niệm đáng ghi
       const last = data.concepts[data.concepts.length - 1];
       (last.ocrPhrases = last.ocrPhrases || []).push(p.slice(0, 48));
+      last.origin = 'accumulated'; last.tier = 'user';   // mắt tự thấy trên màn hình Sếp
       known.add(np);
       dirty = true;
     }
@@ -316,6 +318,55 @@ function switchEvent(frame) {
 }
 function markAcked(proc) { const h = _procHist.get(proc); if (h) h.acked = true; }
 
+/* ── PHÂN LOẠI KIẾN THỨC (Sếp chốt): ──────────────────────────────────
+   nền_tảng = nạp từ nguồn chính thức/hướng dẫn/mẹo (train, classifier, cross-source)
+   đúc_kết = hình thành RIÊNG theo người dùng qua quá trình dùng máy:
+              suy luận tại bàn (inferred), câu do Sếp duyệt/sửa (manual),
+              khái niệm mắt tự tích luỹ từ màn hình (accumulated).
+   Mỗi concept/situation có tier ('nền'|'đúc') + origin. Hàm dưới phân loại
+   theo answer_source/origin — nguồn nào có trước, nền tảng KHÔNG bị ghi đè. */
+const USER_ORIGINS = ['inferred', 'manual', 'accumulated', 'user'];
+function tierOf(source) {
+  return USER_ORIGINS.includes(String(source || '').split(':')[0]) ? 'user' : 'base';
+}
+/** đảm bảo mọi concept/situation có tier+origin (idempotent, trả về dirty) */
+function classifyTopic(data) {
+  let dirty = false;
+  for (const c of (data.concepts || [])) {
+    if (!c.origin) { c.origin = 'source'; dirty = true; }
+    const want = tierOf(c.origin);
+    if (c.tier !== want) { c.tier = want; dirty = true; }
+  }
+  for (const s of (data.situations || [])) {
+    if (!s.origin) { s.origin = s.answer_source || (s.answer ? 'learned' : 'source'); dirty = true; }
+    const want = tierOf(s.origin === 'source' ? (s.answer_source || 'learned') : s.origin);
+    if (s.tier !== want) { s.tier = want; dirty = true; }
+  }
+  return dirty;
+}
+function syncAllTiers() {
+  let touched = 0;
+  for (const slug of topicFiles()) {
+    const data = loadTopic(slug);
+    if (data && classifyTopic(data)) { saveTopic(slug, data); touched++; }
+  }
+  return touched;
+}
+/** tổng hợp 2 tầng cho UI/IPC */
+function knowledgeSplit(slug) {
+  const data = slug ? loadTopic(slug) : null;
+  const list = data ? [data] : topicFiles().map(loadTopic).filter(Boolean);
+  let baseC = 0, userC = 0, baseS = 0, userS = 0, baseA = 0, userA = 0;
+  for (const d of list) {
+    classifyTopic(d);
+    for (const c of (d.concepts || [])) { c.tier === 'user' ? userC++ : baseC++; }
+    for (const s of (d.situations || [])) {
+      if (s.tier === 'user') { userS++; if (s.answer) userA++; } else { baseS++; if (s.answer) baseA++; }
+    }
+  }
+  return { base_concepts: baseC, user_concepts: userC, base_situations: baseS, base_answered: baseA, user_situations: userS, user_answered: userA };
+}
+
 /* ── tình huống dùng được ngay khi nạp answer thủ công (đọc tài liệu) ── */
 function setAnswer(slug, situationId, answer, source) {
   const data = loadTopic(slug);
@@ -324,6 +375,7 @@ function setAnswer(slug, situationId, answer, source) {
   if (!s) return false;
   s.answer = String(answer).slice(0, 300);
   s.answer_source = source || 'manual';
+  s.origin = 'manual'; s.tier = 'user';   // người dùng duyệt = đúc kết riêng
   s.answer_saved_at = new Date().toISOString();
   return saveTopic(slug, data);
 }
@@ -342,4 +394,4 @@ function status() {
   return out;
 }
 
-module.exports = { evaluate, accumulateConcepts, setAnswer, status, buildInferPrompt, norm, loadTopic, saveTopic, registerFrame, tempo, condenseQueue, setCondensed, pacing, switchEvent, markAcked };
+module.exports = { evaluate, accumulateConcepts, tierOf, classifyTopic, syncAllTiers, knowledgeSplit, setAnswer, status, buildInferPrompt, norm, loadTopic, saveTopic, registerFrame, tempo, condenseQueue, setCondensed, pacing, switchEvent, markAcked };

@@ -57,6 +57,22 @@ function log(s, msg) {
 }
 
 /* ── agy JSON helper (giống concept_classifier, thêm quyền web) ─────── */
+/** chuẩn hoá concept_state sau mỗi lượt học (UI + classifier cùng ngữ nghĩa):
+ *  <8 khái niệm = loading_concepts · đủ khái niệm, chưa có câu trả lời = concepts_ready
+ *  · có ≥1 tình huống sẵn câu = activated (engine bắn instant được) */
+function syncState(d) {
+  const c = (d.concepts || []).length, ans = (d.situations || []).filter(s => s && s.answer).length;
+  d.concept_state = c >= 8 ? (ans > 0 ? 'activated' : 'concepts_ready') : (c ? 'loading_concepts' : 'empty');
+}
+
+/** chuẩn hoá concept_state (UI đọc: loading→ready→activated) + tier phân loại
+ *  nền tảng vs đúc-kết-theo-người-dùng trước khi ghi file. */
+function finalizeVision(d) {
+  const c = (d.concepts || []).length, ans = (d.situations || []).filter(s => s && s.answer).length;
+  d.concept_state = c >= 8 ? (ans > 0 ? 'activated' : 'concepts_ready') : (c ? 'loading_concepts' : 'empty');
+  se.classifyTopic(d);
+}
+
 /* ── nhịp gọi agy toàn cục: mọi tiến trình học chừa nhau ≥18s, ≤4 call/phút; backoff khi 429 ── */
 const GATE_FILE = path.join(LDIR, 'gate.json');
 let MIN_GAP_MS = 18000, MAX_PER_MIN = 4;   // batch_trainer chỉnh qua --gap-ms/--rpm
@@ -216,7 +232,7 @@ async function loop1Concepts(slug, srcText, images) {
       } else skipped++;
     } else skipped++;
   }
-  se.saveTopic(slug, d);
+  finalizeVision(d); se.saveTopic(slug, d);
   return { success: true, added, merged, skipped, coverage: r.data.coverage, next_hint: r.data.next_hint || '' };
 }
 
@@ -277,7 +293,7 @@ async function loop2Situations(slug, srcText, images) {
       unanswered++;
     }
   }
-  se.saveTopic(slug, d);
+  finalizeVision(d); se.saveTopic(slug, d);
   return { success: true, newSit, answered, unanswered, list: (r.data.situations || []).map(s => ({ id: s.id, ok: !!s.answered_in_source, sit: s.situation })) };
 }
 
@@ -306,7 +322,7 @@ async function resolveUnanswered(state) {
   if (r.success && r.data.answered && r.data.answer) {
     sit.answer = String(r.data.answer).slice(0, 200);
     sit.answer_source = 'resolved:' + (r.data.evidence_url || 'cross-source');
-    se.saveTopic(item.slug, d);
+    finalizeVision(d); se.saveTopic(item.slug, d);
     item.resolved = true;
     return { resolved: 1, still: 0 };
   }

@@ -54,7 +54,10 @@ function listTopics() {
           concepts: (d.concepts || []).length,
           situations: (d.situations || []).length,
           answered: (d.situations || []).filter(s => s.answer).length,
-          concept_state: d.concept_state || 'empty'
+          concept_state: d.concept_state || 'empty',
+          // 2 tầng: nền tảng từ nguồn vs đúc kết theo người dùng (Sếp yêu cầu phân biệt rõ)
+          user_concepts: (d.concepts || []).filter(c => c.tier === 'user').length,
+          user_situations: (d.situations || []).filter(s => s.tier === 'user' && s.answer).length
         };
       })
       .sort((a, b) => a.topic.localeCompare(b.topic));

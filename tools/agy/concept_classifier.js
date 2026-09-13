@@ -157,7 +157,7 @@ async function stepSituations(slug) {
   const r = await agyJson(prompt, { schema: SITUATIONS_SCHEMA });
   if (!r.success) return r;
   const fresh = (r.data.situations || []).filter(s => s && s.id && s.concepts_required && s.concepts_required.length);
-  t.situations = fresh.map(s => ({ ...s, answer: (s.answer || ''), cooldown_s: s.cooldown_s || 180 }));
+  t.situations = fresh.map(s => ({ ...s, answer: (s.answer || ''), cooldown_s: s.cooldown_s || 180, origin: 'source', tier: 'base' }));
   t.concept_state = fresh.length ? 'activated' : t.concept_state;
   writeTopic(slug, t);
   // đồng bộ sang triggers.json để activeTopic nhận diện giao thức theo window

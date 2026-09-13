@@ -1714,6 +1714,7 @@ ipcMain.handle('get-vision-status', () => {
     micMode: mainConfig.micMode || 'off',
     topics,
     totalEntries: topics.reduce((a, t) => a + t.entries, 0),
+    split: situationEngine.knowledgeSplit(),
     stats: visionBrain.readStats(),
     rules: (visionBrain.loadTriggers().rules || []).map(r => ({ id: r.id, topic: r.topic })),
     lastFrame,
