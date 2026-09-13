@@ -18,6 +18,10 @@ import subprocess
 import sys
 from datetime import datetime
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import agent_data as ad
+import self_training_sync as sts
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 REFLEX = os.path.join(ROOT, 'memory', 'reflex')
@@ -73,11 +77,15 @@ def miss_labels(kb):
 
 def text_for(label, sug):
     key = norm_label(label)
-    if key in sug:                       # agy/Sonnet đã soạn sẵn giữa hiệp
-        return str(sug[key]).strip()[:60]
+    if key in sug:                       # agy/Pro đã soạn sẵn giữa hiệp — tin khi nó có chữ
+        txt = str(sug[key]).strip()[:60]
+        if txt:
+            return txt
+        # Pro trả rỗng = nhãn vô nghĩa với game → BỎ NHÃN, đừng nhét rác vào kho
+        return ''
     if label in LOCAL_SUGGEST:
         return LOCAL_SUGGEST[label]
-    return 'Cảnh báo: ' + label[:24]     # an toàn: đọc nguyên nhãn
+    return 'Cảnh báo: ' + label[:24]     # không có ai soạn: đọc nguyên nhãn còn hơn im lặng
 
 
 def gen_wav(text, out_wav):
@@ -115,7 +123,8 @@ def gen_wav(text, out_wav):
 
 
 def main():
-    kb = load_kb()
+    ad.ensure_tree()
+    kb = ad.load_kb()                      # {label: text} — text là sự thật duy nhất
     try:
         sug = json.load(open(SUGGESTED, encoding='utf8'))
     except Exception:
@@ -127,26 +136,38 @@ def main():
     print(f'{len(todo)} nhãn lạ cần nạp: {[l for l,_ in todo]}')
     made = 0
     for label, conf in todo:
-        key = norm_label(label)
+        key = ad.norm_label(label)
         text = text_for(label, sug)
-        wav = f'reflex_{key}.wav'
-        path = os.path.join(AUDIO_DIR, wav)
-        if not os.path.isfile(path):
-            ok = gen_wav(text, path)
-            if not ok:
-                print('✗ sinh wav thất bại:', label)
-                continue
-        kb['labels'][key] = {'wav': wav, 'text': text, 'from_label': label,
-                             'added_at': datetime.now().isoformat(timespec='seconds'),
-                             'origin': 'reflex_refiller'}
-        made += 1
-        print(f'✓ {key} → "{text}" ({wav})')
+        if not text:
+            print(f'· {label}: Pro bảo vô nghĩa — bỏ nhãn (không nạp rác)')
+            continue
+        if ad.upsert_kb(key, text):
+            made += 1
+            print(f'✓ lõi text: {key} → "{text}"')
     if made:
-        save_kb(kb)
-        # log đã tiêu thụ → đổi tên giữ bằng chứng
+        n = sts.sync_missing()             # Module C: đúc bù wav cho MỌI profile, không bỏ trống giọng nào
+        print(f'  multi-sync: +{n} wav trên {len(ad.profiles())} profile (hot-reload 2s)')
         os.replace(MISS_LOG, MISS_LOG + '.' + datetime.now().strftime('%H%M%S'))
-    print(f'xong: +{made} label mới (agent đang chạy sẽ tự nạp, không restart)')
+    print(f'xong: +{made} label (combat hot-reload, không restart)')
     return 0
+
+
+def miss_labels(kb):
+    """Nhãn lạ trong log mà KB text chưa có."""
+    seen = {}
+    if not os.path.isfile(MISS_LOG):
+        return []
+    for line in open(MISS_LOG, encoding='utf8'):
+        parts = line.rstrip('\n').split('\t')
+        if len(parts) < 2:
+            continue
+        lab = parts[1]
+        try:
+            conf = float(parts[2]) if len(parts) > 2 else 0.0
+        except ValueError:
+            conf = 0.0
+        seen[lab] = max(seen.get(lab, 0), conf)
+    return [(l, c) for l, c in seen.items() if ad.norm_label(l) not in kb]
 
 
 if __name__ == '__main__':

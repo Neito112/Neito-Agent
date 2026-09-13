@@ -257,7 +257,7 @@ function callOpenRouter(question, modelName, apiKey) {
 function callOllama(question, modelName) {
   const model = modelName || 'qwen2.5:7b';
   return new Promise((resolve) => {
-    const payload = JSON.stringify({ model, messages:[{role:'user',content:question}], stream:false });
+    const payload = JSON.stringify({ model, messages:[{role:'user',content:question}], stream:false, keep_alive:-1 });  // warm-up kiểu BMO: giữ model nội trú VRAM, khỏi 'dừng-động-cơ-mỗi-lần-lái'
     const req = http.request({
       hostname:'127.0.0.1', port:11434, path:'/api/chat', method:'POST',
       headers:{'Content-Type':'application/json'}, timeout:60000
@@ -636,6 +636,7 @@ async function speakText(text, rate) {
   else return { success:false, error:'Chưa chọn TTS provider' };
 
   if (r.success && r.file) {
+    fireState('speaking');
     // Điếc tạm thời khi đang nói — chống mic nghe tiếng loa rồi tự hỏi tự đáp
     earSend({ cmd: 'mute', sec: Math.min(30, (2 + normalizeForSpeech(text).length * 0.12) / rate) });
     mainConfig.lastAnswer = text;
@@ -674,6 +675,7 @@ ipcMain.handle('save-config', (_, config) => {
 ipcMain.handle('ask-question', async (_, question) => {
   const wc = (overlayWindow && !overlayWindow.isDestroyed()) ? overlayWindow.webContents : null;
   if (wc) wc.send('thinking', 10);
+  fireState('thinking');
 
   // ── Bước 1: hỏi KB vĩnh viễn trước (0 token) — TRỪ câu hỏi phụ thuộc màn hình
   // (cảnh luôn đổi → đáp án cũ trong KB là sai, phải để não nhìn cảnh thật) ──
@@ -683,6 +685,7 @@ ipcMain.handle('ask-question', async (_, question) => {
     visionBrain.bumpStat('saved_tokens_est', 400);
     const answer = String(kb.entry.answer);
     await speakOrShow(wc, answer, situationEngine.tempo() === 'urgent' ? 1.25 : 1);
+    fireState('done');
     return { success: true, answer, provider: 'kb', topic: kb.topic };
   }
 
@@ -723,8 +726,41 @@ ipcMain.handle('ask-question', async (_, question) => {
   }
 
   if (r.success) await speakOrShow(wc, r.answer);
+  fireState(r.success ? 'done' : 'error');
   return r;
 });
+
+// ─── STATE MACHINE biểu cảm + canned clips (học từ video BMO: mỗi chuyển state =
+//     đổi mặt + phát voice clip NGẪU NHIÊN đồng giọng Ngọc Linh — chống 'canned' mà
+//     không tốn một lần gọi TTS nào lúc chuyển trạng thái) ───
+const STATE_FACE = { wake: 'alert', listening: null, thinking: 'thinking', speaking: 'talking', done: 'happy', error: 'error', sleep: 'sleepy' };
+let _stateClips = null, _stateClipsMtime = 0;
+function stateClips() {
+  const man = path.join(NIOH_ROOT, 'assets', 'voices', 'manifest.json');
+  try {
+    const mt = fs.existsSync(man) ? fs.statSync(man).mtimeMs : 0;
+    if (_stateClips && mt === _stateClipsMtime) return _stateClips;
+    _stateClipsMtime = mt;
+    _stateClips = {};
+    if (mt) {
+      const m = JSON.parse(fs.readFileSync(man, 'utf8'));
+      for (const key of Object.keys(m)) {
+        const st = String(key).split('/')[0];
+        const fp = path.join(NIOH_ROOT, 'assets', 'voices', st, String(key).split('/')[1] + '.wav');
+        if (fs.existsSync(fp)) (_stateClips[st] = _stateClips[st] || []).push('file:///' + fp.replace(/\\/g, '/'));
+      }
+    }
+  } catch (e) { _stateClips = _stateClips || {}; }
+  return _stateClips;
+}
+function fireState(name) {
+  try {
+    if (!overlayWindow || overlayWindow.isDestroyed() || !overlayWindow.webContents) return;
+    const clips = stateClips()[name] || [];
+    const clip = clips.length ? clips[Math.floor(Math.random() * clips.length)] : null;
+    overlayWindow.webContents.send('ui-state', { state: name, face: STATE_FACE[name] || null, clip });
+  } catch (e) {}
+}
 
 // Bong bóng + tiếng RA CÙNG LÚC: TTS xong mới hiện chữ; TTS tắt thì hiện ngay
 async function speakOrShow(wc, answer, rate) {
@@ -945,7 +981,10 @@ function setMicMode(mode) {
 }
 ipcMain.handle('set-mic-mode', (_, mode) => setMicMode(mode));
 ipcMain.handle('get-mic-status', () => ({ spawned: !!earProcess, ready: earReady, mode: mainConfig.micMode || 'off' }));
-ipcMain.on('mic-talk', (_, on) => earSend({ cmd: 'talk', on: !!on }));
+ipcMain.on('mic-talk', (_, on) => {
+  earSend({ cmd: 'talk', on: !!on });
+  fireState(on ? 'wake' : 'listening');
+});
 // Overlay: vùng trong suốt xuyên chuột (không chặn click bên dưới), chỉ hình thật nhận tương tác
 // Overlay 2 vùng độc lập: hàng nút neo ĐÁY cửa sổ (kích thước cố định),
 // nhân vật scale → cửa sổ GIÃN LÊN TRÊN, đáy không xê dịch. Chat mở → giãn xuống dưới.
@@ -1606,6 +1645,53 @@ ipcMain.handle('add-entry', (_, slug, entry) => {
     return { success: true };
   } catch (e) { return { success: false, error: e.message }; }
 });
+
+// ─── MODULE D: Voice Builder — xưởng đúc giọng trong Settings ───
+const VOICE_TOOLS = path.join(NIOH_ROOT, 'scripts');
+const VOICE_PY = path.join(NIOH_ROOT, 'yolo_env', 'Scripts', 'python.exe');
+function vbufRun(args, timeoutMs) {
+  return new Promise((resolve) => {
+    let out = '';
+    try {
+      const child = spawn(VOICE_PY, args, { cwd: VOICE_TOOLS, windowsHide: true });
+      const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch (e) {} resolve({ success: false, error: 'hết giờ ' + (timeoutMs / 1000) + 's', log: out }); }, timeoutMs);
+      child.stdout.on('data', d => out += d);
+      child.stderr.on('data', d => { out += ''; });
+      child.on('close', code => { clearTimeout(to); resolve({ success: code === 0, log: out.slice(-600) }); });
+    } catch (e) { resolve({ success: false, error: e.message }); }
+  });
+}
+ipcMain.handle('voice-presets', () => {
+  try {
+    const fp = path.join(NIOH_ROOT, 'Agent_Data', 'preset_voices.json');
+    return { success: true, voices: JSON.parse(fs.readFileSync(fp, 'utf8')) };
+  } catch (e) { return { success: false, error: e.message, voices: [] }; }
+});
+ipcMain.handle('voice-profiles', () => {
+  try {
+    const fp = path.join(NIOH_ROOT, 'Agent_Data', 'system_config.json');
+    return { success: true, cfg: JSON.parse(fs.readFileSync(fp, 'utf8')) };
+  } catch (e) { return { success: false, error: e.message }; }
+});
+ipcMain.handle('voice-create', async (_, { name, voice, activate }) => {
+  const nm = String(name || '').trim(), vc = String(voice || '').trim();
+  if (!nm || !vc) return { success: false, error: 'Điền tên giọng + chọn chất giọng' };
+  const args = ['voice_builder_tool.py', 'create', nm, vc];
+  if (activate) args.push('--activate');
+  return await vbufRun(args, 30 * 60 * 1000);          // batch 26+ câu có thể lâu
+});
+ipcMain.handle('voice-switch', async (_, profile) => {
+  try {
+    const fp = path.join(NIOH_ROOT, 'Agent_Data', 'system_config.json');
+    const cfg = JSON.parse(fs.readFileSync(fp, 'utf8'));
+    const prof = String(profile || '').trim();
+    if (!(cfg.profiles || {})[prof]) return { success: false, error: 'profile không tồn tại' };
+    cfg.active_voice_profile = prof;
+    const tmp = fp + '.tmp'; fs.writeFileSync(tmp, JSON.stringify(cfg, null, 1)); fs.renameSync(tmp, fp);
+    return { success: true, message: 'Đã trỏ con trỏ giọng — combat_loop hot-reload trong 2s' };
+  } catch (e) { return { success: false, error: e.message }; }
+});
+ipcMain.handle('voice-catchup', async () => await vbufRun(['self_training_sync.py'], 30 * 60 * 1000));
 
 // ─── Mở thư mục trong Explorer ───
 ipcMain.handle('open-folder', (_, which) => {

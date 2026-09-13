@@ -509,6 +509,34 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
     </div>
 
     <div class="card">
+      <h3>🏭 Xưởng đúc giọng — Voice Packs đa profile</h3>
+      <p class="desc" style="margin-top:-4px">Mỗi kịch bản phản xạ (lõi là VĂN BẢN) được đúc .wav cho MỌI giọng trong kho → đổi giọng tức thì, hot-reload 2s không restart.</p>
+      <div class="row">
+        <div class="field" style="margin:0; flex:2 1 220px">
+          <label for="vp-list">Giọng đang dùng (active_voice_profile)</label>
+          <select id="vp-list"></select>
+        </div>
+        <button class="btn shrink" onclick="switchVoiceProfile()" title="Tráo con trỏ profile — combat_loop nạp lại RAM trong 2 giây">🔀 Đổi giọng</button>
+        <button class="btn shrink" id="btn-vp-catchup" onclick="catchupSync(this)" title="Quét KB × profile, đúc bù mọi file wav còn thiếu">🧩 Đúc bù thiếu</button>
+        <span class="status-text shrink" id="vp-status"></span>
+      </div>
+      <div class="row" style="margin-top:var(--sp-3)">
+        <div class="field shrink" style="margin:0; min-width:180px">
+          <label for="vp-new-name">Tên giọng mới</label>
+          <input type="text" id="vp-new-name" placeholder="vd: Giong_Goku" autocomplete="off">
+        </div>
+        <div class="field shrink" style="margin:0; min-width:180px">
+          <label for="vp-new-voice">Chất giọng gốc</label>
+          <select id="vp-new-voice"></select>
+        </div>
+        <label style="align-self:end; font-size:12px; display:flex; gap:4px; align-items:center; padding-bottom:8px">
+          <input type="checkbox" id="vp-new-activate" checked> kích hoạt ngay</label>
+        <button class="btn btn-primary shrink" id="btn-vp-create" onclick="createVoiceProfile(this)" title="Đúc TOÀN BỘ lịch sử kịch bản sang giọng mới (giữ VRAM thấp, trả bộ nhớ cho game sau khi xong)">🏭 Tạo Giọng Mới</button>
+      </div>
+      <p class="desc">Đúc mới = chạy nền hàng chục phút với kho lớn; VRAM được torch.empty_cache() giải phóng ngay khi xong — game không thiếu bộ nhớ.</p>
+    </div>
+
+    <div class="card">
       <h3>🎙 Micro — thu nhận câu hỏi bằng giọng nói</h3>
       <div class="row">
         <div class="field" style="margin:0; flex:2 1 200px">
@@ -713,6 +741,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (tEl) tEl.textContent = tab.textContent.trim().replace(/^\S+\s+/, '');
       if (tab.dataset.tab === 'overview') loadOverview();
       if (tab.dataset.tab === 'ext') loadExt();
+      if (tab.dataset.tab === 'voice') loadVoicePacks();
     });
   });
 
@@ -1590,6 +1619,43 @@ function toast(msg) {
   t.style.opacity = '1';
   clearTimeout(t._h);
   t._h = setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .4s'; }, 2200);
+}
+
+// ─── 🏭 Xưởng đúc giọng (Module B/C/D Agent_Data) ───
+async function loadVoicePacks() {
+  try {
+    const [pr, pf] = await Promise.all([window.niOhAPI.voicePresets(), window.niOhAPI.voiceProfiles()]);
+    const sel = document.getElementById('vp-new-voice');
+    if (sel && pr && pr.success) sel.innerHTML = (pr.voices || []).map(v => `<option value="${v.id}">${v.id} — ${v.desc}</option>`).join('');
+    const lst = document.getElementById('vp-list');
+    if (lst && pf && pf.success) {
+      const cfg = pf.cfg || {}; const act = cfg.active_voice_profile || '';
+      lst.innerHTML = Object.entries(cfg.profiles || {}).map(([k, m]) => `<option value="${k}" ${k === act ? 'selected' : ''}>${k} — ${m.voice || ''}${k === act ? ' (đang dùng)' : ''}</option>`).join('');
+    }
+  } catch (e) {}
+}
+async function switchVoiceProfile() {
+  const v = (document.getElementById('vp-list') || {}).value; if (!v) return;
+  const r = await window.niOhAPI.voiceSwitch(v);
+  document.getElementById('vp-status').textContent = r.success ? '✓ ' + r.message : '❌ ' + r.error;
+  if (r.success) loadVoicePacks();
+}
+async function catchupSync(btn) {
+  btn.disabled = true; const st = document.getElementById('vp-status'); st.textContent = 'đang quét & đúc bù…';
+  const r = await window.niOhAPI.voiceCatchup();
+  st.textContent = r.success ? '✓ ' + ((r.log || '').split('\n').slice(-2).join(' ')) : '❌ ' + (r.error || r.log || '').slice(0, 80);
+  btn.disabled = false;
+}
+async function createVoiceProfile(btn) {
+  const name = (document.getElementById('vp-new-name').value || '').trim();
+  const voice = document.getElementById('vp-new-voice').value;
+  const activate = document.getElementById('vp-new-activate').checked;
+  if (!name) return toast('Đặt tên giọng mới trước');
+  btn.disabled = true; const st = document.getElementById('vp-status');
+  st.textContent = `đang đúc toàn bộ kịch bản sang “${name}” (${voice})… giữ máy chạy nền`;
+  const r = await window.niOhAPI.voiceCreate({ name, voice, activate });
+  st.textContent = r.success ? '✓ ' + ((r.log || '').split('\n').slice(-2).join(' ')).slice(0, 120) : '❌ ' + (r.error || (r.log || '').slice(-120));
+  btn.disabled = false; loadVoicePacks();
 }
 </script>
 </body>

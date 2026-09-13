@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld('niOhAPI', {
   onTalkState: (cb) => ipcRenderer.on('talk-state', (_, on) => cb(on)),
   onPlayFile: (cb) => ipcRenderer.on('play-file', (_, m) => cb(m)),
   onThinking: (cb) => ipcRenderer.on('thinking', (_, sec) => cb(sec)),
+  onUiState: (cb) => ipcRenderer.on('ui-state', (_, m) => cb(m)),
 
   // Character
   getCharacters: () => ipcRenderer.invoke('get-characters'),
@@ -74,6 +75,11 @@ contextBridge.exposeInMainWorld('niOhAPI', {
   deleteTopic: (slug) => ipcRenderer.invoke('delete-topic', slug),
   deleteEntry: (slug, cue) => ipcRenderer.invoke('delete-entry', slug, cue),
   addEntry: (slug, entry) => ipcRenderer.invoke('add-entry', slug, entry),
+  voicePresets: () => ipcRenderer.invoke('voice-presets'),
+  voiceProfiles: () => ipcRenderer.invoke('voice-profiles'),
+  voiceCreate: (payload) => ipcRenderer.invoke('voice-create', payload),
+  voiceSwitch: (profile) => ipcRenderer.invoke('voice-switch', profile),
+  voiceCatchup: () => ipcRenderer.invoke('voice-catchup'),
   addConcept: (slug, concept) => ipcRenderer.invoke('add-concept', slug, concept),
   deleteConcept: (slug, name) => ipcRenderer.invoke('delete-concept', slug, name),
   deleteSituation: (slug, id) => ipcRenderer.invoke('delete-situation', slug, id),

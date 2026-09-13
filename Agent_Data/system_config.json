@@ -1,0 +1,15 @@
+{
+ "active_voice_profile": "Giong_Mac_Dinh",
+ "profiles": {
+  "Giong_Mac_Dinh": {
+   "desc": "Nữ Bắc · kể chuyện — mặc định",
+   "sway": -1,
+   "voice": "Ngọc Linh"
+  },
+  "giong_ninja_nu": {
+   "desc": "Trúc Ly · sway -1.0",
+   "sway": -1,
+   "voice": "Trúc Ly"
+  }
+ }
+}
