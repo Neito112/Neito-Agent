@@ -36,3 +36,4 @@ memory/unified_memory.json
 package-lock.json
 __pycache__/
 *.pyc
+assets/voices/
