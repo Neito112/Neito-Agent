@@ -264,7 +264,7 @@ async function cmdEnqueue() {
    ════════════════════════════════════════════════════════════════════════ */
 async function cmdRun() {
   const maxN      = parseInt(flag('--max') || '200', 10);
-  const modelsArg = flag('--models') || 'claude-sonnet-4-6,gemini-3.8-flash-low';
+  const modelsArg = flag('--models') || 'gemini-3.1-pro-high,gemini-3.8-flash-low';
   const allModels = modelsArg.split(',').map(s => s.trim()).filter(Boolean);
 
   // Tải trainer state để biết model nào đang bị ban quota

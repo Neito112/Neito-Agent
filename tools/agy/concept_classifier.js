@@ -23,7 +23,7 @@ const agyTool = require(path.join(__dirname, 'resolver.js'));
 
 const ROOT = path.join(__dirname, '..', '..');
 const VDIR = path.join(ROOT, 'memory', 'vision');
-const SONNET = 'claude-sonnet-4-6';
+const SONNET = 'gemini-3.1-pro-high'; // Sếp: Sonnet cạn quota — Pro thay thế
 const MIN_CONCEPTS = 3;   // "nạp đầy đủ" = ít nhất ngần này khái niệm
 
 function topicFile(slug) { return path.join(VDIR, String(slug).replace(/[^a-z0-9_-]/g, '') + '.json'); }

@@ -1,0 +1,7 @@
+{
+  "name": "nioh-companion",
+  "version": "1.1.0",
+  "private": true,
+  "main": "main.js",
+  "description": "Ni-Oh Companion — Electron desktop agent (dashboard + overlay HUD + tray)"
+}

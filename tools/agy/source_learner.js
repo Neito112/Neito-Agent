@@ -36,7 +36,7 @@ const se = require(path.join(__dirname, '..', '..', 'src', 'vision', 'situation_
 const ROOT = path.join(__dirname, '..', '..', 'memory');
 const LDIR = path.join(ROOT, 'learning');
 const STATE = path.join(LDIR, 'state.json');
-const SONNET = 'claude-sonnet-4-6';
+const SONNET = 'gemini-3.1-pro-high'; // đổi theo lệnh Sếp: Sonnet cạn quota
 const _mi = process.argv.indexOf('--model');
 const MODEL = _mi > 0 ? process.argv[_mi + 1] : SONNET;   // tool do Sonnet dựng — chạy được mọi model agy có
 fs.mkdirSync(LDIR, { recursive: true });
