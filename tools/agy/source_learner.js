@@ -37,6 +37,8 @@ const ROOT = path.join(__dirname, '..', '..', 'memory');
 const LDIR = path.join(ROOT, 'learning');
 const STATE = path.join(LDIR, 'state.json');
 const SONNET = 'claude-sonnet-4-6';
+const _mi = process.argv.indexOf('--model');
+const MODEL = _mi > 0 ? process.argv[_mi + 1] : SONNET;   // tool do Sonnet dựng — chạy được mọi model agy có
 fs.mkdirSync(LDIR, { recursive: true });
 
 /* ── state ─────────────────────────────────────────────────────────── */
@@ -55,8 +57,44 @@ function log(s, msg) {
 }
 
 /* ── agy JSON helper (giống concept_classifier, thêm quyền web) ─────── */
-function agyJson(prompt, { schema, images = [], model = SONNET, timeoutMs = 780000 } = {}) {
-  return new Promise((resolve) => {
+/* ── nhịp gọi agy toàn cục: mọi tiến trình học chừa nhau ≥18s, ≤4 call/phút; backoff khi 429 ── */
+const GATE_FILE = path.join(LDIR, 'gate.json');
+let MIN_GAP_MS = 18000, MAX_PER_MIN = 4;   // batch_trainer chỉnh qua --gap-ms/--rpm
+const _miG = process.argv.indexOf('--gap-ms'); if (_miG > 0) MIN_GAP_MS = Math.max(5000, +process.argv[_miG + 1] || MIN_GAP_MS);
+const _miR = process.argv.indexOf('--rpm'); if (_miR > 0) MAX_PER_MIN = Math.max(1, +process.argv[_miR + 1] || MAX_PER_MIN);
+function gate() {
+  return new Promise(res => {
+    let lastLog = 0;
+    const tick = () => {
+      const now = Date.now();
+      let g = { last: 0, recent: [] };
+      try { g = JSON.parse(fs.readFileSync(GATE_FILE, 'utf8')); } catch (e) {}
+      g.recent = (g.recent || []).filter(ts => now - ts < 60000);
+      let backoff = Math.max(0, (g.penalty_until || 0) - now);            // 429 gần nhất buộc cả hệ chờ
+      const waitGap = Math.max(0, MIN_GAP_MS - (now - (g.last || 0)));
+      const waitQuota = g.recent.length >= MAX_PER_MIN ? Math.max(0, 61000 - (now - g.recent[0])) : 0;
+      const wait = Math.max(backoff, waitGap, waitQuota);
+      if (wait > 1200) {
+        if (now - lastLog > 15000) { lastLog = now; console.log(`(gate: chờ ${(wait / 1000) | 0}s — nhịp ≤${MAX_PER_MIN} call/phút)`); }
+        return setTimeout(tick, Math.min(5000, wait));
+      }
+      g.last = now; g.recent.push(now);
+      try { fs.writeFileSync(GATE_FILE, JSON.stringify(g)); } catch (e) {}
+      res();
+    };
+    tick();
+  });
+}
+function penalizeRetryAfter(waitS) {
+  try {
+    const g = JSON.parse(fs.readFileSync(GATE_FILE, 'utf8'));
+    g.penalty_until = Math.max(g.penalty_until || 0, Date.now() + waitS * 1000);
+    fs.writeFileSync(GATE_FILE, JSON.stringify(g));
+  } catch (e) {}
+}
+
+function agyJson(prompt, { schema, images = [], model = MODEL, timeoutMs = 780000 } = {}) {
+  return gate().then(() => new Promise((resolve) => {
     const schemaFile = path.join(__dirname, '_sl_schema.json');
     fs.writeFileSync(schemaFile, JSON.stringify(schema));
     let p = prompt;
@@ -86,10 +124,16 @@ function agyJson(prompt, { schema, images = [], model = SONNET, timeoutMs = 7800
       // KHÔNG fallback thô: envelope {conversation_id,response} không phải data
       const blob = (err || out || 'exit ' + code);
       if (/quota reached/i.test(blob)) return resolve({ success: false, quota: true, error: blob.slice(-200) });
+      if (/too many requests|rate.?limit|RESOURCE_EXHAUSTED|\b429\b/i.test(blob)) {
+        const w = blob.match(/try again in\s+(\d+(?:\.\d+)?)(ms|s)econds?/i) || blob.match(/[Rr]etry-[Aa]fter:\s*(\d+)/);
+        const waitS = w ? (String(w[2] || 's').toLowerCase() === 'ms' ? Math.max(5, Math.round(+w[1] / 1000)) : Math.max(30, +w[1])) : 90;
+        penalizeRetryAfter(Math.min(600, waitS));
+        return resolve({ success: false, ratelimit: true, wait_s: waitS, error: blob.slice(-200) });
+      }
       resolve({ success: false, error: 'không parse được structured output: ' + blob.slice(-250) });
     });
     child.on('error', e => { clearTimeout(to); resolve({ success: false, error: e.message }); });
-  });
+  }));
 }
 
 /* ── video → chữ + ảnh ─────────────────────────────────────────────── */
@@ -287,6 +331,7 @@ async function learnSource(state, src) {
   const l1 = await loop1Concepts(src.slug, srcText, images);
   if (!l1.success) {
     if (l1.quota) { src.status = 'quota_wait'; src.attempts = (src.attempts || 1) - 1; log(state, `⏸ quota Sonnet hết — ${src.url} chờ reset (không đếm lỗi)`); saveState(state); return; }
+    if (l1.ratelimit) { src.status = 'pending'; src.attempts = (src.attempts || 1) - 1; log(state, `⏳ 429 — chờ ${(l1.wait_s||90)}s (gate toàn cục)`); saveState(state); return { ratelimit: true }; }
     src.status = 'failed'; src.error = 'v1:' + l1.error; log(state, `✗ vòng 1 lỗi: ${l1.error}`); saveState(state); return;
   }
   log(state, `v1: +${l1.added} khái niệm, ${l1.merged} gộp đồng nghĩa, ${l1.skipped} bỏ qua (${l1.coverage})`);
