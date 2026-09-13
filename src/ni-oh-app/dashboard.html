@@ -209,6 +209,21 @@ select:focus, input:focus, textarea:focus { outline:none; border-color: var(--ac
 select { cursor:pointer; appearance:none; background-image: linear-gradient(45deg,transparent 50%,var(--text-muted) 50%),linear-gradient(135deg,var(--text-muted) 50%,transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size:5px 5px; background-repeat:no-repeat; padding-right:32px; }
 input[type="range"] { width:100%; accent-color: var(--accent); }
 ::placeholder { color: #6a6b6c; }
+
+/* ComboBox model: ô nhập tự do + nút ▾ mở danh sách — hình dạng giống hệt select cũ */
+.modelcombo { position:relative; }
+.modelcombo > input { width:100%; padding:var(--sp-2) 30px var(--sp-2) var(--sp-3); background:rgba(7,8,10,.6); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); font-size:var(--fs-md); font-family:var(--font); transition:border-color .18s, box-shadow .18s, background .18s; }
+.modelcombo > input:hover { border-color:var(--border-strong); }
+.modelcombo > input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); background:rgba(7,8,10,.85); }
+.mc-arrow { position:absolute; right:4px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:6px 5px; font-size:12px; line-height:1; border-radius:6px; }
+.mc-arrow:hover { color:var(--text); background:var(--accent-soft); }
+.mc-list { position:absolute; z-index:80; left:0; right:0; top:calc(100% + 4px); max-height:280px; overflow:auto; background:#0b0c0e; border:1px solid var(--border-strong); border-radius:var(--radius-sm); box-shadow:0 12px 32px rgba(0,0,0,.55); box-shadow:0 12px 32px rgba(0,0,0,.55); padding:4px; }
+.mc-item { display:flex; gap:8px; align-items:baseline; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:13px; font-size:13px; }
+.mc-item:hover { background:var(--accent-soft); }
+.mc-item.sel { background:rgba(126,255,180,.10); }
+.mc-item .mc-id { color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:55%; max-width:55%; flex:0 1 auto; }
+.mc-item .mc-lb { color:var(--text-muted); font-size:11px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; white-space:nowrap; }
+.mc-empty { padding:8px; font-size:12px; color:var(--text-muted); font-size:12px; }
 .row { display:flex; flex-wrap:wrap; gap: var(--sp-3); align-items:flex-end; }
 .row > * { flex: 1 1 140px; }
 .row > .shrink, .row > .icon-btn { flex: 0 0 auto; }
@@ -407,7 +422,13 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
         <div class="field" style="margin:0">
           <label for="setting-model-name">Model</label>
           <div class="row" style="gap:4px;margin:0">
-            <select id="setting-model-name" style="flex:1"></select>
+            <div class="modelcombo" style="flex:1;min-width:150px">
+              <input id="setting-model-name" type="text" class="input" placeholder="vd: gemini, llama, free…" autocomplete="off" spellcheck="false"
+                oninput="mcFilter('chat')" onblur="mcCloseSoon('chat')" onkeydown="mcKeys(event,'chat')">
+              <button type="button" class="mc-arrow" title="Hiện danh sách model" tabindex="-1"
+                onmousedown="event.preventDefault();mcToggle('chat')">▾</button>
+              <div class="mc-list" id="mc-chat" hidden></div>
+            </div>
             <button class="btn icon-btn" onclick="loadModels()" data-tip="Nạp lại danh sách model của nhà cung cấp này" aria-label="Nạp lại danh sách model">↻</button>
           </div>
         </div>
@@ -435,7 +456,13 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
         <div class="field" style="margin:0">
           <label for="setting-train-model">Model</label>
           <div class="row" style="gap:4px;margin:0">
-            <select id="setting-train-model" style="flex:1"></select>
+            <div class="modelcombo" style="flex:1;min-width:150px">
+              <input id="setting-train-model" type="text" class="input" placeholder="vd: gemini, deepseek…" autocomplete="off" spellcheck="false"
+                oninput="mcFilter('train')" onblur="mcCloseSoon('train')" onkeydown="mcKeys(event,'train')">
+              <button type="button" class="mc-arrow" title="Hiện danh sách model" tabindex="-1"
+                onmousedown="event.preventDefault();mcToggle('train')">▾</button>
+              <div class="mc-list" id="mc-train" hidden></div>
+            </div>
             <button class="btn icon-btn" onclick="loadTrainModels()" data-tip="Nạp lại danh sách model của nhà cung cấp này" aria-label="Nạp lại danh sách model">↻</button>
           </div>
         </div>
@@ -905,15 +932,48 @@ async function loadModels() {
       if (!models.length) models = [{ id:'upstage/solar-pro4:free', label:'(không tải được danh sách OpenRouter)' }];
     } else if (provider === 'gemini') {
       models = await window.niOhAPI.getGeminiModels();
-      if (!models.length) models = [{ id:'gemini-2.5-flash', label:'(cần Gemini API key để lấy danh sách)' }];
+      if (!models.length) models = GEMINI_STATIC.map(m => ({ id: m, label: m + ' (cần key để gọi)' }));
     }
-    selectEl.innerHTML = models.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
-    if (mainConfig?.modelName && models.some(m => m.id === mainConfig.modelName)) {
-      selectEl.value = mainConfig.modelName;
-    }
+    selectEl.placeholder = 'vd: gemini, llama, free…';
+    mcSetModels('chat', models);
+    selectEl.value = mainConfig?.modelName || (models[0] ? models[0].id : '');
   } catch (e) {
-    selectEl.innerHTML = `<option value="">Không tải được danh sách model</option>`;
+    selectEl.placeholder = 'Không tải được danh sách model — bấm ↻ thử lại';
   }
+}
+
+// ── ComboBox model: gõ tự do để tìm theo từ khóa, bấm ▾ để xem toàn bộ danh sách ──
+const _mcModels = { chat: [], train: [] };
+const _mcOpen = { chat: false, train: false };
+function mcInput(k) { return document.getElementById(k === 'chat' ? 'setting-model-name' : 'setting-train-model'); }
+function mcSetModels(k, models) {
+  _mcModels[k] = models || [];
+  if (_mcOpen[k]) mcRender(k);
+}
+function mcRender(k, qRaw) {
+  const list = document.getElementById('mc-' + k); if (!list) return;
+  const inp = mcInput(k);
+  const q = (qRaw === undefined ? inp.value : qRaw).trim().toLowerCase();
+  let arr = _mcModels[k];
+  if (q) arr = arr.filter(m => ((m.id || '') + ' ' + (m.label || '')).toLowerCase().includes(q));
+  const cur = inp.value;
+  list.innerHTML = arr.length
+    ? arr.slice(0, 160).map(m => `<div class="mc-item${m.id === cur ? ' sel' : ''}" data-mc="${String(m.id).replace(/"/g, '&quot;')}"><span class="mc-id">${m.id}</span><span class="mc-lb">${m.label && m.label !== m.id ? m.label : ''}</span></div>`).join('') +
+      (arr.length > 160 ? `<div class="mc-empty">… còn ${arr.length - 160} model nữa — gõ thêm từ khóa</div>` : '')
+    : `<div class="mc-empty">${q ? 'Không có model khớp “' + q + '” — nhập tên khác hoặc bấm ↻ nạp lại.' : 'Danh sách trống — bấm ↻ nạp lại.'}</div>`;
+  list.querySelectorAll('.mc-item').forEach(el => {
+    el.onmousedown = (e) => { e.preventDefault(); inp.value = el.dataset.mc; mcClose(k); };
+  });
+}
+function mcOpen(k, all) { _mcOpen[k] = true; const list = document.getElementById('mc-' + k); list.hidden = false; mcRender(k, all ? '' : undefined); }
+function mcClose(k) { _mcOpen[k] = false; const list = document.getElementById('mc-' + k); if (list) list.hidden = true; }
+function mcCloseSoon(k) { setTimeout(() => mcClose(k), 150); }
+function mcToggle(k) { mcOpen(k, true); }  // bấm ▾ lúc nào cũng xổ TOÀN BỘ danh sách
+function mcFilter(k) { if (_mcOpen[k]) mcRender(k); else mcOpen(k); }
+function mcKeys(ev, k) {
+  if (ev.key === 'Escape') { mcClose(k); }
+  else if (ev.key === 'Enter') { mcClose(k); }
+  else if (ev.key === 'ArrowDown' && !_mcOpen[k]) { ev.preventDefault(); mcOpen(k); }
 }
 
 function onProviderChange() {
@@ -924,8 +984,8 @@ function onProviderChange() {
   const hint = document.getElementById('model-hint');
   if (provider === 'antigravity') hint.textContent = 'Antigravity CLI — tích hợp sẵn trong dự án, không cần khóa API.';
   else if (provider === 'ollama') hint.textContent = 'Ollama cục bộ — ollama serve phải đang chạy. Danh sách tuyển chọn + tải model bên dưới.';
-  else if (provider === 'openrouter') hint.textContent = 'Yêu cầu khóa API OpenRouter.';
-  else if (provider === 'gemini') hint.textContent = 'Yêu cầu khóa API Google Gemini.';
+  else if (provider === 'openrouter') hint.textContent = 'Danh sách ĐẦY ĐỦ model từ OpenRouter (Free xếp trước) — gõ từ khóa vào ô Model để lọc, khi hỏi mới cần key.';
+  else if (provider === 'gemini') hint.textContent = 'Google KHÔNG cho xem danh sách model khi thiếu credential (khác OpenRouter) — nạp key vào ô API key, bấm ↻ để lấy danh sách thật theo key của Sếp.';
   loadModels();
 }
 
@@ -1111,12 +1171,13 @@ async function loadTrainModels() {
       }
     } else if (provider === 'gemini') {
       models = await window.niOhAPI.getGeminiModels();
-      if (!models.length) models = [{ id:'gemini-2.5-flash', label:'(cần Gemini API key để lấy danh sách)' }];
+      if (!models.length) models = GEMINI_STATIC.map(m => ({ id: m, label: m + ' (cần key để gọi)' }));
     }
-    selectEl.innerHTML = models.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
-    if (mainConfig?.trainModel && models.some(m => m.id === mainConfig.trainModel)) selectEl.value = mainConfig.trainModel;
+    selectEl.placeholder = 'vd: gemini, deepseek…';
+    mcSetModels('train', models);
+    selectEl.value = mainConfig?.trainModel || (models[0] ? models[0].id : '');
   } catch (e) {
-    selectEl.innerHTML = `<option value="">Không tải được danh sách model</option>`;
+    selectEl.placeholder = 'Không tải được danh sách model — bấm ↻ thử lại';
   }
 }
 
