@@ -889,6 +889,68 @@ ipcMain.handle('get-agy-models', () => new Promise((resolve) => {
 
 // Ollama models
 // ── Ollama: catalog chọn lọc + tải nền có tiến độ ──
+// ── Service account Google (config/secrets/google_oauth.json): mint access token ──
+// File key của Sếp hỏng 1 ký tự base64 (dòng 18) → repair trong bộ nhớ: cắt ký tự thừa,
+// dựng lại DER đúng độ dài ASN.1 (đã chứng minh mint OK bằng _probe.js; 403 = project
+// chưa bật Generative Language API, báo thẳng cho Sếp).
+let _saTok = null, _saTokAt = 0;
+function saPemFix() {
+  try {
+    const f = path.join(NIOH_ROOT, 'config', 'secrets', 'google_oauth.json');
+    if (!fs.existsSync(f)) return null;
+    const sa = JSON.parse(fs.readFileSync(f, 'utf8'));
+    if (!sa.private_key || !sa.client_email) return null;
+    const crypto = require('crypto');
+    const body = String(sa.private_key).split(/\r?\n/).filter(l => l.trim() && !/^-+/.test(l.trim())).join('').trim();
+    if (body.length % 4 === 1) {           // hỏng đã biết: dư 1 ký tự
+      const core = body.replace(/=+$/, '');
+      for (let i = 0; i < core.length; i++) {
+        const cand = core.slice(0, i) + core.slice(i + 1);
+        let der; try { der = Buffer.from(cand + '=', 'base64'); } catch (e) { continue; }
+        if (der.length < 4) continue;
+        const asn = der.readUInt16BE(2) + 4;              // độ dài DER thật theo ASN.1 (bỏ byte đệm)
+        if (asn > der.length) continue;
+        der = der.slice(0, asn);
+        try {
+          const pem = '-----BEGIN PRIVATE KEY-----\n' + der.toString('base64').replace(/(.{64})/g, '$1\n') + '\n-----END PRIVATE KEY-----\n';
+          crypto.createPrivateKey({ key: pem, format: 'pem', type: 'pkcs8' });
+          return { sa, pem };
+        } catch (e) {}
+      }
+      return null;
+    }
+    return { sa, pem: '-----BEGIN PRIVATE KEY-----\n' + Buffer.from(body.replace(/=+$/, ''), 'base64').toString('base64').replace(/(.{64})/g, '$1\n') + '\n-----END PRIVATE KEY-----\n' };
+  } catch (e) { return null; }
+}
+function googleAccessToken() {   // Promise<string|null> — 55 phút cache
+  if (_saTok && Date.now() - _saTokAt < 3300000) return Promise.resolve(_saTok);
+  const fixed = saPemFix();
+  if (!fixed) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    const { sa, pem } = fixed;
+    const https2 = require('https');
+    const crypto = require('crypto');
+    const now = Math.floor(Date.now() / 1000);
+    const b64u = s => Buffer.from(s).toString('base64url');
+    const hdr = b64u(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+    const claim = b64u(JSON.stringify({ iss: sa.client_email, scope: 'https://www.googleapis.com/auth/cloud-platform', aud: sa.token_uri, exp: now + 3600, iat: now }));
+    let jwt;
+    try { jwt = hdr + '.' + claim + '.' + crypto.createSign('RSA-SHA256').update(hdr + '.' + claim).sign({ key: pem, format: 'pem', padding: crypto.constants.RSA_PKCS1_PADDING }).toString('base64url'); }
+    catch (e) { return resolve(null); }
+    const data = 'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=' + jwt;
+    const u = new URL(sa.token_uri);
+    const req = https2.request({ host: u.hostname, path: u.pathname, method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(data) }, timeout: 15000 }, res => {
+      let b = ''; res.on('data', c => b += c);
+      res.on('end', () => {
+        try { const j = JSON.parse(b); if (j.access_token) { _saTok = j.access_token; _saTokAt = Date.now(); resolve(_saTok); } else resolve(null); }
+        catch (e) { resolve(null); }
+      });
+    });
+    req.on('error', () => resolve(null)); req.on('timeout', () => { req.destroy(); resolve(null); });
+    req.end(data);
+  });
+}
+
 // ── Danh sách model THẬT từ API provider (cache 10 phút) ──
 const _modelCache = {};
 function cachedFetch(key, url, headers, parse, ttl) {
@@ -920,20 +982,25 @@ ipcMain.handle('get-openrouter-models', async () => {
         label: (m.name || m.id) + ' · ' + (((m.context_length || 0) / 1000) | 0) + 'K' + (/:free$/.test(m.id) ? ' · Free' : ''),
         free: /:free$/.test(m.id) || (m.pricing && m.pricing.prompt === '0')
       }))
-      .sort((a, b2) => (b2.free ? 1 : 0) - (a.free ? 1 : 0) || a.label.localeCompare(b2.label))
-      .slice(0, 60);
+      .sort((a, b2) => (b2.free ? 1 : 0) - (a.free ? 1 : 0) || a.label.localeCompare(b2.label));
   });
 });
 ipcMain.handle('get-gemini-models', async () => {
   const key = mainConfig.apiKey || process.env.GEMINI_API_KEY || '';
-  if (!key) return [];
-  return cachedFetch('gem:' + key.slice(-6), 'https://generativelanguage.googleapis.com/v1beta/models?key=' + encodeURIComponent(key) + '&pageSize=200', {}, b => {
-    const j = JSON.parse(b);
-    return (j.models || [])
-      .filter(m => (m.supportedGenerationMethods || []).includes('generateContent') && !/embedding|imagen|tts|voice|live|music/i.test(m.name))
-      .map(m => ({ id: m.name.replace(/^models\//, ''), label: (m.displayName || m.name.replace(/^models\//, '')) }));
-  });
+  if (key) return geminiList('key:' + key.slice(-6), 'https://generativelanguage.googleapis.com/v1beta/models?key=' + encodeURIComponent(key) + '&pageSize=200', {}, gemParse);
+  const tok = await googleAccessToken();
+  if (!tok) return [];
+  return geminiList('satok', 'https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { Authorization: 'Bearer ' + tok });
 });
+function gemParse(b) {
+  const j = JSON.parse(b);
+  return (j.models || [])
+    .filter(m => (m.supportedGenerationMethods || []).includes('generateContent') && !/embedding|imagen|tts|voice|live|music/i.test(m.name))
+    .map(m => ({ id: m.name.replace(/^models\//, ''), label: (m.displayName || m.name.replace(/^models\//, '')) }));
+}
+function geminiList(cacheKey, url, headers) {
+  return cachedFetch(cacheKey, url, headers || {}, gemParse);
+}
 
 function ollamaTags() {   // 1 Promise, dùng chung — cùng code handler get-ollama-models đã chạy ổn
   return new Promise((resolve) => {
