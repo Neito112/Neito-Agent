@@ -829,8 +829,9 @@ async function loadOverview() {
   try {
     const vs = await window.niOhAPI.getVisionStatus();
     const st = vs.stats || {};
+    const sp = vs.split || {};
     const kbEl = document.getElementById('ov-kb');
-    if (kbEl) kbEl.textContent = `KB: ${vs.topics?.length || 0} chủ đề · ${vs.totalEntries || 0} kiến thức vĩnh viễn · ${vs.rules?.length || 0} trigger · đã tiết kiệm ${st.kb_hits || 0} request (~${st.saved_tokens_est || 0} token)`;
+    if (kbEl) kbEl.textContent = `KB: ${vs.topics?.length || 0} chủ đề · 📚 ${sp.base_concepts || 0} khái niệm nền tảng · 🧬 ${sp.user_concepts || 0} đúc kết theo Sếp · 🎯 ${(sp.base_situations || 0) + (sp.user_situations || 0)} tình huống (${(sp.base_answered || 0) + (sp.user_answered || 0)} có câu sẵn) · ${(vs.totalEntries || 0) > 0 ? vs.totalEntries + ' entry cũ · ' : ''}đã tiết kiệm ${st.kb_hits || 0} request (~${st.saved_tokens_est || 0} token)`;
     const eyeEl = document.getElementById('ov-eye');
     if (eyeEl) {
       const f = vs.lastFrame;
@@ -995,13 +996,13 @@ async function loadTopics() {
         : t.concept_state === 'loading_concepts'
         ? `<span class="chip" style="font-size:10px;padding:1px 7px"><span class="dot"></span> 📥 đang nạp ${t.concepts} khái niệm…${userTag}</span>`
         : `<span class="chip" style="font-size:10px;padding:1px 7px"><span class="dot"></span> chưa nạp khái niệm${userTag}</span>`;
-      return `<div class="card" style="margin:0; padding:10px 12px; cursor:pointer" data-tip="Mở xem chi tiết ${t.entries} kiến thức đã train — xóa/từng cái, thêm mới, hoặc train lại" onclick="openTopicModal('${t.slug}','${name.replace(/'/g, '')}')">
+      return `<div class="card" style="margin:0; padding:10px 12px; cursor:pointer" data-tip="Mở xem chi tiết khái niệm + tình huống đã train — từng cái, tự gắn câu trả lời, hoặc train lại" onclick="openTopicModal('${t.slug}','${name.replace(/'/g, '')}')">
         <strong style="font-size:13px">🧠 ${name}</strong>
-        <p class="desc" style="margin-top:2px">${t.entries} kiến thức · mắt theo: ${(t.yolo_watch||[]).slice(0,3).join(', ')||'—'}</p>
+        <p class="desc" style="margin-top:2px">${t.concepts || 0} khái niệm · ${t.situations || 0} tình huống${t.entries ? ' · ' + t.entries + ' entry cũ' : ''} · mắt theo: ${(t.yolo_watch||[]).slice(0,3).join(', ')||'—'}</p>
         <div style="margin-top:4px">${stChip}</div>
         <div class="row" style="margin-top:6px;gap:6px">
           <button class="btn btn-sm" data-tip="agy tra cứu web lại chủ đề này" onclick="event.stopPropagation();retrainTopic('${name}')">🔁 Train lại</button>
-          ${t.concept_state !== 'activated' ? `<button class="btn btn-sm btn-primary" data-tip="Sonnet phân loại khái niệm hình ảnh rồi gắn tình huống thực tế" onclick="event.stopPropagation();buildConcepts('${t.slug}')">🧩 Nạp khái niệm</button>` : ''}
+          ${t.concept_state !== 'activated' ? `<button class="btn btn-sm btn-primary" data-tip="Gemini 3.1 Pro phân loại khái niệm hình ảnh rồi gắn tình huống thực tế" onclick="event.stopPropagation();buildConcepts('${t.slug}')">🧩 Nạp khái niệm</button>` : ''}
         </div>
       </div>`;
     });
@@ -1045,7 +1046,7 @@ async function learnerOnce() {
 }
 
 async function buildConcepts(slug) {
-  toast('Đang phân loại khái niệm hình ảnh (Sonnet)...');
+  toast('Đang phân loại khái niệm hình ảnh (Gemini 3.1 Pro)...');
   const r1 = await window.niOhAPI.conceptsRun(slug, 'describe');
   if (!r1.success) { toast('❌ Khái niệm: ' + (r1.error || 'lỗi')); return; }
   toast(`✓ ${r1.total} khái niệm — đang gắn tình huống thực tế...`);
@@ -1251,41 +1252,99 @@ async function setProactive(on) {
 
 // ─── Modal chi tiết topic ───
 let _tmSlug = null;
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 async function openTopicModal(slug, name) {
   _tmSlug = slug;
   const r = await window.niOhAPI.getTopicDetail(slug);
   const modal = document.getElementById('topic-modal');
   const body = document.getElementById('tm-body');
   document.getElementById('tm-title').textContent = '📚 ' + (name || slug);
+  window._tmData = null;
   if (!r.success) { body.innerHTML = '<p class="desc">Lỗi: ' + r.error + '</p>'; }
   else {
-    const es = (r.data.entries || []);
-    body.innerHTML = `<p class="desc">${es.length} kiến thức</p>` + es.map(e => `
-      <div style="border:1px solid var(--border);border-radius:8px;padding:10px">
+    const d = r.data || {};
+    window._tmData = d;
+    const cs = (d.concepts || []), ss = (d.situations || []);
+    const baseC = cs.filter(c => c.tier !== 'user').length, userC = cs.length - baseC;
+    const ansS = ss.filter(s => s.answer).length;
+    const tierChip = (t) => t === 'user'
+      ? '<span style="font-size:10px;padding:0 6px;border-radius:6px;background:rgba(160,120,255,.16);color:#c9a6ff">🧬 đúc kết</span>'
+      : '<span style="font-size:10px;padding:0 6px;border-radius:6px;background:rgba(90,170,255,.14);color:#7ab8ff">📚 nền tảng</span>';
+    let html = `<p class="desc" style="margin:0 0 2px"><strong>${cs.length}</strong> khái niệm (📚 ${baseC} · 🧬 ${userC}) · <strong>${ss.length}</strong> tình huống (<strong style="color:#7ddc9b">${ansS}</strong> đã có câu bắn tức thì, ${ss.length - ansS} chờ lời giải)</p>`;
+    html += `<div class="row" style="gap:6px;margin:6px 0"><button class="btn btn-sm" onclick="tmTab(event,'tm-c')">🧩 Khái niệm (${cs.length})</button><button class="btn btn-sm" onclick="tmTab(event,'tm-s')">🎯 Tình huống (${ss.length})</button>${ss.length - ansS > 0 ? `<button class="btn btn-sm btn-primary" onclick="tmTab(event,'tm-s');setTimeout(()=>document.querySelector('#tm-s .tm-noans')?.scrollIntoView({behavior:'smooth'}),50)">⚠ ${ss.length - ansS} chưa có câu</button>` : ''}</div>`;
+    // ── Khái niệm ──
+    html += `<div id="tm-c" class="tm-pane">` + (cs.length ? cs.map((c, i) => `
+      <div style="border:1px solid var(--border);border-radius:8px;padding:9px 10px">
         <div style="display:flex;justify-content:space-between;gap:8px;align-items:start">
-          <strong style="font-size:13px">${e.cue}</strong>
-          <button class="btn btn-sm btn-danger" style="padding:2px 8px;font-size:11px" data-tip="Xóa mục này" onclick="delEntry('${slug.replace(/'/g,'') }','${String(e.cue).replace(/'/g, "\\'").replace(/"/g, '')}')">✕</button>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-width:0"><strong style="font-size:12.5px">${esc(c.name)}</strong>${tierChip(c.tier)}${(c.aliases||[]).length?`<span style="font-size:10.5px;color:var(--text-muted)">≈ ${esc(c.aliases.slice(0,3).join(', '))}</span>`:''}</div>
+          <button class="btn btn-sm btn-danger" style="padding:1px 7px;font-size:11px" title="Xóa khái niệm" onclick="delConcept(${i})">✕</button>
         </div>
-        <p style="font-size:12px;color:var(--text-muted);margin-top:4px">${String(e.fact||'').slice(0,220)}</p>
-        ${e.answer ? `<p style="font-size:12px;margin-top:4px">💬 ${String(e.answer).slice(0,160)}</p>` : ''}
-        ${(e.text_hints||[]).length ? `<p style="font-size:11px;color:var(--text-muted);margin-top:2px">👁 chữ: ${(e.text_hints||[]).slice(0,4).join(' · ')}</p>` : ''}
-      </div>`).join('');
+        ${(c.ocrPhrases||[]).length ? `<p style="font-size:11px;color:var(--text-muted);margin:4px 0 0">👁 chữ nhận diện: ${esc((c.ocrPhrases||[]).slice(0,4).join(' · '))}</p>` : ''}
+        ${(c.yoloClasses||[]).length ? `<p style="font-size:11px;color:var(--text-muted);margin:2px 0 0">🎯 YOLO: ${esc((c.yoloClasses||[]).slice(0,4).join(', '))}</p>` : ''}
+        ${c.source ? `<p style="font-size:10px;color:var(--text-muted);margin:3px 0 0;word-break:break-all">nguồn: ${esc(String(c.source).slice(0,90))}</p>` : ''}
+      </div>`).join('') : '<p class="desc">Chưa có khái niệm — bấm "🧩 Nạp khái niệm" ở card để train.</p>') + `
+      <div style="border:1px dashed var(--border);border-radius:8px;padding:8px;margin-top:4px">
+        <p class="desc" style="margin:0 0 6px">＋ Thêm khái niệm thủ công (Ni-Oh sẽ dùng làm đúc kết 🧬)</p>
+        <input id="nc-name" class="input" style="margin-bottom:5px" placeholder="Tên khái niệm — vd: 'Bảng Layer Properties'">
+        <input id="nc-ocr" class="input" placeholder="Chữ trên màn hình, cách nhau dấu phẩy — vd: 'Layer Properties, Layer On'">
+        <button class="btn btn-sm btn-primary" style="margin-top:6px" onclick="addConcept('${esc(slug)}')">Lưu khái niệm</button>
+      </div>` + '</div>';
+    // ── Tình huống ──
+    html += `<div id="tm-s" class="tm-pane" style="display:none">` + (ss.length ? ss.map((s, i) => {
+      const hasA = !!(s.answer || '').trim();
+      return `
+      <div class="${hasA ? '' : 'tm-noans'}" style="border:1px solid ${hasA ? 'var(--border)' : 'rgba(255,170,60,.45)'};border-radius:8px;padding:9px 10px">
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:start">
+          <strong style="font-size:12.5px">${esc(s.situation || s.id)}</strong>${tierChip(s.tier)}
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);margin:4px 0 0">🧩 đồng hiện: ${esc((s.concepts_required||[]).slice(0,4).join(', '))}${s.min_count?` · cần ≥${s.min_count}`:''}${s.window?` · ⌂ ${esc(String(s.window).slice(0,40))}`:''}</p>
+        ${hasA ? `<p style="font-size:12px;margin:5px 0 0;color:#7ddc9b">💬 ${esc(String(s.answer).slice(0,180))}${s.answer_source?` <span style="font-size:10px;color:var(--text-muted)">(${esc(String(s.answer_source).replace(/^learned:/,'').slice(0,46))})</span>`:''}</p>` : '<p style="font-size:11.5px;margin:5px 0 0;color:#ffb84c">⚠ Chưa có lời giải — hàng đợi marathon đang tra nguồn khác, hoặc Sếp tự điền:</p>'}
+        <div class="row" style="gap:6px;margin-top:6px">
+          <input id="an-${esc(s.id)}" class="input" style="flex:1;min-width:0" placeholder="${hasA ? 'Sửa câu nói mẫu…' : 'Điền câu Ni-Oh nên nói…'}" value="${esc(s.answer || '')}">
+          <button class="btn btn-sm btn-primary" style="white-space:nowrap" onclick="setAnswer('${esc(slug)}','${esc(s.id)}')">💾 Lưu</button>
+          <button class="btn btn-sm btn-danger" style="padding:2px 8px" title="Xóa tình huống" onclick="delSituation(${i})">✕</button>
+        </div>
+      </div>`; }).join('') : '<p class="desc">Chưa có tình huống — nguồn chưa dạy, hoặc chờ vòng 2 marathon.</p>') + '</div>';
+    body.innerHTML = html;
   }
   document.getElementById('tm-retrain').onclick = () => { closeTopicModal(); document.getElementById('train-topic-input').value = name || slug; trainTopic(); };
   document.getElementById('tm-delete').onclick = async () => {
     if (!confirm('Xóa toàn bộ "' + (_tmSlug) + '"? Không khôi phục được nếu chưa commit.')) return;
     await window.niOhAPI.deleteTopic(_tmSlug); closeTopicModal(); loadTopics(); loadLearner && loadLearner(); toast('Đã xóa chủ đề');
   };
-  document.getElementById('tm-add').onclick = async () => {
-    const cue = prompt('Tên kiến thức (cue) — VD: "nhựa nguyên bản":');
-    if (!cue) return;
-    const fact = prompt('Nội dung kiến thức (fact):');
-    if (!fact) return;
-    const answer = prompt('Câu nói mẫu khi cần (answer) — để trống cũng được:') || '';
-    await window.niOhAPI.addEntry(_tmSlug, { cue, fact, answer, source: 'user-added' });
-    toast('Đã thêm entry'); openTopicModal(_tmSlug);
-  };
+  document.getElementById('tm-add').onclick = () => tmTab(null, 'tm-c');
   modal.style.display = 'flex';
+}
+function tmTab(ev, id) {
+  document.querySelectorAll('.tm-pane').forEach(p => p.style.display = 'none');
+  const el = document.getElementById(id);
+  if (el) { el.style.display = 'flex'; el.style.flexDirection = 'column'; el.style.gap = '8px'; }
+}
+async function setAnswer(slug, id) {
+  const v = (document.getElementById('an-' + id) || {}).value || '';
+  if (!v.trim()) return toast('Nhập câu trước đã');
+  const r = await window.niOhAPI.situationSetAnswer(slug, id, v.trim(), 'manual');
+  toast(r && r.success ? '✓ Đã gắn câu — bắn tức thì khi mắt thấy đủ tín hiệu' : '❌ ' + ((r && r.error) || 'lỗi'));
+  if (r && r.success) openTopicModal(slug);
+}
+async function addConcept(slug) {
+  const name = (document.getElementById('nc-name') || {}).value || '';
+  const ocr = ((document.getElementById('nc-ocr') || {}).value || '').split(',').map(s => s.trim()).filter(s => s.length >= 4);
+  if (!name.trim()) return toast('Nhập tên khái niệm');
+  await window.niOhAPI.addConcept(slug, { name: name.trim(), ocrPhrases: ocr.slice(0, 4) });
+  toast('Đã thêm khái niệm 🧬'); openTopicModal(slug); loadTopics();
+}
+async function delConcept(i) {
+  const c = (window._tmData && window._tmData.concepts || [])[i]; if (!c) return;
+  const r = await window.niOhAPI.deleteConcept(_tmSlug, c.name);
+  toast(r && r.success ? 'Đã xóa khái niệm' : '❌ ' + ((r && r.error) || 'lỗi'));
+  openTopicModal(_tmSlug); loadTopics();
+}
+async function delSituation(i) {
+  const s = (window._tmData && window._tmData.situations || [])[i]; if (!s) return;
+  const r = await window.niOhAPI.deleteSituation(_tmSlug, s.id);
+  toast(r && r.success ? 'Đã xóa tình huống' : '❌ ' + ((r && r.error) || 'lỗi'));
+  openTopicModal(_tmSlug); loadTopics();
 }
 function closeTopicModal() { document.getElementById('topic-modal').style.display = 'none'; }
 async function delEntry(slug, cue) {

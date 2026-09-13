@@ -5,6 +5,14 @@ const https = require('https');
 const http = require('http');
 const { execSync, spawn } = require('child_process');
 
+// Bẫy lỗi sớm hơn mọi require phía dưới: lỗi khởi động → log console, không hộp thoại chặn
+process.on('uncaughtException', (e) => {
+  console.error('[Nioh] uncaught:', (e && e.stack || e || '').toString().slice(0, 500));
+});
+process.on('unhandledRejection', (e) => {
+  console.error('[Nioh] unhandledRejection:', (e && (e.message || e) || '').toString().slice(0, 500));
+});
+
 // ─── Paths ────────────────────────────────────────────────────────────────
 const APP_DIR = path.join(__dirname);
 const ASSETS_DIR = path.join(APP_DIR, 'assets');
@@ -1208,7 +1216,7 @@ async function idleCondenseRun() {
       'OUTPUT: chỉ in câu rút gọn, không dấu ngoặc, không giải thích.'
     ].join('\n');
     const r = await new Promise((resolve) => {
-      const a = agyArgsX(prompt, 'claude-sonnet-4-6');
+      const a = agyArgsX(prompt, 'gemini-3.1-pro-high');
       const child = spawn(a.exe, a.args, { windowsHide: true });
       const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch(e){} resolve({ success:false }); }, 90000);
       let out = '';
@@ -1521,6 +1529,47 @@ ipcMain.handle('get-topic-detail', (_, slug) => {
     const fp = path.join(VISION_DIR, String(slug).replace(/[^a-z0-9\-]/g, '') + '.json');
     if (!fs.existsSync(fp)) return { success: false, error: 'không có topic' };
     return { success: true, data: JSON.parse(fs.readFileSync(fp, 'utf8')) };
+  } catch (e) { return { success: false, error: e.message }; }
+});
+ipcMain.handle('add-concept', (_, slug, concept) => {
+  try {
+    const clean = String(slug).replace(/[^a-z0-9\-]/g, '');
+    const fp = path.join(VISION_DIR, clean + '.json');
+    const d = fs.existsSync(fp) ? JSON.parse(fs.readFileSync(fp, 'utf8')) : { topic: clean, entries: [], concepts: [], situations: [] };
+    d.concepts = d.concepts || [];
+    const nm = String((concept && concept.name) || '').trim();
+    if (!nm) return { success: false, error: 'thiếu tên' };
+    if (d.concepts.some(c => (c.name || '').toLowerCase() === nm.toLowerCase())) return { success: false, error: 'trùng tên đã có' };
+    d.concepts.push({ name: nm, ocrPhrases: (concept.ocrPhrases || []).slice(0, 4), tier: 'user', origin: 'manual', source: 'user-added' });
+    const c = d.concepts.length, ans = (d.situations || []).filter(x => x.answer).length;
+    d.concept_state = c >= 8 ? (ans ? 'activated' : 'concepts_ready') : 'loading_concepts';
+    situationEngine.classifyTopic(d);
+    fs.writeFileSync(fp, JSON.stringify(d, null, 1), 'utf8');
+    return { success: true };
+  } catch (e) { return { success: false, error: e.message }; }
+});
+ipcMain.handle('delete-concept', (_, slug, name) => {
+  try {
+    const clean = String(slug).replace(/[^a-z0-9\-]/g, '');
+    const fp = path.join(VISION_DIR, clean + '.json');
+    const d = JSON.parse(fs.readFileSync(fp, 'utf8'));
+    d.concepts = (d.concepts || []).filter(c => c.name !== name);
+    situationEngine.classifyTopic(d);
+    fs.writeFileSync(fp, JSON.stringify(d, null, 1), 'utf8');
+    return { success: true };
+  } catch (e) { return { success: false, error: e.message }; }
+});
+ipcMain.handle('delete-situation', (_, slug, id) => {
+  try {
+    const clean = String(slug).replace(/[^a-z0-9\-]/g, '');
+    const fp = path.join(VISION_DIR, clean + '.json');
+    const d = JSON.parse(fs.readFileSync(fp, 'utf8'));
+    d.situations = (d.situations || []).filter(s => s.id !== id);
+    const c = (d.concepts || []).length, ans = (d.situations || []).filter(x => x.answer).length;
+    d.concept_state = c >= 8 ? (ans ? 'activated' : 'concepts_ready') : (c ? 'loading_concepts' : 'empty');
+    situationEngine.classifyTopic(d);
+    fs.writeFileSync(fp, JSON.stringify(d, null, 1), 'utf8');
+    return { success: true };
   } catch (e) { return { success: false, error: e.message }; }
 });
 ipcMain.handle('delete-topic', (_, slug) => {
