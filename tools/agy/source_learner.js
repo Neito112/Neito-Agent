@@ -271,7 +271,10 @@ async function loop2Situations(slug, srcText, images) {
     'NHIỆM VỤ VÒNG 2 — phát hiện TÌNH HUỐNG thực tế người dùng gặp trong nguồn (kịch bản, lỗi, mẹo, pha xử lý) + bộ khái niệm đồng hiện để nhận biết nó:',
     'Mỗi tình huống: concepts (lấy từ kho nếu có, được phép thêm mới), min_count (số khái niệm tối thiểu đồng hiện), window regex nếu đặc trưng, prompt_template (lệnh mẫu gửi não khi suy luận).',
     'SAU ĐÓ TRA NGAY TRONG NGUỒN NÀY cách giải quyết: có → answered_in_source=true + answer ≤20 từ tiếng Việt đúng theo nguồn (không tự bịa ngoài nguồn); KHÔNG có → answered_in_source=false.',
-    'TỐI ĐA HÓA: mọi mục Troubleshooting/FAQ/lỗi thường gặp/kịch bản xử lý trong nguồn ĐỀU phải ra tình huống — mục tiêu ≥6 tình huống mỗi nguồn dài, không đặt trần trên. id không dấu.'
+    'ĐÚC KẾT THẬT — KHÔNG BAO GIỜ ĐỘN SỐ: mỗi tình huống PHẢI là kịch bản/lỗi/tình huống quyết định mà CHÍNH NGUỒN kể ra (mục Troubleshooting, FAQ, "common mistakes", case study, walkthrough xử lý từng bước, pha xử lý trong guide game). CẤM chế tình huống cho đủ chỉ tiêu; CẤM loại chung chung kiểu "làm sao dùng X" nếu nguồn không thật sự trả lời trong bài.',
+    'NGUỒN CHỈ NÊU VẤN ĐỀ mà không có cách xử lý → answered_in_source=false (vào hàng đợi marathon tra nguồn khác) — tuyệt đối không tự sáng tác answer.',
+    'SỐ LƯỢNG THUẬN THEO NGUỒN: trang FAQ 30 mục lỗi → 30 tình huống; bài giới thiệu 3 đoạn → 2-3 tình huống thật là đủ. Đo bằng độ phủ các mục-kịch-bản của nguồn, không đo bằng con số đẹp.',
+    'Mỗi situation phải trỏ được về đúng đoạn nguồn chứa nó; answer (nếu có) là nội dung nguồn tóm gọn ≤20 từ. id không dấu.'
   ].join('\n\n'), { schema: SITUATION_LOOP_SCHEMA, images });
   if (!r.success) return r;
   if (!Array.isArray(r.data.situations)) return { success: false, error: 'v2 output thiếu situations: ' + JSON.stringify(r.data).slice(0, 150) };
