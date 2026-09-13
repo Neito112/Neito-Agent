@@ -1018,15 +1018,124 @@ ipcMain.handle('get-ollama-catalog', async () => {
   const installed = await ollamaTags();
   return ollamaMod.catalog(installed);
 });
+// ── Ollama là thành viên đính kèm của app: thiếu serve thì TỰ BẬT rồi mới tải ──
+const OLLAMA_CAND = [
+  require('path').join(process.env.LOCALAPPDATA || '', 'Programs', 'Ollama', 'ollama.exe'),
+  require('path').join(process.env.LOCALAPPDATA || '', 'Programs', 'Ollama', 'ollama app.exe'),
+  'ollama'
+];
+function findOllamaExe() {
+  const cands = OLLAMA_CAND.slice(0, 2);
+  for (const c of cands) { try { if (c && require('fs').existsSync(c)) return c; } catch (e) {} }
+  try {
+    const out = require('child_process').execSync('where ollama', { stdio: ['ignore', 'pipe', 'ignore'] }).toString();
+    const m = out.split(/\r?\n/).find(l => /\.exe$/i.test(l.trim()));
+    if (m) return m.trim();
+  } catch (e) {}
+  return null;
+}
+let _olInstalling = null;
+function installOllama() {   // Promise<boolean> — tải OllamaSetup.exe chính chủ về cài âm thầm
+  if (_olInstalling) return _olInstalling;
+  const fs = require('fs'), os = require('os');
+  _olInstalling = new Promise(res => {
+    const tmp = require('path').join(os.tmpdir(), 'Ni-Oh');
+    try { fs.mkdirSync(tmp, { recursive: true }); } catch (e) {}
+    const dst = require('path').join(tmp, 'OllamaSetup.exe');
+    const out = fs.createWriteStream(dst);
+    const go = (urlStr, depth) => {
+      const req = https.get(urlStr, r2 => {
+        if (r2.statusCode >= 300 && r2.statusCode < 400 && r2.headers.location && depth < 4) {
+          r2.resume();
+          return go(new URL(r2.headers.location, urlStr).href, depth + 1);
+        }
+        if (r2.statusCode !== 200) { r2.resume(); sendUI('ollama-install', { status: 'error', error: 'HTTP ' + r2.statusCode }); out.close(); return res(false); }
+        const total = parseInt(r2.headers['content-length'] || '0', 10);
+        let got = 0;
+        r2.on('data', c => { got += c.length; sendUI('ollama-install', { status: 'downloading', pct: total ? Math.floor(got / total * 100) : null }); });
+        r2.pipe(out);
+        r2.on('end', () => out.close(() => {
+          sendUI('ollama-install', { status: 'installing' });
+          try {
+            const child = require('child_process').spawn(dst, ['/VERYSILENT', '/NORESTART', '/SUPPRESSMSGBOXES'], { detached: true, stdio: 'ignore' });
+            child.unref();
+            res(true);
+          } catch (e) { sendUI('ollama-install', { status: 'error', error: e.message }); res(false); }
+        }));
+      });
+      req.on('error', e => { sendUI('ollama-install', { status: 'error', error: e.message }); try { out.close(); } catch (e2) {} _olInstalling = null; res(false); });
+      req.setTimeout(60000, () => { req.destroy(); sendUI('ollama-install', { status: 'error', error: 'timeout tải' }); _olInstalling = null; res(false); });
+    };
+    go('https://ollama.com/download/OllamaSetup.exe', 0);
+  });
+  return _olInstalling;
+}
+function ollamaPing() {
+  return new Promise(r => {
+    const rq = http.get({ hostname: '127.0.0.1', port: 11434, path: '/api/tags', timeout: 2500 }, res => { res.resume(); r(true); });
+    rq.on('error', () => r(false)); rq.on('timeout', () => { rq.destroy(); r(false); });
+  });
+}
+async function ensureOllamaUp() {
+  if (await ollamaPing()) return true;
+  const { spawn } = require('child_process');
+  const ex = findOllamaExe();
+  const env = Object.assign({}, process.env, ollamaModelDir() ? { OLLAMA_MODELS: ollamaModelDir() } : {});
+  if (ex) {
+    try { const c = spawn(ex, ['serve'], { detached: true, stdio: 'ignore', windowsHide: true, env }); c.unref(); } catch (e) {}
+    for (let i = 0; i < 15; i++) { await new Promise(r2 => setTimeout(r2, 1200)); if (await ollamaPing()) return true; }
+  }
+  // chưa cài Ollama trên máy → app TỰ TẢI + CÁI đính kèm như đã thiết kế
+  const ok = await installOllama();
+  if (!ok) return false;
+  for (let i = 0; i < 30; i++) { await new Promise(r2 => setTimeout(r2, 2000)); if (await ollamaPing()) return true; }
+  return await ollamaPing();
+}
+function ollamaModelDir() {
+  const v = (process.env.OLLAMA_MODELS || '').trim();
+  if (v) return v;
+  try {   // đọc user env var (setx ghi ở đó, không phải env của process này)
+    const out = require('child_process').execSync('reg query "HKCU\Environment" /v OLLAMA_MODELS', { stdio: ['ignore', 'pipe', 'ignore'] }).toString();
+    const m = out.match(/OLLAMA_MODELS\s+REG_[A-Z_]+\s+(.+)/);
+    if (m) return m[1].trim();
+  } catch (e) {}
+  return '';
+}
+function setOllamaModelDir(dir) {
+  try {
+    require('child_process').execSync('setx OLLAMA_MODELS "' + dir.replace(/"/g, '') + '"', { stdio: 'ignore' });
+    process.env.OLLAMA_MODELS = dir;
+    // bật serve mới ăn env ngay (serve cũ giữ dir cũ cho tới khi reboot)
+    try { require('child_process').execSync('taskkill /f /im ollama.exe /t', { stdio: 'ignore' }); } catch (e) {}
+    return true;
+  } catch (e) { return false; }
+}
+
 const _pullSockets = {};
 function sendUI(channel, payload) {
   try { if (dashboardWindow && !dashboardWindow.isDestroyed()) dashboardWindow.webContents.send(channel, payload); } catch (e) {}
   try { if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send(channel, payload); } catch (e) {}
 }
-ipcMain.handle('ollama-pull', (e, name) => {
+ipcMain.handle('ollama-model-dir', () => {
+  const d = ollamaModelDir() || require('path').join(process.env.USERPROFILE || '', '.ollama', 'models');
+  return { dir: d, custom: !!ollamaModelDir(), exists: require('fs').existsSync(d) };
+});
+ipcMain.handle('ollama-set-model-dir', async (e, dir) => {
+  const { dialog, BrowserWindow: BW } = require('electron');
+  let chosen = String(dir || '');
+  if (!chosen) {
+    const r = await dialog.showOpenDialog(BW.getAllWindows()[0] || dashboardWindow, { title: 'Chọn nơi lưu model Ollama', properties: ['openDirectory', 'createDirectory'] });
+    if (r.canceled || !r.filePaths[0]) return { canceled: true };
+    chosen = r.filePaths[0];
+  }
+  const ok = setOllamaModelDir(chosen);
+  return { dir: chosen, applied: ok };
+});
+ipcMain.handle('ollama-pull', async (e, name) => {
   const model = String(name || '').replace(/[^a-z0-9:._-]/gi, '');
   if (!model) return { error: 'model rỗng' };
   if (_pullSockets[model]) return { started: false, model, note: 'đang tải dở rồi' };
+  if (!(await ensureOllamaUp())) return { started: false, model, error: 'Không bật được Ollama (tự cài/thất bại) — xem thông báo trạng thái' };
   const body = JSON.stringify({ model, stream: true });
   const req = http.request({ hostname: '127.0.0.1', port: 11434, path: '/api/pull', method: 'POST', timeout: 3600000, headers: { 'Content-Type': 'application/json' } }, res => {
     let acc = '';

@@ -71,7 +71,10 @@ contextBridge.exposeInMainWorld('niOhAPI', {
   getOpenRouterModels: () => ipcRenderer.invoke('get-openrouter-models'),
   getGeminiModels: () => ipcRenderer.invoke('get-gemini-models'),
   ollamaPull: (name) => ipcRenderer.invoke('ollama-pull', name),
+  getOllamaModelDir: () => ipcRenderer.invoke('ollama-model-dir'),
+  setOllamaModelDir: () => ipcRenderer.invoke('ollama-set-model-dir'),
   onOllamaPull: (cb) => ipcRenderer.on('ollama-pull', (_, p) => cb(p)),
+  onOllamaInstall: (cb) => ipcRenderer.on('ollama-install', (_, p) => cb(p)),
 
   // Train theo chủ đề (agy → kiến thức cho YOLO + trigger)
   trainTopic: (topic) => ipcRenderer.invoke('train-topic', topic),

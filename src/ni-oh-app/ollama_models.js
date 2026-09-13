@@ -7,7 +7,7 @@ const CATALOG = [
   { id: 'mistral-nemo:12b', size: '7.1 GB', roles: ['train', 'chat'], note: '128K ngữ cảnh — nạp tài liệu dài khi tự học' },
   { id: 'qwen2.5:14b-instruct', size: '9.0 GB', roles: ['train'], note: 'Đúc kết sâu, chậm hơn — để lúc máy nhàn rỗi' },
   { id: 'gemma2:9b-instruct-q8_0', size: '9.8 GB', roles: ['chat'], note: 'Chất câu trả lời cao nhưng nặng VRAM' },
-  { id: 'llama3.1:8b-instruct', size: '4.9 GB', roles: ['chat', 'train'], note: 'Đa ngữ chuẩn, JSON khá' },
+  { id: 'llama3.1:8b', size: '4.9 GB', roles: ['chat', 'train'], note: 'Đa ngữ chuẩn, JSON khá' },
   { id: 'qwen2.5:3b-instruct', size: '2.0 GB', roles: ['voice'], note: 'Siêu nhẹ — chỉ biên soạn mô tả giọng, không đảm nhiệm suy luận' },
   { id: 'phi4:14b', size: '9.1 GB', roles: ['train'], note: 'Kiến thức dày trên mỗi tham số, ít dùng cho hội thoại' }
 ];

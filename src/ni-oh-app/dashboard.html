@@ -419,20 +419,20 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
             <input type="password" id="setting-api-key" placeholder="sk-…" autocomplete="off">
           </div>
         </div>
-        <div class="field" style="margin:0">
-          <label for="setting-model-name">Model</label>
-          <div class="row" style="gap:4px;margin:0">
-            <div class="modelcombo" style="flex:1;min-width:150px">
-              <input id="setting-model-name" type="text" class="input" placeholder="vd: gemini, llama, free…" autocomplete="off" spellcheck="false"
-                oninput="mcFilter('chat')" onblur="mcCloseSoon('chat')" onkeydown="mcKeys(event,'chat')">
-              <button type="button" class="mc-arrow" title="Hiện danh sách model" tabindex="-1"
-                onmousedown="event.preventDefault();mcToggle('chat')">▾</button>
-              <div class="mc-list" id="mc-chat" hidden></div>
-            </div>
-            <button class="btn icon-btn" onclick="loadModels()" data-tip="Nạp lại danh sách model của nhà cung cấp này" aria-label="Nạp lại danh sách model">↻</button>
-          </div>
+        <div class="field shrink" style="margin:0; flex:0 0 auto; display:flex; gap:4px; align-items:flex-end; padding-bottom:1px">
+          <button class="btn icon-btn" onclick="loadModels()" data-tip="Làm mới danh sách model" aria-label="Làm mới danh sách model">↻</button>
+          <button class="btn btn-primary icon-btn" onclick="saveModelSettings()" title="Lưu cấu hình hội thoại" aria-label="Lưu cấu hình hội thoại">💾</button>
         </div>
-        <button class="btn btn-primary icon-btn" onclick="saveModelSettings()" title="Lưu cấu hình hội thoại" aria-label="Lưu cấu hình hội thoại">💾</button>
+      </div>
+      <div class="field" style="margin:8px 0 0">
+        <label for="setting-model-name">Model</label>
+        <div class="modelcombo">
+          <input id="setting-model-name" type="text" class="input" placeholder="vd: gemini, llama, free…" autocomplete="off" spellcheck="false"
+            oninput="mcFilter('chat')" onblur="mcCloseSoon('chat')" onkeydown="mcKeys(event,'chat')">
+          <button type="button" class="mc-arrow" title="Hiện danh sách model" tabindex="-1"
+            onmousedown="event.preventDefault();mcToggle('chat')">▾</button>
+          <div class="mc-list" id="mc-chat" hidden></div>
+        </div>
       </div>
       <p class="desc" id="model-hint">Model qua Antigravity CLI (agy). Không cần API key.</p>
       <div id="ol-chat" style="margin-top:8px"></div>
@@ -453,20 +453,20 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
             <input type="password" id="setting-train-key" placeholder="sk-…" autocomplete="off">
           </div>
         </div>
-        <div class="field" style="margin:0">
-          <label for="setting-train-model">Model</label>
-          <div class="row" style="gap:4px;margin:0">
-            <div class="modelcombo" style="flex:1;min-width:150px">
-              <input id="setting-train-model" type="text" class="input" placeholder="vd: gemini, deepseek…" autocomplete="off" spellcheck="false"
-                oninput="mcFilter('train')" onblur="mcCloseSoon('train')" onkeydown="mcKeys(event,'train')">
-              <button type="button" class="mc-arrow" title="Hiện danh sách model" tabindex="-1"
-                onmousedown="event.preventDefault();mcToggle('train')">▾</button>
-              <div class="mc-list" id="mc-train" hidden></div>
-            </div>
-            <button class="btn icon-btn" onclick="loadTrainModels()" data-tip="Nạp lại danh sách model của nhà cung cấp này" aria-label="Nạp lại danh sách model">↻</button>
-          </div>
+        <div class="field shrink" style="margin:0; flex:0 0 auto; display:flex; gap:4px; align-items:flex-end; padding-bottom:1px">
+          <button class="btn icon-btn" onclick="loadTrainModels()" data-tip="Làm mới danh sách model" aria-label="Làm mới danh sách model">↻</button>
+          <button class="btn btn-primary icon-btn" onclick="saveTrainSettings()" title="Lưu cấu hình tự học" aria-label="Lưu cấu hình tự học">💾</button>
         </div>
-        <button class="btn btn-primary icon-btn" onclick="saveTrainSettings()" title="Lưu cấu hình tự học" aria-label="Lưu cấu hình tự học">💾</button>
+      </div>
+      <div class="field" style="margin:8px 0 0">
+        <label for="setting-train-model">Model</label>
+        <div class="modelcombo">
+          <input id="setting-train-model" type="text" class="input" placeholder="vd: gemini, deepseek…" autocomplete="off" spellcheck="false"
+            oninput="mcFilter('train')" onblur="mcCloseSoon('train')" onkeydown="mcKeys(event,'train')">
+          <button type="button" class="mc-arrow" title="Hiện danh sách model" tabindex="-1"
+            onmousedown="event.preventDefault();mcToggle('train')">▾</button>
+          <div class="mc-list" id="mc-train" hidden></div>
+        </div>
       </div>
       <p class="desc" id="kb-stats" style="margin-top:6px">—</p>
       <div id="ol-train" style="margin-top:8px"></div>
@@ -1055,10 +1055,26 @@ async function renderOllamaBlock(elId, role) {
     const btnTxt = prog && prog.status === 'downloading' ? '⬇ ' + (prog.pct != null ? prog.pct + '%' : '…') : (prog && prog.status === 'error' ? '⬇ thử lại' : '⬇ Tải ' + m.size);
     return '<div class="row" style="gap:8px;align-items:center;margin:3px 0"><span style="width:160px;font-size:12px">' + m.id + '</span><span class="desc" style="flex:1">' + m.size + ' · ' + m.note + '</span><button class="btn btn-sm shrink" data-olpull="' + m.id + '" onclick="ollamaPull(this.dataset.olpull,this)">' + btnTxt + '</button></div>';
   }).join('');
-  el.innerHTML = '<button class="btn btn-sm" style="margin:6px 0" onclick="olToggle(\'' + elId + '\')">' + (open ? '▾ Ẩn' : '📋 Hiện') + ' danh sách model tối ưu cho máy (' + mine.length + ')</button>' +
+  el.innerHTML = '<div class="row" style="gap:6px;margin:6px 0;align-items:center">' +
+      '<button class="btn btn-sm" style="flex:0 0 auto" onclick="olToggle(\'' + elId + '\')">' + (open ? '▾ Ẩn' : '📋 Hiện') + ' danh sách model tối ưu cho máy (' + mine.length + ')</button>' +
+      '<button class="btn btn-sm" style="flex:0 0 auto" onclick="olChooseDir()" data-tip="Ollama là thành phần đính kèm của app — chọn thư mục chứa model (OLLAMA_MODELS),serve tự khởi động lại">📁 Nơi lưu model</button>' +
+      '<span class="desc ol-dir-desc" style="flex:1;min-width:120px;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span></div>' +
     '<div style="padding-left:6px"' + (open ? '' : ' hidden') + '>' + rows + '</div>';
+  olShowDir();
 }
 function olToggle(elId) { _olOpen[elId] = !_olOpen[elId]; renderOllamaAll(); }
+async function olShowDir() {
+  try {
+    const d = await window.niOhAPI.getOllamaModelDir();
+    document.querySelectorAll('.ol-dir-desc').forEach(el => { el.textContent = 'Lưu tại: ' + d.dir + (d.custom ? '' : ' (mặc định)'); el.title = d.dir; });
+  } catch (e) {}
+}
+async function olChooseDir() {
+  const r = await window.niOhAPI.setOllamaModelDir();
+  if (r && r.canceled) return;
+  if (r && r.applied) { toast('Đổi nơi lưu model → ' + r.dir + ' (serve mới dùng từ model tải sau khi đổi)'); _olCatalog = null; renderOllamaAll(); loadModels(); }
+  else toast('Không đổi được biến OLLAMA_MODELS');
+}
 async function ollamaPull(id, btn) {
   if (btn) { btn.disabled = true; btn.textContent = '⬇ kết nối…'; }
   await window.niOhAPI.ollamaPull(id);
@@ -1067,10 +1083,23 @@ window.niOhAPI.onOllamaPull && window.niOhAPI.onOllamaPull(p => {
   if (!p || !p.model) return;
   if (p.done) { delete _olProg[p.model]; _olCatalog = null; renderOllamaAll(); loadModels(); loadTrainModels(); toast('Tải xong ' + p.model); return; }
   if (p.status === 'error') { _olProg[p.model] = { status: 'error' }; renderOllamaAll(); toast('Lỗi tải ' + p.model + ': ' + (p.error || '')); return; }
+  if (p.error && !p.status) { toast(p.error); renderOllamaAll(); return; }
   _olProg[p.model] = { status: 'downloading', pct: p.pct };
   // CHỈ cập nhật nhãn nút — không dựng lại dropdown khi đang tải (lỗi đổi model bất động)
   document.querySelectorAll('button[data-olpull="' + p.model + '"]').forEach(b => { b.disabled = true; b.textContent = '⬇ ' + (p.pct != null ? p.pct + '%' : '…'); });
 });
+let _olInstall = null;
+window.niOhAPI.onOllamaInstall && window.niOhAPI.onOllamaInstall(p => {
+  if (!p) return;
+  const txt = p.status === 'downloading' ? ('⬇ đang cài Ollama ' + (p.pct != null ? p.pct + '%' : '…'))
+    : p.status === 'installing' ? '⚙️ đang cài Ollama (im lặng)… chờ serve'
+    : p.status === 'error' ? '⚠ Cài Ollama lỗi: ' + (p.error || '') : null;
+  _olInstall = txt;
+  document.querySelectorAll('.ol-dir-desc').forEach(el => { if (txt) { el.textContent = txt; el.title = txt; } });
+  if (txt) toast(txt);
+  if (p.status === 'installing') renderOllamaAll();
+});
+
 function renderOllamaAll() {
   const cp = document.getElementById('setting-model-provider'), tp = document.getElementById('setting-train-provider');
   const paint = (prov, elId, role) => {
