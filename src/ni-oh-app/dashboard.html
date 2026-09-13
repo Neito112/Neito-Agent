@@ -385,7 +385,8 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
   <!-- ══ Panel: Model AI — mỗi dòng 1 chức năng ══ -->
   <section class="panel" id="panel-model" role="tabpanel" aria-labelledby="tab-model" hidden>
     <h2>Model &amp; Tự học</h2>
-    <p class="subtitle">Mỗi khối cấu hình độc lập: nhà cung cấp · khóa · model.</p>
+    <p class="subtitle">Mỗi khối chọn model độc lập: Hội thoại (suy luận khi chat) · Tự học (model nạp kiến thức). Bật/tắt tự học, nạp chủ đề, tạo giao thức — cứ NÓI hoặc NHẮN cho Ni-Oh.</p>
+
 
     <div class="card">
       <h3>💬 Hội thoại — trả lời câu hỏi và nhận diện giọng nói</h3>
@@ -411,9 +412,8 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
       </div>
       <p class="desc" id="model-hint">Model qua Antigravity CLI (agy). Không cần API key.</p>
     </div>
-
     <div class="card">
-      <h3>🧠 Tự học — nạp kiến thức vào hệ thống</h3>
+      <h3>🧠 Model dùng để tự học</h3>
       <div class="row">
         <div class="field" style="margin:0">
           <label for="setting-train-provider">Nhà cung cấp</label>
@@ -434,14 +434,6 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
         </div>
         <button class="btn btn-primary icon-btn" onclick="saveTrainSettings()" title="Lưu cấu hình tự học" aria-label="Lưu cấu hình tự học">💾</button>
       </div>
-      <div class="row" style="margin-top: var(--sp-3)">
-        <div class="field" style="margin:0; flex:2 1 220px">
-          <label for="train-topic-input">Chủ đề cần nạp — tra cứu, chọn lọc và kích hoạt theo ngữ cảnh</label>
-          <input type="text" id="train-topic-input" placeholder="VD: Genshin Impact, Valorant, nấu ăn, livestream…" autocomplete="off">
-        </div>
-        <button class="btn btn-primary shrink" id="btn-train-topic" onclick="trainTopic()">🧠 Train chủ đề</button>
-      </div>
-      <p class="status-text shrink" id="topic-status" role="status"></p>
       <p class="desc" id="kb-stats" style="margin-top:6px">—</p>
       <div class="section-title" style="margin-top:var(--sp-4)">Đã train — mắt YOLO đang dùng</div>
       <div id="topic-list" class="characters-grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">
@@ -450,17 +442,10 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
       <div class="card" style="margin-top:var(--sp-4)">
         <h3>🎓 Marathon tự học</h3>
         <p class="desc" style="margin-top:-4px;margin-bottom:10px">Ni-Oh khai thác nguồn chính thức, hướng dẫn sử dụng và mẹo mẹo — mỗi nguồn qua hai vòng: nạp khái niệm (thêm mới / bỏ qua trùng / gộp đồng nghĩa) rồi phát hiện tình huống kèm cách xử lý ngay trong nguồn. Tình huống không có lời giải được đưa vào hàng đợi truy vấn các nguồn khác. Video được tách phụ đề và khung hình để đọc cả chữ lẫn ảnh. Việc học chạy lúc nhàn rỗi, mỗi lượt một nguồn.</p>
-        <div class="row">
-          <select id="learner-slug" class="select shrink" style="max-width:190px" data-tip="Giao thức sẽ nhận kiến thức từ nguồn"></select>
-          <input id="learner-url" class="input" style="flex:1;min-width:120px" placeholder="URL bài viết / video hướng dẫn" />
-          <button class="btn btn-primary shrink" onclick="learnerAdd()" data-tip="Xếp nguồn vào hàng đợi tự học">＋ Xếp nguồn</button>
-        </div>
+        <p class="desc">Hàng đợi marathon: <em>nói với Ni-Oh</em> — "dạy Ni-Oh chơi Dota 2 theo link này", "bật tự học", "học ngay nguồn tới".</p>
         <div id="learner-stats" class="desc" style="margin-top:10px"></div>
         <div id="learner-log" style="margin-top:6px;font-size:11px;line-height:1.7;color:var(--muted-foreground);max-height:120px;overflow-y:auto"></div>
-        <div class="row" style="margin-top:8px">
-          <button class="btn btn-sm shrink" onclick="learnerOnce()" data-tip="Học ngay 1 nguồn kế tiếp (worker nhàn rỗi vẫn tự chạy định kỳ)">▶ Học 1 nguồn ngay</button>
-          <button class="btn btn-sm shrink" onclick="loadLearner()">↻ Cập nhật</button>
-        </div>
+        
       </div>
     </div>
   </section>
@@ -675,7 +660,6 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
       </div>
       <div id="tm-body" style="overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px"></div>
       <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn shrink" id="tm-retrain" data-tip="Tra cứu và nạp lại toàn bộ chủ đề">🔁 Train lại topic</button>
         <button class="btn btn-danger shrink" id="tm-delete" data-tip="Xóa toàn bộ dữ liệu chủ đề">🗑 Xóa chủ đề</button>
         <div style="flex:1"></div>
         <button class="btn btn-primary shrink" id="tm-add" data-tip="Bổ sung thủ công một mục kiến thức">＋ Thêm entry</button>
@@ -724,8 +708,9 @@ document.addEventListener('DOMContentLoaded', () => {
   window.niOhAPI.onInitConfig((config) => {
     mainConfig = config;
     applyConfig(config);
-    loadCharacters();
+    if (typeof loadTrainModels === 'function') loadTrainModels();
     loadModels();
+    loadCharacters();
     loadAgyStatus();
     loadTopics(); loadLearner && loadLearner();
     refreshMicChip();
@@ -836,41 +821,24 @@ async function loadOverview() {
   } catch (e) {}
 }
 
-async function trainTopic() {
-  const topic = document.getElementById('train-topic-input').value.trim();
-  const st = document.getElementById('topic-status');
-  const btn = document.getElementById('btn-train-topic');
-  if (!topic) { st.textContent = '⚠️ Nhập chủ đề trước đã.'; st.className = 'status-text shrink err'; return; }
-  btn.disabled = true;
-  st.textContent = '⏳ agy đang tra cứu và lọc kiến thức cho chủ đề "' + topic + '"… (30–120s)';
-  st.className = 'status-text shrink';
-  try {
-    const r = await window.niOhAPI.trainTopic(topic);
-    st.textContent = r.success ? '✅ ' + (r.message || 'Xong') : '❌ ' + (r.error || 'lỗi');
-    st.className = 'status-text shrink ' + (r.success ? 'ok' : 'err');
-    if (r.success) loadTopics(); loadLearner && loadLearner();
-  } catch (e) {
-    st.textContent = '❌ ' + (e.message || e);
-    st.className = 'status-text shrink err';
-  } finally { btn.disabled = false; }
-}
-
 // ─── Config apply ───
 function applyConfig(config) {
   const ms = document.getElementById('setting-mic-mode');
   if (ms) ms.value = config.micMode || 'off';   // 2 chiều với nút 🎙 overlay
 
 
-  document.getElementById('setting-model-provider').value = config.modelProvider || 'antigravity';
-  document.getElementById('setting-api-key').value = config.apiKey || '';
-  const p = config.modelProvider || 'antigravity';
-  document.getElementById('api-key-group').style.display =
-    (p === 'openrouter' || p === 'gemini') ? 'block' : 'none';
-
   // (tab voice mới: profile list — load lại khi mở tab)
+  const mpEl = document.getElementById('setting-model-provider');
+  if (mpEl) {
+    mpEl.value = config.modelProvider || 'antigravity';
+    document.getElementById('setting-api-key').value = config.apiKey || '';
+    const p = config.modelProvider || 'antigravity';
+    document.getElementById('api-key-group').style.display =
+      (p === 'openrouter' || p === 'gemini') ? 'block' : 'none';
+  }
 
   document.getElementById('setting-train-provider').value = config.trainProvider || 'antigravity';
-  document.getElementById('setting-train-key').value = config.trainKey || '';
+  document.getElementById('setting-train-key').value = config.trainKey || config.apiKey || '';
   const tp = config.trainProvider || 'antigravity';
   document.getElementById('train-key-group').style.display =
     (tp === 'openrouter' || tp === 'gemini') ? 'block' : 'none';
@@ -962,7 +930,6 @@ async function saveModelSettings() {
   refreshChips();
   toast('Đã lưu Chat: ' + config.modelProvider + ' · ' + config.modelName);
 }
-
 // ─── Danh sách chủ đề đã train ───
 async function loadTopics() {
   const el = document.getElementById('topic-list');
@@ -992,14 +959,10 @@ async function loadTopics() {
         <strong style="font-size:13px">🧠 ${name}</strong>
         <p class="desc" style="margin-top:2px">${t.concepts || 0} khái niệm · ${t.situations || 0} tình huống${t.entries ? ' · ' + t.entries + ' entry cũ' : ''} · mắt theo: ${(t.yolo_watch||[]).slice(0,3).join(', ')||'—'}</p>
         <div style="margin-top:4px">${stChip}</div>
-        <div class="row" style="margin-top:6px;gap:6px">
-          <button class="btn btn-sm" data-tip="agy tra cứu web lại chủ đề này" onclick="event.stopPropagation();retrainTopic('${name}')">🔁 Train lại</button>
-          ${t.concept_state !== 'activated' ? `<button class="btn btn-sm btn-primary" data-tip="Gemini 3.1 Pro phân loại khái niệm hình ảnh rồi gắn tình huống thực tế" onclick="event.stopPropagation();buildConcepts('${t.slug}')">🧩 Nạp khái niệm</button>` : ''}
-        </div>
       </div>`;
     });
     el.innerHTML = rows.length ? rows.join('') :
-      `<div class="empty"><div class="big">🗂️</div><strong>Chưa có chủ đề nào</strong><p style="font-size:12px;margin-top:4px">Nhập chủ đề ở ô trên rồi bấm Train chủ đề.</p></div>`;
+      `<div class="empty"><div class="big">🗂️</div><strong>Chưa có chủ đề nào</strong><p style="font-size:12px;margin-top:4px">Nói với Ni-Oh: <em>"dạy Ni-Oh chơi Dota 2"</em> — em tự tra cứu và tạo giao thức.</p></div>`;
   } catch (e) {
     el.innerHTML = `<div class="empty">⚠️ Không đọc được danh sách</div>`;
   }
@@ -1009,34 +972,12 @@ let _learnerTopics = [];
 async function loadLearner() {
   try {
     const st = await window.niOhAPI.learnerStatus();
-    const sel = document.getElementById('learner-slug');
-    if (sel && !_learnerTopics.length) {
-      const vs = await window.niOhAPI.getVisionStatus();
-      _learnerTopics = vs.topics || [];
-      sel.innerHTML = _learnerTopics.map(t => `<option value="${t.slug}">${t.topic}</option>`).join('');
-    }
     const el = document.getElementById('learner-stats');
     if (el) el.innerHTML = `Đã học <strong>${st.sources_learned||0}/${st.sources_total||0}</strong> nguồn · chờ <strong>${st.sources_pending||0}</strong> · tình huống chưa có lời giải: <strong>${st.unanswered_open||0}</strong> · lượt worker: <strong>${st.rounds||0}</strong>`;
     const lg = document.getElementById('learner-log');
     if (lg) lg.innerHTML = (st.recent_log || []).slice().reverse().map(l => `<div>· ${l.msg}</div>`).join('');
   } catch (e) { /* im lặng */ }
 }
-async function learnerAdd() {
-  const slug = document.getElementById('learner-slug').value;
-  const url = document.getElementById('learner-url').value.trim();
-  if (!slug || !url) { toast('Chọn giao thức và dán URL nguồn'); return; }
-  const r = await window.niOhAPI.learnerAdd(slug, url, '');
-  toast(r.success ? '✓ Đã xếp nguồn vào hàng đợi tự học' : '❌ ' + (r.error || ''));
-  if (r.success) document.getElementById('learner-url').value = '';
-  loadLearner();
-}
-async function learnerOnce() {
-  toast('Đang học 1 nguồn — có thể mất vài phút...');
-  const r = await window.niOhAPI.learnerOnce();
-  toast(r.error ? '❌ ' + r.error : `✓ Lượt học xong (${r.did === 'source' ? r.status : 'dọn hàng đợi'})`);
-  loadLearner(); loadTopics(); loadLearner && loadLearner();
-}
-
 async function buildConcepts(slug) {
   toast('Đang phân loại khái niệm hình ảnh (Gemini 3.1 Pro)...');
   const r1 = await window.niOhAPI.conceptsRun(slug, 'describe');
@@ -1046,11 +987,6 @@ async function buildConcepts(slug) {
   if (!r2.success) { toast('❌ Tình huống: ' + (r2.error || 'lỗi')); return; }
   toast(`✓ Xong: ${r2.situations} tình huống kích hoạt đã sẵn`);
   loadTopics(); loadLearner && loadLearner();
-}
-
-async function retrainTopic(t) {
-  document.getElementById('train-topic-input').value = t;
-  await trainTopic();
 }
 
 // ─── Microphone ───
@@ -1226,7 +1162,7 @@ async function openTopicModal(slug, name) {
         ${(c.ocrPhrases||[]).length ? `<p style="font-size:11px;color:var(--text-muted);margin:4px 0 0">👁 chữ nhận diện: ${esc((c.ocrPhrases||[]).slice(0,4).join(' · '))}</p>` : ''}
         ${(c.yoloClasses||[]).length ? `<p style="font-size:11px;color:var(--text-muted);margin:2px 0 0">🎯 YOLO: ${esc((c.yoloClasses||[]).slice(0,4).join(', '))}</p>` : ''}
         ${c.source ? `<p style="font-size:10px;color:var(--text-muted);margin:3px 0 0;word-break:break-all">nguồn: ${esc(String(c.source).slice(0,90))}</p>` : ''}
-      </div>`).join('') : '<p class="desc">Chưa có khái niệm — bấm "🧩 Nạp khái niệm" ở card để train.</p>') + `
+      </div>`).join('') : '<p class="desc">Chưa có khái niệm — nói Ni-Oh "nạp khái niệm cho <chủ đề>" để train.</p>') + `
       <div style="border:1px dashed var(--border);border-radius:8px;padding:8px;margin-top:4px">
         <p class="desc" style="margin:0 0 6px">＋ Thêm khái niệm thủ công (Ni-Oh sẽ dùng làm đúc kết 🧬)</p>
         <input id="nc-name" class="input" style="margin-bottom:5px" placeholder="Tên khái niệm — vd: 'Bảng Layer Properties'">
@@ -1251,7 +1187,6 @@ async function openTopicModal(slug, name) {
       </div>`; }).join('') : '<p class="desc">Chưa có tình huống — nguồn chưa dạy, hoặc chờ vòng 2 marathon.</p>') + '</div>';
     body.innerHTML = html;
   }
-  document.getElementById('tm-retrain').onclick = () => { closeTopicModal(); document.getElementById('train-topic-input').value = name || slug; trainTopic(); };
   document.getElementById('tm-delete').onclick = async () => {
     if (!confirm('Xóa toàn bộ "' + (_tmSlug) + '"? Không khôi phục được nếu chưa commit.')) return;
     await window.niOhAPI.deleteTopic(_tmSlug); closeTopicModal(); loadTopics(); loadLearner && loadLearner(); toast('Đã xóa chủ đề');

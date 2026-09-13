@@ -38,7 +38,14 @@ const LDIR = path.join(ROOT, 'learning');
 const STATE = path.join(LDIR, 'state.json');
 const SONNET = 'gemini-3.1-pro-high'; // đổi theo lệnh Sếp: Sonnet cạn quota
 const _mi = process.argv.indexOf('--model');
-const MODEL = _mi > 0 ? process.argv[_mi + 1] : SONNET;   // tool do Sonnet dựng — chạy được mọi model agy có
+function _settingsModel() {   // Settings → model tự học (app ghi app_config.json)
+  try {
+    const c = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'src', 'ni-oh-app', 'app_config.json'), 'utf8'));
+    if (c.trainProvider === 'antigravity' && c.trainModel) return c.trainModel;
+  } catch (e) {}
+  return '';
+}
+const MODEL = _mi > 0 ? process.argv[_mi + 1] : (_settingsModel() || SONNET);   // tool do Sonnet dựng — chạy được mọi model agy có
 fs.mkdirSync(LDIR, { recursive: true });
 
 /* ── state ─────────────────────────────────────────────────────────── */

@@ -21,6 +21,13 @@ const path = require('path');
 const VISION_DIR = path.join(__dirname, '..', '..', 'memory', 'vision');
 
 /* ── chuẩn hóa: bỏ dấu, lowercase, gom khoảng trắng ─────────────────── */
+/* JS RegExp không nhận inline-flag Python "(?i)" — data train lẫn kiểu này.
+   Sanitize về cờ 'i'; regex hỏng hoàn toàn → coi như không ràng buộc window. */
+function winRe(pat) {
+  if (!pat) return null;
+  const clean = String(pat).replace(/\(\?\w*\)/g, '');
+  try { return new RegExp(clean, 'i'); } catch (e) { return null; }
+}
 function norm(s) {
   return String(s || '').toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd')
@@ -151,7 +158,7 @@ function evaluate(frame) {
     const m = matchSituation(slug, data, present, frame);
     if (!m) continue;
     const s = m.situation;
-    if (s.window && !new RegExp(s.window, 'i').test(frame.window || '')) continue;
+    { const re = winRe(s.window); if (re && !re.test(frame.window || '')) continue; }
     const tp = tempo();
     const rate = TEMPO_RATE[tp];
     if ((s.answer && String(s.answer).trim()) || (s.answer_urgent && String(s.answer_urgent).trim())) {
@@ -212,6 +219,34 @@ function accumulateConcepts(frame) {
     data.concepts_accumulated_at = new Date().toISOString();
     saveTopic(slug, data);
   }
+}
+
+/* ── COMBAT MATCH — dành cho main.js (tín hiệu cấp bách, tempo-scaled) ──
+   Khác evaluate(): KHÔNG ghi file, KHÔNG dùng cooldown engine — main tự quản
+   rate-limit theo nhịp sự kiện. Trả về mọi tình huống đang đồng hiện trên frame,
+   ưu tiên đã có answer; thiếu answer → caller log miss + suy luận 1 lần. */
+function matchCombat(frame) {
+  if (!frame || !frame.window) return [];
+  const out = [];
+  const fw = norm(frame.window);
+  for (const slug of topicFiles()) {
+    const data = loadTopic(slug);
+    if (!data || !(data.situations || []).length) continue;
+    const present = presentConcepts(data, frame);
+    if (!present.length) continue;
+    for (const s of (data.situations || [])) {
+      const req = (s.concepts_required || [s.concept]).filter(Boolean);
+      const need = Math.max(1, s.min_count || Math.min(req.length, 2));
+      const pset = new Set(present.map(String));
+      let hits = 0;
+      for (const r of req) if (pset.has(String(r))) hits++;
+      if (hits < need) continue;
+      const re = winRe(s.window);
+      if (re && !re.test(frame.window || '')) continue;
+      out.push({ slug, id: s.id, situation: s, hits });
+    }
+  }
+  return out;
 }
 
 /* ── NÉN CÂU GẤP: hàng đợi biên soạn lại lúc nhàn rỗi ───────────────────
@@ -394,4 +429,4 @@ function status() {
   return out;
 }
 
-module.exports = { evaluate, accumulateConcepts, tierOf, classifyTopic, syncAllTiers, knowledgeSplit, setAnswer, status, buildInferPrompt, norm, loadTopic, saveTopic, registerFrame, tempo, condenseQueue, setCondensed, pacing, switchEvent, markAcked };
+module.exports = { evaluate, matchCombat, accumulateConcepts, tierOf, classifyTopic, syncAllTiers, knowledgeSplit, setAnswer, status, buildInferPrompt, norm, loadTopic, saveTopic, registerFrame, tempo, condenseQueue, setCondensed, pacing, switchEvent, markAcked };

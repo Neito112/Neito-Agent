@@ -30,6 +30,7 @@ const DEFAULT_CONFIG = {
   modelProvider: 'antigravity',
   modelName: 'gemini-3.8-flash-low',
   apiKey: '',
+  selfLearning: true,
   overlayVisible: true,
   overlayPosition: { x: 40, y: 40 },
   eyeProactive: false,
@@ -327,7 +328,8 @@ function isScreenBound(q) {
 function classifyMode(q, sc, kb) {
   const s = String(q).toLowerCase();
   if (kb && kb.direct) return 'instant';                       // KB có sẵn → 0 request
-  if (/\b(là gì|ở đâu|sao|tại sao|thế nào|hướng dẫn|cách |check|tra cứu|tìm|search|update|giá|meta|phiên bản|code|lỗi|fix)\b/.test(s)) return 'lookup';
+  if (/\b(là gì|ở đâu|sao|tại sao|thế nào|hướng dẫn|cách |check|tra cứu|tìm|search|update|giá|meta|phiên bản|code|lỗi|fix|dạy|học|train|giao thức|chủ đề|marathon)\b/.test(s)) return 'lookup';
+  if (/(tự học|marathon|giao thức|mở mắt|bắt đầu học|dạy thêm)/.test(s)) return 'lookup';   // lệnh thao tác → được dùng tool
   if (s.length <= 18 && !sc) return 'chat';                    // câu ngắn, không liên quan màn hình → chuyện trò
   if (/\b(cái này|kia|đó|màn hình|nhìn|thấy|trên hình)\b/.test(s)) return 'screen';
   return 'chat';
@@ -337,20 +339,37 @@ function toolHint(mode) {
   if (mode === 'screen') return '\n\n(Chế độ MÀN HÌNH: bám sát snapshot đã cho. Nếu thiếu dữ liệu, có thể ACTION {"tool":"screen_snapshot","args":{}} hoặc {"tool":"list_windows","args":{}}.)';
   return '\n\n(Chế độ TRÒ CHUYỆN: trả lời ngay tức thì, KHÔNG tra cứu web, KHÔNG ACTION, dưới 20 từ.)';
 }
+function firstAction(s) {   // trích ACTION {json} ĐẦU TIÊN (vòng ngoặc cân bằng), không greedy sang ACTION sau
+  const i = s.search(/ACTION\s*\{/i);
+  if (i < 0) return null;
+  const b = s.indexOf('{', i);
+  let depth = 0, instr = false, esc = false;
+  for (let j = b; j < s.length; j++) {
+    const c = s[j];
+    if (instr) { if (esc) esc = false; else if (c === '\\') esc = true; else if (c === '"') instr = false; continue; }
+    if (c === '"') instr = true;
+    else if (c === '{') depth++;
+    else if (c === '}') { depth--; if (depth === 0) return { raw: s.slice(i), json: s.slice(b, j + 1), start: i, end: j + 1 }; }
+  }
+  return null;
+}
+
 async function toolLoop(rawQ, first, model, mode) {
   let r = first, rounds = 0;
-  while (rounds < 2 && r.success) {
-    const m = String(r.answer).match(/ACTION\s*(\{[\s\S]*\})/);
+  while (rounds < 3 && r.success) {
+    const m = firstAction(String(r.answer));
     if (!m) break;
-    let act; try { act = JSON.parse(m[1]); } catch (e) { break; }
+    let act; try { act = JSON.parse(m.json); } catch (e) { break; }
     rounds++;
-    const tr = await toolRegistry.runTool(act.tool, act.args || {}, { screenContext, speakText });
+    console.log('[tool] ' + act.tool + ' ' + JSON.stringify(act.args || {}));
+    const tr = await toolRegistry.runTool(act.tool, act.args || {}, { screenContext, speakText, main: selfLearningBridge });
     const follow = 'Sếp hỏi: ' + rawQ + '\n\nEm đã gọi tool "' + act.tool + '" và nhận kết quả:\n' +
       JSON.stringify(tr.data || tr.error).slice(0, 1200) +
-      '\n\nGiờ trả lời Sếp bằng tiếng Việt, DƯỚI 30 từ, chỉ dựa vào kết quả tool — không bịa thêm, không ACTION nữa.';
+      '\n\nNếu vẫn còn phần việc Sếp yêu cầu chưa xong, được phép ACTION tiếp theo ngay cuối câu. Nếu đủ rồi thì trả lời Sếp bằng tiếng Việt, DƯỚI 30 từ, chỉ dựa vào kết quả tool.' +
+      (mode === 'lookup' ? '\n' + toolHint('lookup') : '');
     r = await callAgY(follow, model);
   }
-  if (r.success) r.answer = String(r.answer).replace(/ACTION\s*\{[\s\S]*\}/g, '').trim();
+  if (r.success) r.answer = String(r.answer).replace(/ACTION\s*\{[\s\S]*\}/gi, '').trim();
   return r;
 }
 
@@ -1449,8 +1468,9 @@ async function idleCondenseRun() {
     if (!isIdle) return;
     idleBusy = true;
     setEmotion('sleepy', 0);   // nhân vật vào tư thế nghỉ — tín hiệu cho Sếp biết đang bảo trì ngầm
-    // ƯU TIÊN 1: marathon tự học nguồn (2 vòng lặp khái niệm+tình huống, gồm video)
+    // ƯU TIÊN 1: marathon tự học nguồn (2 vòng lặp khái niệm+tình huống, gồm video) — Sếp tắt bằng lời là dừng
     try {
+      if (mainConfig.selfLearning === false) throw new Error('off');
       const learner = require(path.join(NIOH_ROOT, 'tools', 'agy', 'source_learner.js'));
       const st = learner.statusOut();
       if (st.sources_pending > 0 || st.unanswered_open > 0) {
@@ -1745,6 +1765,50 @@ ipcMain.handle('ext-health', () => {
   return { success: true, health: out };
 });
 
+// ═══ CẦU NỐI TỰ HỌC cho tool chat (Sếp ra lệnh bằng lời, không cần nút) ═══
+const selfLearningBridge = {
+  status() {
+    try {
+      const st = require(path.join(NIOH_ROOT, 'tools', 'agy', 'source_learner.js')).statusOut();
+      return { on: mainConfig.selfLearning !== false, pending: st.sources_pending || 0, unanswered: st.unanswered_open || 0, rounds: st.rounds || 0, model: mainConfig.trainModel || 'gemini-3.1-pro-high' };
+    } catch (e) { return { error: e.message }; }
+  },
+  setOn(on) { mainConfig.selfLearning = !!on; saveConfig(); return { on: !!on }; },
+  add(slug, url) {
+    try {
+      const L = require(path.join(NIOH_ROOT, 'tools', 'agy', 'source_learner.js'));
+      const st = L.loadState();
+      if (st.sources.some(s => s.url === url && s.slug === slug)) return { dup: true };
+      st.sources.push({ slug: String(slug), url: String(url), note: 'qua chat', status: 'pending' });
+      L.saveState(st);
+      return { ok: true, pending: st.sources.filter(s => s.status === 'pending').length };
+    } catch (e) { return { error: e.message }; }
+  },
+  concepts(slug) {   // 'nạp khái niệm cho Dota 2' — chạy classifier (describe→situations) qua child node
+    return new Promise((resolve) => {
+      const script = path.join(NIOH_ROOT, 'tools', 'agy', 'concept_classifier.js');
+      const { spawn: sp2 } = require('child_process');
+      const s = String(slug || '').replace(/[^a-z0-9_-]/g, '');
+      let described = 0;
+      const runMode = (mode, done) => {
+        const ch = sp2('node', [script, s].concat(mode === 'situations' ? ['--situations'] : ['--describe']), { windowsHide: true, cwd: NIOH_ROOT });
+        let out = ''; const to = setTimeout(() => { try { ch.kill('SIGKILL'); } catch (e) {} done(false); }, 8 * 60 * 1000);
+        ch.stdout.on('data', d => out += d);
+        ch.on('close', () => { clearTimeout(to); done(/success|"ok"|added|\d+/.test(out)); });
+        ch.on('error', () => { clearTimeout(to); done(false); });
+      };
+      runMode('describe', (ok1) => {
+        if (!ok1) return resolve({ error: 'describe fail — agy/quota? xem log' });
+        runMode('situations', (ok2) => resolve({ ok: true, note: ok2 ? 'đã nạp khái niệm + tình huống' : 'khái niệm OK, tình huống fail (quota?)' }));
+      });
+    });
+  },
+  async once() {
+    try { return await require(path.join(NIOH_ROOT, 'tools', 'agy', 'source_learner.js')).once(); }
+    catch (e) { return { error: e.message }; }
+  },
+  train(topic) { return ipcMain.handle ? trainTopicCore(String(topic || '').trim()) : Promise.resolve({ error: 'xung đột' }); }
+};
 ipcMain.handle('learner-status', () => {
   try { return require(path.join(NIOH_ROOT, 'tools', 'agy', 'source_learner.js')).statusOut(); }
   catch (e) { return { error: e.message }; }
@@ -2332,8 +2396,8 @@ ipcMain.handle('get-vision-status', () => {
 });
 
 // ─── Train theo chủ đề: agy tra cứu → lọc thành kiến thức cho mắt YOLO ───
-ipcMain.handle('train-topic', async (_, topic) => {
-  topic = String(topic || '').trim();
+async function trainTopicCore(topicRaw) {
+  const topic = String(topicRaw || '').trim();
   if (!topic) return { success: false, error: 'Nhập chủ đề cần train' };
   const st = agyTool.agyStatus();
   if (!st.available) return { success: false, error: 'agy chưa sẵn sàng' };
@@ -2388,7 +2452,8 @@ ipcMain.handle('train-topic', async (_, topic) => {
     });
     child.on('error', e => { clearTimeout(to); resolve({ success: false, error: e.message }); });
   });
-});
+}
+ipcMain.handle('train-topic', (_, topic) => trainTopicCore(topic));
 
 // ─── Voice training from audio sample ─────────────────────────────────────
 ipcMain.handle('train-voice-from-sample', async (_, filePath) => {

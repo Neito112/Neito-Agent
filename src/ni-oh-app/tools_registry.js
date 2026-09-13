@@ -151,6 +151,49 @@ const TOOLS = {
       });
     }
   },
+  // ═══ TỰ HỌC — Sếp ra lệnh bằng lời, không có nút trong Settings (kiến trúc chat-driven) ═══
+  self_learn_status: {
+    name: 'Trạng thái tự học', desc: 'Không args — trả về: bật/tắt, số nguồn chờ, số tình huống chưa lời giải, model đang dùng để học.',
+    run: async (args, ctx) => ctx.main && ctx.main.status ? ok(await ctx.main.status()) : bad('cầu nối tự học chưa sẵn sàng')
+  },
+  self_learn_toggle: {
+    name: 'Bật/TẮT tự học', desc: 'args:{on:true|false} — bật hoặc tắt worker marathon tự học chạy lúc nhàn rỗi.',
+    run: async (args, ctx) => {
+      if (!ctx.main || !ctx.main.setOn) return bad('cầu nối tự học chưa sẵn sàng');
+      return ok(ctx.main.setOn(!!args.on));
+    }
+  },
+  self_learn_add_source: {
+    name: 'Xếp nguồn tự học', desc: 'args:{slug,url} — đưa URL bài viết/video vào hàng đợi marathon của giao thức slug (slug viết thường không dấu, vd "dota-2").',
+    run: async (args, ctx) => {
+      if (!ctx.main || !ctx.main.add) return bad('cầu nối tự học chưa sẵn sàng');
+      const r = await ctx.main.add(String(args.slug || ''), String(args.url || ''));
+      return r.error ? bad(r.error) : ok(r);
+    }
+  },
+  self_learn_now: {
+    name: 'Học ngay 1 nguồn', desc: 'Không args — ép marathon học ngay nguồn kế tiếp thay vì chờ nhàn rỗi (mất 3-10 phút).',
+    run: async (args, ctx) => {
+      if (!ctx.main || !ctx.main.once) return bad('cầu nối tự học chưa sẵn sàng');
+      return ok(await ctx.main.once());
+    }
+  },
+  self_learn_concepts: {
+    name: 'Nạp khái niệm cho chủ đề', desc: 'args:{slug} — phân loại khái niệm hình ảnh rồi gắn tình huống thực chiến cho giao thức slug đã có (vd "dota-2"). Chậm 5-15 phút.',
+    run: async (args, ctx) => {
+      if (!ctx.main || !ctx.main.concepts) return bad('cầu nối tự học chưa sẵn sàng');
+      const r = await ctx.main.concepts(String(args.slug || ''));
+      return r.error ? bad(r.error) : ok(r);
+    }
+  },
+  train_topic: {
+    name: 'Tạo giao thức mới', desc: 'args:{topic} — agy tra cứu web rồi tạo giao thức (knowledge + trigger mắt) cho CHỦ ĐỀ/game/phần mềm mới, ví dụ "Dota 2". Chậm 2-4 phút.',
+    run: async (args, ctx) => {
+      if (!ctx.main || !ctx.main.train) return bad('cầu nối tự học chưa sẵn sàng');
+      const r = await ctx.main.train(String(args.topic || ''));
+      return r.success ? ok(r) : bad(r.error || 'train thất bại');
+    }
+  },
   create_tool: {
     name: 'Tự viết tool mới', desc: 'args:{id,code} — đăng ký tool mới từ code JS (module.exports={name,desc,run}). Ni-Oh tự mở rộng khi thiếu tool.',
     run: async (args) => {

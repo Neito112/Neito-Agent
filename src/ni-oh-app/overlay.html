@@ -69,7 +69,10 @@
   .face .eyes-normal, .face .m-smile { display:block; }
   .char.talking .m-smile { display:none; }
   .char.talking .m-o { display:block; transform-box:fill-box; transform-origin:center; animation: talk .26s ease-in-out infinite alternate; }
+  .char.talking.lipsync .m-o { animation:none; }   /* biên độ thật từ AnalyserNode thay tuần hoàn giả */
   @keyframes talk { from { transform: scaleY(.3);} to { transform: scaleY(1.25);} }
+  .char.error .m-flat { display:block; }
+  .char.error .m-o, .char.error .m-smile { display:none; }
   .char.talking .floaty { animation-duration:.9s; }
   .char.thinking .eyes-normal, .char.thinking .m-smile { display:none; }
   .char.thinking .eyes-line, .char.thinking .m-flat, .char.thinking .core, .char.thinking .bub { display:block; }
@@ -536,7 +539,8 @@
 
   // ═══ Biểu cảm ═══
   function setAnim(state, ms) {
-    char.classList.remove('talking','thinking','happy','sleepy','alert');
+    char.classList.remove('talking','thinking','happy','sleepy','alert','error');
+    if (state !== 'talking') { stopLipsync(); }
     if (state) char.classList.add(state);
     const img = document.getElementById('charImg');
     const src = poseSrc(state || 'idle');
@@ -559,11 +563,50 @@
   window.niOhAPI.onSay((text) => showBubble(text));
 
   let audioEl = null, audioUrl = '';
+  // ── Mouth-sync học từ video BMO: miệng không chạy animation tuần hoàn giả mà
+  //    bám BIÊN ĐỘ THẬT của giọng Ngọc Linh (Web Audio AnalyserNode, RMS mỗi frame) ──
+  let ac = null, analyser = null, mSrc = null, timeBuf = null, lsRaf = 0;
+  function ensureLipsync() {
+    if (ac || !audioEl) return;
+    try {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      mSrc = ac.createMediaElementSource(audioEl);
+      analyser = ac.createAnalyser(); analyser.fftSize = 256;
+      mSrc.connect(analyser); analyser.connect(ac.destination);
+      timeBuf = new Uint8Array(analyser.fftSize);
+    } catch (e) { ac = null; }
+  }
+  function startLipsync() {
+    const mouth = document.querySelector('.char .face .m-o');
+    if (!ac || !mouth) return;
+    char.classList.add('lipsync');
+    cancelAnimationFrame(lsRaf);
+    let live = 0, deadFrames = 0;
+    const step = () => {
+      analyser.getByteTimeDomainData(timeBuf);
+      let sum = 0;
+      for (let i = 0; i < timeBuf.length; i++) { const v = (timeBuf[i] - 128) / 128; sum += v * v; }
+      const rms = Math.sqrt(sum / timeBuf.length);
+      if (rms > 0.005) { live++; deadFrames = 0; } else if (live === 0) { deadFrames++; }
+      // file:// có thể bị Web Audio chặn đọc → im lặng giả → trả về animation CSS
+      if (!live && deadFrames > 90) { stopLipsync(); return; }
+      const k = Math.min(1.35, 0.22 + rms * 7.5);          // im lặng → miệng ngậm, to → mở max
+      mouth.style.transform = 'scaleY(' + k.toFixed(3) + ')';
+      lsRaf = requestAnimationFrame(step);
+    };
+    lsRaf = requestAnimationFrame(step);
+  }
+  function stopLipsync() {
+    cancelAnimationFrame(lsRaf); lsRaf = 0;
+    char.classList.remove('lipsync');
+    const mouth = document.querySelector('.char .face .m-o');
+    if (mouth) mouth.style.transform = '';
+  }
   function playInOverlay(url, rate) {
     if (!audioEl) { audioEl = new Audio(); audioEl.preload = 'auto';
-      audioEl.addEventListener('play', () => setAnim('talking'));
-      audioEl.addEventListener('ended', () => setAnim(null));
-      audioEl.addEventListener('error', () => setAnim(null));
+      audioEl.addEventListener('play', () => { setAnim('talking'); ensureLipsync(); if (ac && ac.state === 'suspended') ac.resume().catch(()=>{}); startLipsync(); });
+      audioEl.addEventListener('ended', () => { stopLipsync(); if (pendingFace) { const pf = pendingFace; pendingFace = null; setAnim(pf.f, pf.d); } else setAnim(null); });
+      audioEl.addEventListener('error', () => { stopLipsync(); setAnim(null); });
     }
     if (audioUrl === url && !audioEl.paused) { try { audioEl.pause(); } catch(e){} }
     audioUrl = url;
@@ -572,6 +615,81 @@
     audioEl.play().catch(() => {});
   }
   window.niOhAPI.onPlayFile((msg) => { if (msg && msg.url) playInOverlay(msg.url, msg.rate); });
+
+  // ── COMBAT REFLEX: tiếng đã đúc sẵn trong Voice_Packs → fetch 1 lần giữ
+  //    ArrayBuffer trên RAM (≈ dict PCM của combat_loop), phát <5ms, KHÔNG
+  //    qua mạng/TTS sống. Chỉ dẫn mới CẮT chỉ dẫn cũ — tình huống combat
+  //    đổi liên tục thì miệng phải đổi theo. ──
+  const _pcm = new Map();               // url -> ArrayBuffer (RAM)
+  let _reflexEl = null;
+  function ensureReflexEl() {
+    if (_reflexEl) return _reflexEl;
+    _reflexEl = new Audio(); _reflexEl.preload = 'auto';
+    _reflexEl.addEventListener('play', () => {
+      setAnim('talking'); ensureLipsync(); if (ac && ac.state === 'suspended') ac.resume().catch(()=>{}); startLipsync();
+      if (_pendingBubble) { showBubble(_pendingBubble); _pendingBubble = ''; }   // chữ nở đúng khoảnh khắc tiếng cất
+    });
+    _reflexEl.addEventListener('ended', () => { stopLipsync(); if (pendingFace) { const pf = pendingFace; pendingFace = null; setAnim(pf.f, pf.d); } else setAnim(null); });
+    _reflexEl.addEventListener('error', () => { stopLipsync(); setAnim(null); });
+    window.__reflexEl = _reflexEl;
+    return _reflexEl;
+  }
+  function b64ToBlobUrl(b64) {
+    const bin = atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return URL.createObjectURL(new Blob([arr], { type: 'audio/wav' }));
+  }
+  let _pendingBubble = '';
+  function playReflex(url, text, rate) {
+    // KHÔNG hiện chữ trước khi loa cất tiếng — giọng và hộp thoại phải NỞ CÙNG LÚC
+    _pendingBubble = text || '';
+    const el = ensureReflexEl();
+    // AtomicSwap: chỉ dẫn mới CẮT chỉ dẫn cũ đang phát dở (combat đổi liên tục)
+    if (audioEl && !audioEl.paused) { try { audioEl.pause(); } catch (e) {} }
+    if (!el.paused) { try { el.pause(); } catch (e) {} }
+    const fire = (src) => {
+      el.src = src;
+      try { el.playbackRate = Math.min(1.6, Math.max(0.5, rate || 1)); } catch (e) {}
+      el.play().catch(() => {});
+    };
+    const warm = _pcm.get(url);
+    if (warm) { fire(warm); return; }
+    const fp = decodeURIComponent(url.replace(/^file:\/\/\//, ''));
+    window.niOhAPI.readWav(fp).then(r => {
+      if (r && r.success) { const u = b64ToBlobUrl(r.b64); _pcm.set(url, u); fire(u); }
+      else fire(url);   // đường cùng mới thử file:// thẳng
+    }).catch(() => fire(url));
+  }
+  window.niOhAPI.onReflexSay((m) => { if (m && m.url) playReflex(m.url, m.text, m.rate); });
+  window.__reflex = (u, tx, r) => playReflex(u, tx, r);   // dev/CDP: đo latency
+  window.__pcmSize = () => _pcm.size;   // dev/CDP
+  window.niOhAPI.onPackChanged && window.niOhAPI.onPackChanged(() => { _pcm.clear(); });   // hot-reload: wav mới đúc → bỏ cache cũ
+
+
+  // ── Máy trạng thái biểu cảm (BMO: state đổi → mặt đổi + canned clip đồng giọng ngẫu nhiên) ──
+  let cannedEl = null, lastCanned = 0;
+  function playCanned(url) {
+    const now = Date.now();
+    if (now - lastCanned < 6000) return;                 // chống spam
+    if (audioEl && !audioEl.paused) return;              // TTS chính đang nói → nhường
+    try {
+      if (!cannedEl) { cannedEl = new Audio(); cannedEl.preload = 'auto'; }
+      cannedEl.src = url; cannedEl.volume = 0.9;
+      cannedEl.play().catch(() => {});
+      lastCanned = now;
+    } catch (e) {}
+  }
+  let pendingFace = null;
+  window.niOhAPI.onUiState((m) => {
+    if (!m || m.state === 'speaking') return;            // speaking do chính audio play event lo
+    const dur = m.state === 'wake' ? 2200 : m.state === 'error' ? 4000 : 2600;
+    if (m.face) {
+      if (audioEl && !audioEl.paused) pendingFace = { f: m.face, d: dur };  // đừng cướp mặt giữa câu nói
+      else setAnim(m.face, dur);
+    }
+    if (m.clip) playCanned(m.clip);
+  });
 
   // ═══ Config ═══
   const POSE_FILE = { idle:'idle', talking:'talking', thinking:'thinking', fidget:'idle_fidget', look_cursor:'look_cursor', happy:'happy', alert:'alert', sleepy:'sleepy' };
