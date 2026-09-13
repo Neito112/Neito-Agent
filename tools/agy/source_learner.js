@@ -211,7 +211,7 @@ async function loop1Concepts(slug, srcText, images) {
     '• ĐỒNG NGHĨA (cùng một thứ, khác tên — VD "bảng điều khiển" vs "Controls panel") → action=merge, merge_into= tên trong kho, alias= cách gọi mới.',
     'TRUNG THỰC: không bịa khái niệm nguồn không nói. Kết thúc phải đánh giá coverage — nguồn còn phần chưa đọc thì MORE_TO_READ + next_hint.',
     'KHÔNG ĐƯỢC LÀM QUA LỌT: mỗi khu vực/bảng/thao tác nguồn mô tả đều phải ra ít nhất 1 action.',
-    'TỐC ĐỘ: trả lời gọn, không giải thích dài dòng, tối đa 12 action.'
+    'LIỀU ĐẦY ĐỦ: tách triệt để mọi khái niệm nguồn dạy — KHÔNG tự giới hạn số lượng; nhóm khái niệm cận nghĩa lại thành 1 concept nhiều alias thay vì bỏ sót. Trả lời gọn từng dòng, không giải thích dài dòng. TỐI ĐA 30 action mỗi nguồn.'
   ].join('\n\n'), { schema: CONCEPT_LOOP_SCHEMA, images });
   if (!r.success) return r;
   if (!Array.isArray(r.data.actions)) return { success: false, error: 'v1 output thiếu actions: ' + JSON.stringify(r.data).slice(0, 150) };
@@ -271,7 +271,7 @@ async function loop2Situations(slug, srcText, images) {
     'NHIỆM VỤ VÒNG 2 — phát hiện TÌNH HUỐNG thực tế người dùng gặp trong nguồn (kịch bản, lỗi, mẹo, pha xử lý) + bộ khái niệm đồng hiện để nhận biết nó:',
     'Mỗi tình huống: concepts (lấy từ kho nếu có, được phép thêm mới), min_count (số khái niệm tối thiểu đồng hiện), window regex nếu đặc trưng, prompt_template (lệnh mẫu gửi não khi suy luận).',
     'SAU ĐÓ TRA NGAY TRONG NGUỒN NÀY cách giải quyết: có → answered_in_source=true + answer ≤20 từ tiếng Việt đúng theo nguồn (không tự bịa ngoài nguồn); KHÔNG có → answered_in_source=false.',
-    'Mỗi nguồn phải ra tối thiểu 3 tình huống nếu nội dung đủ dài. id không dấu.'
+    'TỐI ĐA HÓA: mọi mục Troubleshooting/FAQ/lỗi thường gặp/kịch bản xử lý trong nguồn ĐỀU phải ra tình huống — mục tiêu ≥6 tình huống mỗi nguồn dài, không đặt trần trên. id không dấu.'
   ].join('\n\n'), { schema: SITUATION_LOOP_SCHEMA, images });
   if (!r.success) return r;
   if (!Array.isArray(r.data.situations)) return { success: false, error: 'v2 output thiếu situations: ' + JSON.stringify(r.data).slice(0, 150) };

@@ -13,11 +13,13 @@ const VISION = path.join(Root, 'memory', 'vision');
 const norm = (s) => se.norm(s);
 
 function importOne(slug) {
+  // file "<mẹ>-deep.json" (đợt đào sâu) nạp thẳng vào kho của mẹ, không sinh slug mới
+  const mother = slug.replace(/-(deep|situations)$/, '');
   const src = path.join(DIRECT, slug + '.json');
   if (!fs.existsSync(src)) return { slug, error: 'không có ' + src };
   let data;
   try { data = JSON.parse(fs.readFileSync(src, 'utf8')); } catch (e) { return { slug, error: 'JSON lỗi: ' + e.message }; }
-  const vfp = path.join(VISION, slug + '.json');
+  const vfp = path.join(VISION, mother + '.json');
   let d;
   try { d = JSON.parse(fs.readFileSync(vfp, 'utf8')); } catch (e) { d = { topic: data.topic || slug, entries: [], concepts: [], situations: [] }; }
   d.concepts = d.concepts || []; d.situations = d.situations || [];
