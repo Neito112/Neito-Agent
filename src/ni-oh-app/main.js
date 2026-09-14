@@ -245,7 +245,7 @@ function agyRun(prompt, model, timeoutMs) {
 }
 
 async function callAgY(question, modelName) {
-  const model = modelName || mainConfig.modelName || 'gemini-3.8-flash-high';
+  const model = modelName || mainConfig.modelName || 'gemini-3.8-flash-medium';   // CHAT = nhanh; model nặng dành riêng cho tự học (trainModel)
   return await agyRun(question, model, 90000);
 }
 
@@ -1839,7 +1839,7 @@ async function idleCondenseRun() {
       'OUTPUT: chỉ in câu rút gọn, không dấu ngoặc, không giải thích.'
     ].join('\n');
     const r = await new Promise((resolve) => {
-      const a = agyArgsX(prompt, 'gemini-3.1-pro-high');
+      const a = agyArgsX(prompt, mainConfig.trainModel || 'gemini-3.8-flash-high');   // việc nền → model tự học
       const child = spawn(a.exe, a.args, { windowsHide: true });
       const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch(e){} resolve({ success:false }); }, 90000);
       let out = '';
@@ -2078,7 +2078,7 @@ ipcMain.handle('ext-request', async (_, payload) => {
     '3. TỰ KIỂM TRA sau cài: tool → require() thử; skill → file tồn tại + frontmatter đủ; mcp → JSON parse được. Lỗi → sửa lại ngay, không để file hỏng trong kho.\n' +
     '4. KHÔNG được sửa bất kỳ file nào ngoài thư mục ' + extMan.EXT + '.\n' +
     'TRẢ LỜI: tiếng Việt, dưới 50 từ, dạng: "Đã cài <loại> <tên> — <trạng thái>". Nếu không làm được (thiếu quyền/thông tin) → nói rõ lý do.';
-  const r = await agyRun(prompt, mainConfig.modelName || 'gemini-3.8-flash-high', 240000);
+  const r = await agyRun(prompt, mainConfig.trainModel || 'gemini-3.1-pro-high', 240000);   // cài tool/skill = việc NẶNG → theo model tự học
   try { fs.rmSync(path.join(extMan.EXT, '_incoming'), { recursive: true, force: true }); } catch (e) {}
   return { success: r.success, answer: r.answer || '', error: r.error || '' };
 });
@@ -2232,7 +2232,7 @@ ipcMain.handle('ext-ask', async (_, question) => {
   const prompt = extMan.storePrompt() + '\n\nCẢNH MÀN HÌNH (mắt YOLO): ' + screenContext() +
     '\n\nYÊU CẦU CỦA SẾP: ' + question +
     '\nTrả lời tiếng Việt, ngắn gọn để đọc TTS. Nếu cần thao tác máy và có quyền → nêu việc sẽ làm rồi làm.';
-  return await agyRun(prompt, mainConfig.modelName || 'gemini-3.8-flash-high', 120000);
+  return await agyRun(prompt, mainConfig.modelName || 'gemini-3.8-flash-medium', 120000);
 });
 ipcMain.handle('get-tools', () => toolRegistry.toolCatalog());
 
