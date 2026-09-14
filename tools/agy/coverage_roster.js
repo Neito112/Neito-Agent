@@ -62,14 +62,25 @@ function agyJson(prompt, schema, timeoutMs) {
     child.on('close', code => {
       clearTimeout(to);
       try { fs.unlinkSync(sf); } catch (e) {}
-      if (!out.trim()) return resolve({ success: false, error: (err || 'agy exit ' + code).slice(0, 240) });
+      if (!out.trim()) {
+        // agy không trả gì (mất net/quota) → NÃO CỤC BỘ Ollama biên soạn tiếp
+        agyTool.ollamaJson(prompt + '\n\nCHỈ in JSON thuần khớp schema, không giải thích.').then(r => {
+          if (r.success && r.data && typeof r.data === 'object') resolve({ success: true, data: r.data, offline: true });
+          else resolve({ success: false, error: (err || 'agy exit ' + code).slice(0, 160) });
+        });
+        return;
+      }
       const lines = out.trim().split('\n').filter(Boolean);
       for (let i = lines.length - 1; i >= 0; i--) {
         try { const o = JSON.parse(lines[i]); if (o.structured_output) return resolve({ success: true, data: o.structured_output }); } catch (e) {}
       }
       const m = out.match(/\{[\s\S]*\}/);
       if (m) { try { return resolve({ success: true, data: JSON.parse(m[0]) }); } catch (e) {} }
-      resolve({ success: false, error: 'không parse được structured output' });
+      // API sập → NÃO CỤC BỘ (Ollama) biên soạn tiếp — roster không chết vì mất net
+      agyTool.ollamaJson(prompt + '\n\nCHỈ in JSON thuần khớp schema, không giải thích.').then(r => {
+        if (r.success && r.data && typeof r.data === 'object') resolve({ success: true, data: r.data, offline: true });
+        else resolve({ success: false, error: 'agy+ollama: ' + (r.error || 'không parse được') });
+      });
     });
     child.on('error', e => { clearTimeout(to); resolve({ success: false, error: e.message }); });
   });
