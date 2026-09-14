@@ -1955,130 +1955,192 @@ function setEmotion(mood, sec) {
   try { if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('emotion', emoId(mood) || mood, sec); } catch (e) {}
 }
 
-// ═══ TRÒ CHUYỆN PHIẾM & CHỦ ĐỘNG NÓI THEO XÁC SUẤT XÚC XẮC (DICE RNG) ═══
-// Thiết kế theo yêu cầu Sếp Neito & Audit từ Gemini 3.1 Pro:
-// Mỗi 5s kiểm tra: 30% kích hoạt nói / 70% im lặng (im lặng tiếp 5-15s).
-// Khi kích hoạt nói: 70% YOLO/mẹo/cổ vũ, 20% sức khỏe đời sống, 10% tin tức game/app.
+// ═══ TIẾN TRÌNH CORE — XÚC XẮC 5s: 30 SKIP / 40 YOLO-KIẾN THỨC / 30 SỨC KHỎE-NHẮC-PHIẾM ═══
+// Thuật toán kích hoạt data CÓ ĐIỀU KIỆN. Không văn mẫu, không file .md.
+//   30%: lắc số ngẫu nhiên 5-15s → skip lượt, chờ rồi quay lại thuật toán.
+//   40%: đọc YOLO/mắt thần trên màn hình → tra KIẾN THỨC TỰ HỌC liên quan (trick/mẹo/nhắc nhở/
+//        lưu ý khi dùng app-game) → nói. KB không có gì mới → im, gieo lại.
+//   30%: một trong ba nhánh —
+//        • SỨC KHỎE: điều kiện mốc thời gian (giờ trưa/đêm, ngồi lâu) + kiến thức đã train.
+//        • NHẮC NHỞ: app đang chạy NGẦM trong máy (không cần hiện trên màn hình).
+//        • CHUYỆN PHIẾM: model đang dùng đọc soul.md (định hình tính cách) rồi TỰ SINH câu mới.
 let chitTimer = null;
 let lastProactiveSpeakTime = 0;
+const APP_START_MS = Date.now();
+let lastUserActivityMs = Date.now();
+try {
+  const { powerMonitor } = require('electron');
+  powerMonitor.on('user-active', () => { lastUserActivityMs = Date.now(); });
+  powerMonitor.on('unlock-screen', () => { lastUserActivityMs = Date.now(); });
+} catch (e) {}
+const _bgCache = { at: 0, list: [] };
 
-const HEALTH_POOL = [
-  "Sếp ơi, ngồi thẳng lưng lên chút nào, kẻo cột sống lại biểu tình đấy ạ.",
-  "Đã ngồi máy tính khá lâu rồi, Sếp nhớ chớp mắt vài cái và uống ngụm nước nhé.",
-  "Vươn vai thả lỏng cổ tay 5 giây đi Sếp, giữ phong độ chuẩn eSports nào!",
-  "Sếp nhớ hít một hơi thật sâu rồi thở chậm ra nhé, nạp lại năng lượng thôi ạ.",
-  "Uống một ngụm nước ấm đi Sếp ơi, mắt và não bộ cần cấp ẩm rồi đó."
-];
+function activeTopicForWindow() {
+  try {
+    if (!lastFrame || !lastFrame.window) return null;
+    const title = String(lastFrame.window);
+    for (const t of visionBrain.listTopics()) {
+      if (!t || !t.topic) continue;
+      const hay = String(t.topic).toLowerCase();
+      for (const w of hay.split(/[\s,·\-–—()\[\]]+/)) {
+        if (w.length >= 4 && title.toLowerCase().includes(w)) return t.slug;
+      }
+    }
+  } catch (e) {}
+  return null;
+}
+
+function bgAppList() {                       // app chạy nền — cache 10 phút, powerpoint 0 token
+  if (Date.now() - _bgCache.at < 600000 && _bgCache.list.length) return _bgCache.list;
+  return new Promise((resolve) => {
+    const ps = 'Get-Process | ?{$_.MainWindowTitle -eq \'\' -and $_.ProcessName -notmatch \'^(conhost|svchost|csrss|wininit|services|lsass|smss|fontdrvhost|Taskmgr|SearchHost|StartMenu|TextInput|ctfmon|dwm|RuntimeBroker|Shell|Widgets|Nvidia|nvcontainer|MpCmdRun|WmiPrv|spoolv|SearchIndexer|SecurityHealth|CrossDevice|WidgetService|GameBar|PhoneAgent|SystemIn|Registry|musint|musnotify|deliveryopt|compattel|sihclient|dllhost|WUDFHost|das|dasProcess|fontproxy|printis|spoolsv|wlanext|wmpnetwk|XblAuth|XblGame|XboxGip|XboxNet|Chakra|OneDrive)\' -and $_.ProcessName -notmatch \'^(electron|python|node|Ni-Oh|nioh)\' -and $_.Responding} | Select -First 40 -Exp ProcessName | Sort -Uniq';
+    const ch = spawn('powershell', ['-NoProfile', '-Command', ps], { windowsHide: true });
+    let out = '';
+    ch.stdout.on('data', d => out += d);
+    const to = setTimeout(() => { try { ch.kill(); } catch (e) {} resolve(_bgCache.list); }, 4000);
+    ch.on('close', () => {
+      clearTimeout(to);
+      const seen = {}; const list = [];
+      for (const n of out.split(/\r?\n/)) { const s2 = n.trim(); if (s2 && !seen[s2]) { seen[s2] = 1; list.push(s2); } }
+      if (list.length) { _bgCache.list = list; _bgCache.at = Date.now(); }
+      resolve(_bgCache.list);
+    });
+    ch.on('error', () => resolve(_bgCache.list));
+  });
+}
 
 function scheduleChit() {
   clearTimeout(chitTimer);
   if (!mainConfig.eyeProactive || !mainConfig.realtimeScanEnabled) return;
-
-  // 1. Gieo xúc xắc tỉ lệ 30% Nói / 70% Im lặng
-  const roll = Math.random();
-  if (roll > 0.30) {
-    // 70% IM LẶNG: Xổ xúc xắc thời gian nghỉ tiếp theo (5 - 15 giây)
-    const silentSeconds = 5 + Math.random() * 10;
-    chitTimer = setTimeout(scheduleChit, silentSeconds * 1000);
-    return;
-  }
-
-  // 2. 30% KÍCH HOẠT NÓI: Chạy ngay vào luồng thực thi
-  // Áp dụng cooldown tối thiểu 15s giữa 2 lần chủ động nói để không gây phiền
-  const now = Date.now();
-  if (now - lastProactiveSpeakTime < 15000) {
-    chitTimer = setTimeout(scheduleChit, 5000);
-    return;
-  }
-
-  chitTimer = setTimeout(chitAboutScreen, 100);
+  chitTimer = setTimeout(rollDice, 5000);    // core loop: mỗi 5s một lần lắc
 }
 
-async function chitAboutScreen(eventNow) {
+async function rollDice() {
   try {
     if (!mainConfig.eyeProactive || !mainConfig.realtimeScanEnabled) return;
-    if (eyeBusy || answeringVoice) return;
-
-    const msg = lastFrame;
-    const fresh = msg && (Date.now() / 1000 - (msg.ts || 0)) < 15;
-    
-    // Gieo xúc xắc phân bổ nội dung (70% YOLO / 20% Sức khỏe / 10% Tin tức)
-    const contentRoll = Math.random();
-
-    // ── NHÁNH 20%: SỨC KHỎE & ĐỜI SỐNG (0-Token, tức thì) ──
-    if (contentRoll >= 0.70 && contentRoll < 0.90) {
-      const healthMsg = HEALTH_POOL[Math.floor(Math.random() * HEALTH_POOL.length)];
-      lastProactiveSpeakTime = Date.now();
-      await speakText(healthMsg);
-      return;
-    }
-
-    // ── NHÁNH 10%: TIN TỨC / UPDATE LIÊN QUAN APP/GAME ──
-    if (contentRoll >= 0.90) {
-      const appName = msg && (msg.process || msg.window) ? (msg.process || msg.window) : '';
-      if (appName) {
-        const soul = soulPrompt();
-        const prompt = (soul ? `HỒ SƠ TÂM HỒN:\n${soul}\n\n` : '') + VOICE_GUARD + '\n\n' +
-          `Sếp đang mở "${appName}". Hãy nói đúng 1 câu ngắn (< 20 từ) chia sẻ 1 mẹo hot, meta hiện tại hoặc nhắc nhở thú vị về app/game này. Tiếng Việt, dí dỏm, không markdown.`;
-        eyeBusy = true;
-        try {
-          const a = agyArgsVoice(prompt, 'gemini-3.8-flash-low');
-          const r = await new Promise((resolve) => {
-            const child = spawn(a.exe, a.args, { windowsHide: true, cwd: a.cwd });
-            const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch(e){} resolve({ success:false }); }, 20000);
-            let out = '';
-            child.stdout.on('data', d => out += d);
-            child.on('close', code => { clearTimeout(to); resolve(code === 0 && out.trim() ? { success:true, answer: out.trim() } : { success:false }); });
-            child.on('error', () => resolve({ success:false }));
-          });
-          if (r.success && r.answer && !isBannedSpeech(r.answer) && !voiceGuarded(r.answer)) {
-            lastProactiveSpeakTime = Date.now();
-            await speakText(r.answer);
-            return;
-          }
-        } finally { eyeBusy = false; }
-      }
-    }
-
-    // ── NHÁNH 70%: NỘI DUNG YOLO ĐANG QUAN SÁT (Mẹo, Cổ vũ, Phản xạ thao tác) ──
-    if (!fresh) return; // Mắt chưa thấy gì mới -> bỏ qua
-    const soul = soulPrompt();
-    const prompt =
-      (soul ? `HỒ SƠ TÂM HỒN (sống theo — cao nhất):\n${soul}\n\n` : '') + VOICE_GUARD + '\n\n' +
-      `BẠN LÀ NI-OH — ${eventNow ? 'Sếp vừa QUAY LẠI màn hình này' : 'vừa LIẾC'} lúc ${new Date().toLocaleTimeString('vi-VN')}.\n` +
-      `CẢNH THỰC TẾ:\n` +
-      `- App on top: ${msg.process || '?'} | Cửa sổ: "${msg.window || '?'}"\n` +
-      `- Vật thể: ${(msg.classes || []).join(', ') || 'không có'}\n` +
-      `- Chữ đọc được: ${String(msg.text || '—').replace(/\n/g, ' ').slice(0, 300)}\n\n` +
-      `Nhiệm vụ: Viết ĐÚNG 1 câu tiếng Việt < 22 từ bám sát màn hình (mẹo chơi, cảm thán, hoặc cổ vũ thao tác của Sếp).\n` +
-      `OUTPUT "SKIP" nếu màn hình bình thường không có gì mới.`;
-    eyeBusy = true;
-    try {
-      if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('thinking', 15);
-      let r2 = null;
-      const r = await new Promise((resolve) => {
-        const urgent = situationEngine.tempo() === situationEngine.pacing().tempo_urgency_threshold;
-        const a = agyArgsVoice(prompt, urgent ? 'gemini-3.8-flash-low' : (mainConfig.modelName || 'gemini-3.8-flash-low'));
-        const child = spawn(a.exe, a.args, { windowsHide: true, cwd: a.cwd });
-        const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch(e){} resolve({ success:false, error:'agy timeout' }); }, urgent ? 20000 : 45000);
-        let out = '', err = '';
-        child.stdout.on('data', d => out += d);
-        child.stderr.on('data', d => err += d);
-        child.on('close', code => { clearTimeout(to); resolve(code === 0 && out.trim() ? { success:true, answer: out.trim() } : { success:false, error: (err||out||'agy exit '+code).toString().slice(0,300) }); });
-        child.on('error', e => { clearTimeout(to); resolve({ success:false, error: e.message }); });
-      });
-      if (!r.success) r2 = await localBrain(prompt);   // API sập → Ollama vẫn chủ động trò chuyện được
-      const rr = (r.success ? r : r2);
-      if (rr && rr.success) {
-        const ans = rr.answer.replace(/^["']|["']$/g, '').trim();
-        if (ans && !/^SKIP\.?$/i.test(ans) && !isBannedSpeech(ans) && !voiceGuarded(ans)) {
-          lastProactiveSpeakTime = Date.now();
-          await speakText(ans);
-        }
-      }
-    } finally { eyeBusy = false; }
+    if (eyeBusy || answeringVoice) { globalThis.__lastDice = { said: false, skip: true, reason: 'busy' }; return; }
+    if (Date.now() - lastProactiveSpeakTime < 15000) { globalThis.__lastDice = { said: false, skip: true, reason: 'cooldown' }; return; }  // chống phiền
+    const r = Math.random();
+    if (r < 0.30) { globalThis.__lastDice = { said: false, skip: true, roll: +r.toFixed(3) }; return; }  // 30% SKIP = IM LẶNG tuyệt đối
+    if (r < 0.70) { await diceYoloKnowledge(); return; }       // 40% YOLO → kiến thức tự học
+    await diceLife();                                          // 30% sức khỏe / nhắc nhở / phiếm
   } finally { scheduleChit(); }
 }
+
+// ── 40%: YOLO trên màn hình → KIẾN THỨC TỰ HỌC (trick/mẹo/lưu ý app-game) ──
+async function diceYoloKnowledge() {
+  const msg = lastFrame;
+  const fresh = msg && (Date.now() / 1000 - (msg.ts || 0)) < 15;
+  if (!fresh) { globalThis.__lastDice = { said: false, branch: 'yolo', reason: 'frame-cu' }; return; }
+  const tokensQ = [msg.process, msg.window, ...(msg.classes || [])].filter(Boolean).join(' ');
+  const kb = visionBrain.searchKB(tokensQ, activeTopicForWindow());
+  if (!kb || !kb.entry) { globalThis.__lastDice = { said: false, branch: 'yolo', reason: 'kb-trong' }; return; }  // không có kiến thức liên quan → im
+  const fact = String(kb.entry.fact || kb.entry.answer || '').trim();
+  if (!fact || kb.entry._usedAt && Date.now() - kb.entry._usedAt < 45 * 60000) { globalThis.__lastDice = { said: false, branch: 'yolo', reason: 'fact-moi-dung' }; return; }  // tránh lặp cùng 1 fact
+  const prompt =
+    (soulPrompt() ? `HỒ SƠ TÂM HỒN (đọc và sống theo — cao nhất):\n${soulPrompt()}\n\n` : '') + VOICE_GUARD + '\n\n' +
+    `MÀN HÌNH: ${msg.process || '?'} | "${String(msg.window || '').slice(0, 80)}" | vật thể: ${(msg.classes || []).slice(0, 6).join(', ') || '—'}\n` +
+    `KIẾN THỨC ĐÃ HỌC: ${fact.slice(0, 400)}\n` +
+    `Biến thành ĐÚNG 1 câu tiếng Việt < 22 từ dạng mẹo/trick/lưu ý thực chiến cho Sếp. Không markdown, không emoji, không bịa thêm số liệu.`;
+  const said = await speakProactive(prompt, fresh ? null : 20000);
+  if (said) kb.entry._usedAt = Date.now();   // chống lặp cùng 1 fact (trong phiên)
+}
+
+// ── 30%: SỨC KHỎE (mốc thời gian) / NHẮC NHỞ (app chạy ngầm) / PHIẾM (sinh từ soul) ──
+async function diceLife() {
+  const sub = Math.random();
+  const h = new Date().getHours();
+  const min = new Date().getMinutes();
+  const sitMin = Math.floor((Date.now() - lastUserActivityMs) / 60000);
+  const sessionH = (Date.now() - APP_START_MS) / 3600000;
+
+  // SỨC KHỎE: có ĐIỀU KIỆN THỜI GIAN thật — trưa/đêm/khuya hoặc ngồi lì ≥45p (15% của 30%)
+  const healthDue = (h >= 22 || h < 5) || (h >= 11 && h < 13 && min < 45) || sitMin >= 45 || sessionH >= 3;
+  if (sub < 0.15 && !healthDue) { globalThis.__lastDice = { said: false, branch: 'health', reason: 'chua-toi-moc' }; }
+  else if (sub < 0.15 && healthDue) {
+    const cond = (h >= 22 || h < 5) ? `Đã ${h}h${min ? ':' + String(min).padStart(2, '0') : ''} — mốc khuya/đêm` :
+      (h >= 11 && h < 13) ? 'Đang khoảng 11h-13h30 — mốc bữa trưa' :
+      sitMin >= 45 ? `Sếp ngồi không hoạt động chuột/phím ${sitMin} phút — mốc vận động` :
+      `Phiên làm việc đã ${Math.floor(sessionH)} tiếng — mốc nghỉ định kỳ`;
+    const kb = visionBrain.searchKB('nghỉ giữa hiệp nước cột sống mắt vận động', 'fitness-gym')
+      || visionBrain.searchKB('thể chất nghỉ ngơi', 'the-thao')
+      || visionBrain.searchKB('vận động nghỉ ngơi nước', null);
+    const prompt =
+      (soulPrompt() ? `HỒ SƠ TÂM HỒN (đọc và sống theo — cao nhất):\n${soulPrompt()}\n\n` : '') + VOICE_GUARD + '\n\n' +
+      `ĐIỀU KIỆN: ${cond}.${kb && kb.entry ? '\nKIẾN THỨC SỨC KHỎE ĐÃ HỌC: ' + String(kb.entry.fact || '').slice(0, 300) : ''}\n` +
+      `Nói ĐÚNG 1 câu tiếng Việt < 20 từ nhắc Sếp một hành vi sức khỏe hợp điều kiện trên — như quản gia điềm đạm, không giảng đạo, không "Dạ…nha…nè".`;
+    await speakProactive(prompt, 20000);
+    return;
+  }
+
+  // NHẮC NHỞ: app đang CHẠY NGẦM trong máy (không cần trên màn hình) (7.5% của 30%)
+  if (sub < 0.225) {
+    const bg = await bgAppList();
+    const cur = String((lastFrame && (lastFrame.process || lastFrame.window)) || '').toLowerCase();
+    const pick = bg.find(n => !cur.includes(n.toLowerCase()) && n.length > 3);
+    if (!pick) { globalThis.__lastDice = { said: false, branch: 'nhac-nho', reason: 'khong-app-ngam' }; }
+    else {
+      const prompt =
+        (soulPrompt() ? `HỒ SƠ TÂM HỒN (đọc và sống theo — cao nhất):\n${soulPrompt()}\n\n` : '') + VOICE_GUARD + '\n\n' +
+        `App "${pick}" đang chạy NGẦM trong máy (không xuất hiện trên màn hình). Nói ĐÚNG 1 câu tiếng Việt < 18 từ nhắc Sếp một cách dí dỏm, hợp lý (việc dở dang/update/tài nguyên) — KHÔNG bịa tính năng.`;
+      await speakProactive(prompt, 20000);
+      return;
+    }
+  }
+
+  // PHIẾM: model ĐANG DÙNG đọc soul rồi TỰ SINH — không có câu sẵn (7.5% của 30%)
+  const prompt =
+    (soulPrompt() ? `HỒ SƠ TÂM HỒN (đọc và SỐNG THEO từng chữ — cao nhất):\n${soulPrompt()}\n\n` : '') + VOICE_GUARD + '\n\n' +
+    `Bối cảnh: ${(lastFrame && (lastFrame.process || lastFrame.window)) || 'máy tính'} · ${new Date().toLocaleTimeString('vi-VN')} · phiên ${Math.floor(sessionH * 10) / 10}h.\n` +
+    `Từ soul trên, TỰ SINH đúng 1 câu chuyện phiếm tiếng Việt < 20 từ đúng chất Ni-Oh (điềm đạm, sắc, mỉa mai tinh tế lịch lãm). Nếu không có gì tự nhiên để nói, chỉ in SKIP.`;
+  await speakProactive(prompt, 20000);
+}
+
+// executor chung: sinh qua agy (đọc soul) → phao Ollama → lọc → TTS. Trả true nếu đã nói.
+async function speakProactive(prompt, killMs) {
+  eyeBusy = true;
+  try {
+    if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('thinking', 15);
+    const urgent = situationEngine.tempo() === situationEngine.pacing().tempo_urgency_threshold;
+    const a = agyArgsVoice(prompt, urgent ? 'gemini-3.8-flash-low' : (mainConfig.modelName || 'gemini-3.8-flash-low'));
+    const r = await new Promise((resolve) => {
+      const child = spawn(a.exe, a.args, { windowsHide: true, cwd: a.cwd });
+      const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch (e) {} resolve({ success: false, error: 'agy timeout' }); }, killMs || 20000);
+      let out = '', err = '';
+      child.stdout.on('data', d => out += d);
+      child.stderr.on('data', d => err += d);
+      child.on('close', code => { clearTimeout(to); resolve(code === 0 && out.trim() ? { success: true, answer: out.trim() } : { success: false, error: (err || out || 'agy exit ' + code).toString().slice(0, 300) }); });
+      child.on('error', e => resolve({ success: false, error: e.message }));
+    });
+    const rr = r.success ? r : await localBrain(prompt);       // API sập → não cục bộ vẫn cất tiếng được
+    if (!rr || !rr.success) return false;
+    const se = stripEmotion(rr.answer);                        // gỡ nhãn [vui]/[ok]… TRƯỚC khi lọc SKIP
+    const ans = String(se.text || '').replace(/^["']|["']$/g, '').trim();
+    if (!ans || /^SKIP\.?$/i.test(ans) || isBannedSpeech(ans) || voiceGuarded(ans)) return false;
+    if (globalThis.__diceDryRun) { globalThis.__lastDice = { said: false, dry: true, text: ans, emo: se.emo || null, at: Date.now() }; return false; }  // test: sinh câu nhưng IM LẶNG
+    if (se.emo) fireEmo(se.emo, 5200);                         // mặt đổi trước khi cất tiếng
+    lastProactiveSpeakTime = Date.now();
+    await speakText(ans);
+    globalThis.__lastDice = { said: true, text: ans, emo: se.emo || null, at: Date.now() };
+    return true;
+  } catch (e) { return false; } finally { eyeBusy = false; }
+}
+
+// Test hook (ẩn, chỉ CDP): ép nhánh xúc xắc — 'yolo' | 'health' | 'bg' | 'phim' | 'roll'
+ipcMain.handle('dice-test', async (e, which) => {
+  // CHỈ để kiểm tra thuật toán: DRY-RUN — model sinh câu nhưng KHÔNG phát tiếng.
+  // which='roll' → một lần lắc thật (đúng 1 nhánh); nào khác → ép nhánh đó.
+  globalThis.__lastDice = { said: false, branch: which };
+  globalThis.__diceDryRun = true;
+  try {
+    if (which === 'yolo') await diceYoloKnowledge();
+    else if (which === 'health') { const _r = Math.random; Math.random = () => 0.05; try { await diceLife(); } finally { Math.random = _r; } }
+    else if (which === 'bg')    { const _r = Math.random; Math.random = () => 0.20; try { await diceLife(); } finally { Math.random = _r; } }
+    else if (which === 'phim')  { const _r = Math.random; Math.random = () => 0.29; try { await diceLife(); } finally { Math.random = _r; } }
+    else await rollDice();
+  } finally { globalThis.__diceDryRun = false; }
+  return globalThis.__lastDice || { said: false, branch: which };
+});
 
 ipcMain.handle('toggle-realtime-scan', () => {
   if (!mainConfig.realtimeScanEnabled) {

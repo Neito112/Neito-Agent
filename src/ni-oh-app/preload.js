@@ -60,6 +60,7 @@ contextBridge.exposeInMainWorld('niOhAPI', {
 
   // Realtime scan toggle
   toggleRealtimeScan: () => ipcRenderer.invoke('toggle-realtime-scan'),
+  diceTest: (w) => ipcRenderer.invoke('dice-test', w),   // test hook (ẩn)
 
   // Voice training from sample
   trainVoiceFromSample: (filePath) => ipcRenderer.invoke('train-voice-from-sample', filePath),
