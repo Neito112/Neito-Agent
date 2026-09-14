@@ -1627,10 +1627,11 @@ async function handleSwitchEvent(msg) {
   if (_switchCooldown[key] && now - _switchCooldown[key] < P.cooldown_base_s * 1000) return;
   _switchCooldown[key] = now;
   if (ev.kind === 'launch' && P.startup_ack) {
+    // Chuyển giao thức = đánh dấu FOCUS BỘ KIẾN THỨC nội bộ (activeTopic/searchKB theo cửa sổ).
+    // KHÔNG cất tiếng — đây không phải loa thông báo. Chỉ log để debug.
     situationEngine.markAcked(ev.proc);
-    const proto = protocolNameFor(msg);
-    const line = `Chuyển sang ${proto}. Em bật theo dõi.`;   // template — 0ms, không LLM
-    if (!isBannedSpeech(line)) await speakText(line, 1.1);
+    globalThis.__activeProtocol = protocolNameFor(msg);
+    console.log('[Switch] focus →', globalThis.__activeProtocol);
     return;
   }
   // tabback (Alt-Tab qua lại app đã biết): IM LẶNG tuyệt đối — không chào, không spawn LLM.
@@ -1863,6 +1864,73 @@ function vieBatch(items, cb) {
   catch (e) { clearTimeout(to); viePending.delete(id); cb(0); }
 }
 
+// ═══ SOUL-WATCHER — soul.md đổi → DỤC LẠI TOÀN BỘ kịch bản voice theo tính cách mới ═══
+// Kịch bản canned (wake/thinking/done/sleep/error) do model ĐỌC SOUL sinh biến thể,
+// VieNeu đúc thành wav cùng manifest (stateClips hot-reload theo mtime manifest).
+const VOICE_SCRIPT_STATES = ['wake', 'thinking', 'done', 'sleep', 'error'];
+let _soulMtime = 0, _soulReforgeBusy = false;
+function soulScriptPrompt(soul) {
+  return [
+    'SOUL CỦA NI-OH (định hình văn phong — đọc và SỐNG THEO):', soul.slice(0, 2000), '',
+    'Viết lại KỊCH BẢN VOICE canned cho 5 trạng thái, mỗi trạng thái 3 câu ngắn (<= 8 từ),',
+    'đúng chất Ni-Oh trong soul — KHÔNG tổng đài, KHÔNG "Dạ...nha...nè" dây dưa, mỗi câu phải',
+    'khác nhau thật sự (không đổi mỗi từ cuối). Trạng thái:',
+    '- wake: vừa được gọi/đánh thức', '- thinking: đang xử lý yêu cầu', '- done: làm xong việc',
+    '- sleep: chuyển nghỉ khi máy im lặng', '- error: báo thất bại nhẹ nhàng',
+    'OUTPUT strict JSON, không markdown: {"wake":["...","...","..."],"thinking":[...],"done":[...],"sleep":[...],"error":[...]}'
+  ].join('\n');
+}
+async function reforgeVoiceFromSoul(reason) {
+  if (_soulReforgeBusy) return; _soulReforgeBusy = true;
+  try {
+    const soul = soulPrompt(); if (!soul) return;
+    const dir = path.join(NIOH_ROOT, 'assets', 'voices');
+    let lines = null;
+    const a = agyArgsVoice(soulScriptPrompt(soul), 'gemini-3.8-flash-low');
+    const r = await new Promise((resolve) => {
+      const child = spawn(a.exe, a.args, { windowsHide: true, cwd: a.cwd });
+      const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch (e) {} resolve(null); }, 60000);
+      let out = '';
+      child.stdout.on('data', d => out += d);
+      child.on('close', code => { clearTimeout(to); resolve(code === 0 && out.trim() ? out : null); });
+      child.on('error', () => resolve(null));
+    });
+    const raw = r || (await localBrain(soulScriptPrompt(soul)) || {}).answer;
+    if (!raw) { console.log('[SoulWatch] ' + reason + ' — không sinh được kịch bản (agy+ollama đều im)'); return; }
+    try { lines = JSON.parse(String(raw).replace(/^[\s\S]*?(\{)/, '$1').replace(/(\})[\s\S]*$/, '$1')); } catch (e) {}
+    if (!lines || !VOICE_SCRIPT_STATES.every(s => Array.isArray(lines[s]) && lines[s].length)) { console.log('[SoulWatch] JSON kịch bản lỗi'); return; }
+    // đúc wav: vieBatch ra assets/voices/<state>/<i>.wav — manifest hash theo text+nội dung soul
+    const soulSig = crypto.createHash('md5').update(soul).digest('hex').slice(0, 8);
+    let man = {}; try { man = JSON.parse(fs.readFileSync(path.join(dir, 'manifest.json'), 'utf8')); } catch (e) {}
+    const items = [], keys = [];
+    for (const st of VOICE_SCRIPT_STATES) {
+      lines[st].slice(0, 4).forEach((t, i) => {
+        const key = st + '/' + i, text = String(t).trim().slice(0, 60);
+        const out = path.join(dir, st, i + '.wav');
+        items.push({ text, out: out.replace(/\\/g, '/'), voice: 'Ng\u1ecdc Linh', sway: -1 });
+        keys.push([key, text, out]);
+      });
+    }
+    await new Promise((resolve) => vieBatch(items, () => resolve()));
+    let ok = 0;
+    for (const [key, text, out] of keys) {
+      if (fs.existsSync(out)) { man[key] = soulSig + '-' + crypto.createHash('md5').update(text).digest('hex').slice(0, 8); ok++; }
+    }
+    fs.writeFileSync(path.join(dir, 'manifest.json'), JSON.stringify(man, null, 1));
+    console.log('[SoulWatch] ' + reason + ' → dục lại ' + ok + '/' + keys.length + ' câu voice theo soul mới');
+  } finally { _soulReforgeBusy = false; }
+}
+function startSoulWatcher() {
+  try {
+    _soulMtime = fs.existsSync(SOUL_FILE) ? fs.statSync(SOUL_FILE).mtimeMs : 0;
+    fs.watchFile(SOUL_FILE, { interval: 5000 }, (cur) => {
+      if (!cur.mtimeMs || cur.mtimeMs === _soulMtime) return;
+      _soulMtime = cur.mtimeMs;
+      reforgeVoiceFromSoul('soul.md đổi');
+    });
+  } catch (e) {}
+}
+
 // ═══ WORKER NHÀN RỖI — nén câu tình huống + cô đọng KB khi không có gì làm ═══
 // Kích hoạt: (mắt+tai đều TẮT) HOẶC (mắt bật nhưng màn hình im lặng ≥6 phút).
 // Việc: lấy condense_due → Sonnet viết lại ≤6 từ (answer_urgent) → lần combat
@@ -1966,6 +2034,7 @@ function setEmotion(mood, sec) {
 //        • CHUYỆN PHIẾM: model đang dùng đọc soul.md (định hình tính cách) rồi TỰ SINH câu mới.
 let chitTimer = null;
 let lastProactiveSpeakTime = 0;
+const crypto = require('crypto');
 const APP_START_MS = Date.now();
 let lastUserActivityMs = Date.now();
 try {
@@ -2100,7 +2169,7 @@ async function diceLife() {
 async function speakProactive(prompt, killMs) {
   eyeBusy = true;
   try {
-    if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('thinking', 15);
+    // (không 'thinking' ở đây: chủ động nói là tiến trình nền — im tới lúc chắc câu mới biểu hiện)
     const urgent = situationEngine.tempo() === situationEngine.pacing().tempo_urgency_threshold;
     const a = agyArgsVoice(prompt, urgent ? 'gemini-3.8-flash-low' : (mainConfig.modelName || 'gemini-3.8-flash-low'));
     const r = await new Promise((resolve) => {
@@ -3159,6 +3228,7 @@ app.whenReady().then(() => {
   if (mainConfig.overlayVisible) showOverlay();
   else showDashboard();
   if (mainConfig.realtimeScanEnabled) startEye();
+  startSoulWatcher();
   if ((mainConfig.voiceProvider || 'vieneu') === 'vieneu') vieSpawn(); // âm thầm khởi động giọng
   if ((mainConfig.micMode || 'off') !== 'off') earSpawn();
 });
