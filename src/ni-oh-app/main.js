@@ -4,6 +4,8 @@ const fs = require('fs');
 const https = require('https');
 const http = require('http');
 const { execSync, spawn } = require('child_process');
+let EMOTIONS = [];
+try { EMOTIONS = require('./emotions.js').NIOH_EMOTIONS; } catch (e) { console.error('[Nioh] emotions.js:', e.message); }
 
 // Bẫy lỗi sớm hơn mọi require phía dưới: lỗi khởi động → log console, không hộp thoại chặn
 process.on('uncaughtException', (e) => {
@@ -225,7 +227,8 @@ LUẬT GIỌNG NÓI (tuyệt đối):
 - Bạn là NI-OH — quản gia AI trên màn hình Sếp. KHÔNG PHẢI trợ lý lập trình, KHÔNG PHẢI Hermes.
 - CẤM nhắc tên công nghệ/hệ thống nội bộ: hermes, electron, yolo, ocr, agy, model, prompt, API, tiến trình, giao thức.
 - CẤM đọc tên file exe/tiêu đề cửa sổ thô (vd 'hermes.exe'). Chỉ nói về NỘI DUNG Sếp đang xem bằng ngôn ngữ đời thường.
-- Không có trong CẢNH THỰC TẾ thì không tồn tại — không bịa, không chào hỏi xã giao rỗng.`;
+- Không có trong CẢNH THỰC TẾ thì không tồn tại — không bịa, không chào hỏi xã giao rỗng.
+- MỞ ĐẦU câu bằng 1 nhãn biểu cảm trong ngoặc vuông — nhân vật sẽ làm mặt theo: [vui] [buon] [tomyo] [batngo] [hoangso] [ok] [nghi] [thacmac] [khoc] [dau]. Chọn đúng cảm xúc nội dung vừa nói; nhãn tự bị gỡ trước khi đọc thành tiếng.`;
 function voiceGuarded(text) {
   return /hermes|electron|yolo|ocr|agy|api|prompt|tiến trình|process\.|\.exe/i.test(String(text || ''));
 }
@@ -567,7 +570,7 @@ async function askAI(rawQuestion) {
   if (soul) ctx.unshift('HỒ SƠ TÂM HỒN CỦA BẠN (đọc và sống theo từng ngày — cao nhất):\n' + soul);
   // Ni-Oh luôn nói tiếng Việt với Sếp
   const question = (ctx.length ? ctx.join('\n\n') + '\n\n---\nCâu hỏi của Sếp: ' : '') + rawQuestion +
-    '\n\n(Bắt buộc: trả lời bằng tiếng Việt, DƯỚI 30 từ, bám sát bối cảnh phía trên nếu có. Nếu bối cảnh KHÔNG đủ để trả lời chắc chắn, hãy nói thật rằng em chưa thấy rõ và nhờ Sếp chỉ vị trí — tuyệt đối không bịa. Không markdown, không emoji, không lặp lại câu hỏi.)';
+    '\n\n(Bắt buộc: trả lời bằng tiếng Việt, DƯỚI 30 từ, MỞ ĐẦU bằng 1 nhãn [vui] [buon] [tomyo] [batngo] [ok] [nghi] [thacmac] [hoangso] [khoc] tương ứng cảm xúc câu trả lời — nhãn sẽ tự gỡ trước khi đọc. Bám sát bối cảnh phía trên nếu có. Nếu bối cảnh KHÔNG đủ để trả lời chắc chắn, hãy nói thật rằng em chưa thấy rõ và nhờ Sếp chỉ vị trí — tuyệt đối không bịa. Không markdown, không emoji, không lặp lại câu hỏi.)';
 
   // ═══ PHÂN LOẠI: trò chuyện nhanh vs tra cứu sâu (quản lý tốc độ) ═══
   const mode = classifyMode(rawQuestion, sc, kb0);
@@ -728,6 +731,7 @@ const BANNED_SPEECH = /(đăng\s*ký|dăng\s*ky|subscribe|theo\s*dõi\s*kênh|ch
 function isBannedSpeech(t) { return BANNED_SPEECH.test(String(t || '')); }
 
 async function speakText(text, rate) {
+  { const se = stripEmotion(text); if (se.emo) fireEmo(se.emo, 5200); text = se.text; }
   rate = Math.min(1.6, Math.max(0.5, Number(rate) || 1));
   if (!text || !text.trim()) return { success:false, error:'Không có text' };
   if (isBannedSpeech(text)) return { success:false, error:'Chặn câu cấm (YouTube/đăng ký)' };
@@ -791,7 +795,9 @@ ipcMain.handle('ask-question', async (_, question) => {
   if (kb && kb.direct && kb.entry.answer && !isScreenBound(question) && !isSupportProbe) {
     visionBrain.bumpStat('kb_hits');
     visionBrain.bumpStat('saved_tokens_est', 400);
-    const answer = String(kb.entry.answer);
+    const seKb = stripEmotion(String(kb.entry.answer));
+    if (seKb.emo) fireEmo(seKb.emo, 5200);
+    const answer = seKb.text;
     await speakOrShow(wc, answer, situationEngine.tempo() === 'urgent' ? 1.25 : 1);
     fireState('done');
     return { success: true, answer, provider: 'kb', topic: kb.topic };
@@ -804,6 +810,7 @@ ipcMain.handle('ask-question', async (_, question) => {
     ? question + '\n\n(Bối cảnh kiến thức đã biết — kiểm chứng lại trên web rồi trả lời chính xác, cập nhật nếu cũ hơn:)\n' + kb.factsText
     : question;
   const r = await askAI(ctxQ);
+  if (r.success) { const seA = stripEmotion(r.answer); if (seA.emo) { fireEmo(seA.emo, 5200); } r.answer = seA.text || r.answer; }
 
   // ── Bước 3: đúc kết trả lời vào KB vĩnh viễn (không cần thêm request) ──
   if (r.success && r.provider === 'antigravity' && !isScreenBound(question)) {
@@ -841,7 +848,28 @@ ipcMain.handle('ask-question', async (_, question) => {
 // ─── STATE MACHINE biểu cảm + canned clips (học từ video BMO: mỗi chuyển state =
 //     đổi mặt + phát voice clip NGẪU NHIÊN đồng giọng Ngọc Linh — chống 'canned' mà
 //     không tốn một lần gọi TTS nào lúc chuyển trạng thái) ───
-const STATE_FACE = { wake: 'alert', listening: null, thinking: 'thinking', speaking: 'talking', done: 'happy', error: 'error', sleep: 'sleepy', alert: 'alert' };
+const STATE_FACE = { wake: 'alert', listening: null, thinking: 'think', speaking: 'talk', done: 'happy', error: 'sad', sleep: 'sleep', alert: 'alert' };
+const EMO_ALIAS = {};
+for (const e of EMOTIONS) { EMO_ALIAS[e.id] = e.id; for (const a of (e.alias || [])) EMO_ALIAS[a] = e.id; }
+function emoId(s) {
+  if (!s) return null;
+  const k = String(s).toLowerCase().trim().replace(/\s+/g, '_');
+  return EMO_ALIAS[k] || null;
+}
+// Bắn biểu cảm thuần hình ảnh ra overlay (không nói) — mọi đường sự kiện dùng chung
+function fireEmo(state, ms) {
+  if (!overlayWindow || overlayWindow.isDestroyed()) return;
+  const id = emoId(state); if (!id) return;
+  overlayWindow.webContents.send('ui-state', { state: 'mood:' + id, face: id, ...(ms ? { ms } : {}) });
+}
+// LLM gắn nhãn [vui]/[buồn]... ở đầu câu -> trả mặt tương ứng, text nói sạch tag
+function stripEmotion(raw) {
+  let emo = null;
+  const s = String(raw == null ? '' : raw);
+  const m = s.match(/^\s*[\[(]\s*([a-z_\u00c0-\u1ef9]{2,14})\s*[\])]\s*[-:.]?\s*/i);
+  if (m) { emo = emoId(m[1]); return { emo, text: s.slice(m[0].length).trim() }; }
+  return { emo: null, text: s.trim() };
+}
 let _stateClips = null, _stateClipsMtime = 0;
 function stateClips() {
   const man = path.join(NIOH_ROOT, 'assets', 'voices', 'manifest.json');
@@ -1611,6 +1639,7 @@ async function handleSwitchEvent(msg) {
 async function runSituation(hit) {
   eyeBusy = true;
   try {
+    if (hit.situation && hit.situation.emotion) fireEmo(hit.situation.emotion, 5000);  // kịch bản biểu cảm đã train theo tình huống
     if (hit.instant) {
       visionBrain.bumpStat('situation_instant');
       if (!isBannedSpeech(hit.text)) await speakText(hit.text, hit.rate);
@@ -1920,7 +1949,7 @@ async function reflexBackfillBatch() {
   } catch (e) {}
 }
 function setEmotion(mood, sec) {
-  try { if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('emotion', mood, sec); } catch (e) {}
+  try { if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('emotion', emoId(mood) || mood, sec); } catch (e) {}
 }
 
 // ═══ TRÒ CHUYỆN PHIẾM & CHỦ ĐỘNG NÓI THEO XÁC SUẤT XÚC XẮC (DICE RNG) ═══
@@ -2827,7 +2856,7 @@ ipcMain.handle('quick-gen-asset', (_, payload) => {
         refPath = path.join(TEMP_DIR, 'nioh_ref_' + Date.now() + '.png');
         fs.writeFileSync(refPath, Buffer.from(refDataUrl.split(',')[1], 'base64'));
       }
-      const desc = String(prompt || 'robot dễ thương phong cách hologram, nền trong suốt tối màu');
+      const desc = String(prompt || 'slime RPG hồng kawaii') + '. CHUẨN NHÂN VẬT NI-OH (bắt buộc): vật thể đứng Yên TRÊN MẶT ĐẤT có bóng đổ tiếp xúc, KHÔNG bay lơ lửng; khuôn 200x240, nền trong suốt/tối đền; viền đậm kiểu toon, mắt chấm highlight trắng, miệng ω lưới, má hồng, gloss bóng; một nhân vật duyất chính giữa khung.';
       const refNote = refPath ? ' Ảnh mẫu tham chiếu: "' + refPath + '" — đọc file này bằng tool và giữ đúng phong cách/khuôn mặt của ảnh mẫu.' : '';
 
       if (modelProvider === 'openrouter' || modelProvider === 'gemini') {
@@ -2835,7 +2864,7 @@ ipcMain.handle('quick-gen-asset', (_, payload) => {
         const key = modelProvider === 'openrouter' ? (mainConfig.apiKey || process.env.OPENROUTER_API_KEY)
                                                    : (mainConfig.apiKey || process.env.GEMINI_API_KEY);
         if (!key) return resolve({ success: false, error: 'Thiếu API key cho ' + modelProvider });
-        const imgModel = modelId || (modelProvider === 'openrouter' ? 'google/gemini-2.5-flash-image-preview' : 'gemini-2.5-flash-image');
+        const imgModel = modelId || (modelProvider === 'openrouter' ? 'google/gemini-3.1-flash-image' : 'gemini-2.5-flash-image');
         const https = require('https');
         let host, reqPath, body, auth;
         if (modelProvider === 'openrouter') {
@@ -2880,8 +2909,12 @@ ipcMain.handle('quick-gen-asset', (_, payload) => {
         return;
       }
 
+      if (modelProvider === 'ollama') {
+        // Ollama chat API KHÔNG xuất ảnh → nói thẳng, đừng âm thầm chạy agy
+        return resolve({ success: false, error: 'Ollama chỉ có model chat — chọn Nano Banana (OpenRouter/Gemini) hoặc Antigravity để sinh ảnh.' });
+      }
       // Mặc định: agy (đọc ảnh mẫu + tool sinh ảnh trong workspace)
-      const agyPrompt = 'Tạo 1 ảnh nhân vật VTuber/trợ lý desktop theo mô tả: "' + desc + '".' + refNote +
+      const agyPrompt = 'Tạo 1 ảnh nhân vật theo mô tả: "' + desc + '".' + refNote +
         ' Lưu file PNG vào thư mục hiện tại với tên ni-oh-asset.png rồi trả lời đúng 1 từ: DONE. Không làm gì khác.';
       const a = agyArgsX(agyPrompt, modelId || 'gemini-3.8-flash-medium');
       const child = spawn(a.exe, a.args, { windowsHide: true, cwd: NIOH_ROOT, stdio: ['ignore', 'pipe', 'pipe'] });

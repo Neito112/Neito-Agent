@@ -1,87 +1,197 @@
 <svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
-  <!-- Ni-Oh slime chuẩn RPG: thân vòm rộng, ĐÁY PHẲNG NẰM MẶT ĐẤT (không lơ lửng),
-       có bóng tiếp xúc + bóng tạt. 7 biểu cảm cùng khup mặt. -->
+  <!-- Ni-Oh slime — chuẩn kawaii RPG (tham chiếu: slime hồng Llor, Rod 2019).
+       Vật thể ĐẶT ĐẤT: đáy phẳng y≈200 + bóng tiếp địa. Viền đậm, gloss lớn,
+       miệng mèo ω + lưỡi, má hồng, giọt bong bóng bên đầu. 25 trạng thái biểu cảm. -->
   <defs>
-    <radialGradient id="slimeG" cx="34%" cy="26%" r="86%">
-      <stop offset="0%" stop-color="#e6f2ff"/>
-      <stop offset="42%" stop-color="#a8c9f2"/>
-      <stop offset="100%" stop-color="#6890da"/>
+    <radialGradient id="slimeG" cx="36%" cy="28%" r="88%">
+      <stop offset="0%" stop-color="#ffe1e8"/>
+      <stop offset="45%" stop-color="#ffb3c4"/>
+      <stop offset="100%" stop-color="#f98ba6"/>
     </radialGradient>
-    <radialGradient id="coreG" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#cdefff" stop-opacity="1"/>
-      <stop offset="55%" stop-color="#5aa7e8" stop-opacity=".75"/>
-      <stop offset="100%" stop-color="#5aa7e8" stop-opacity="0"/>
+    <radialGradient id="dropG" cx="35%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#ffdfe8"/>
+      <stop offset="100%" stop-color="#f98ba6"/>
     </radialGradient>
   </defs>
 
-  <!-- bóng đổ dưới đất (xa: loang, gan: dam) -->
-  <ellipse class="puddle" cx="100" cy="212" rx="62" ry="10" fill="#9ec1ee"/>
-  <ellipse cx="100" cy="211" rx="34" ry="4.5" fill="#5b7fb8" opacity=".38"/>
+  <!-- bóng tiếp địa -->
+  <ellipse class="puddle" cx="100" cy="212" rx="58" ry="9" fill="#f9a8bc"/>
+  <ellipse cx="100" cy="211" rx="32" ry="4" fill="#c96f8b" opacity=".35"/>
 
   <g class="slime-body">
-    <!-- THAN VOM: dau 200 → 96, day phang tai y=200, gợn nhe đỉnh -->
-    <path d="M42 200 C36 152 58 102 92 98 C96 89 104 89 108 98 C142 102 164 152 158 200 Q100 208 42 200 Z"
-          fill="url(#slimeG)" stroke="#b7d2f2" stroke-width="2" opacity=".95"/>
-    <!-- day dang vi trong luong + lop trong suot -->
-    <path d="M48 190 q52 14 104 0 q-6 9 -52 9 q-46 0 -52 -9 Z" fill="#5b8bd6" opacity=".22"/>
-    <path d="M60 176 q40 10 80 0 q-36 8 -80 0 Z" fill="#ffffff" opacity=".1"/>
-    <!-- net gay sang tren mai -->
-    <path d="M58 128 q22 -12 34 2 q-20 10 -34 -2 Z" fill="#ffffff" opacity=".16"/>
-    <!-- luong the: loi trong tâm -->
-    <g class="core">
-      <circle cx="100" cy="150" r="26" fill="url(#coreG)"/>
-      <path d="M100 136 l10 14 l-10 14 l-10 -14 Z" fill="#cfeaff" stroke="#7db8ea" stroke-width="1.4" class="glint"/>
+    <!-- giọt bong bóng tinh nghịch -->
+    <circle class="drop" cx="150" cy="72" r="9" fill="url(#dropG)" stroke="#4a3238" stroke-width="2.4"/>
+    <circle cx="147" cy="69" r="2.6" fill="#ffffff" opacity=".9"/>
+    <!-- thân: vòm rộng đáy, chóp nhỏ lệch phải như ảnh gốc -->
+    <path d="M36 196 C30 142 56 94 96 92 C104 92 108 84 111 70 C119 80 121 88 126 92 C160 98 172 146 164 196 Q100 206 36 196 Z"
+          fill="url(#slimeG)" stroke="#4a3238" stroke-width="3.4" stroke-linejoin="round"/>
+    <!-- gloss lớn + phụ -->
+    <ellipse cx="68" cy="116" rx="15" ry="21" fill="#ffffff" opacity=".75" transform="rotate(-22 68 116)"/>
+    <circle cx="56" cy="146" r="4.4" fill="#ffffff" opacity=".5"/>
+    <path d="M60 178 q40 12 80 0 q-38 9 -80 0 Z" fill="#e5738f" opacity=".35"/>
+    <!-- má hồng -->
+    <ellipse class="blush" cx="64" cy="158" rx="7.5" ry="4.2" fill="#ff8fb0" opacity=".6"/>
+    <ellipse class="blush" cx="136" cy="158" rx="7.5" ry="4.2" fill="#ff8fb0" opacity=".6"/>
+    <g class="blush-strong" fill="#ff5f8a" opacity=".8">
+      <ellipse cx="63" cy="159" rx="10" ry="6"/><ellipse cx="137" cy="159" rx="10" ry="6"/>
     </g>
-    <!-- dau nhu moi trong suot -->
-    <ellipse class="glint" cx="66" cy="118" rx="12" ry="18" fill="#ffffff" opacity=".62" transform="rotate(-22 66 118)"/>
-    <circle cx="140" cy="150" r="3.4" fill="#ffffff" opacity=".35"/>
-    <g class="bub" fill="none" stroke="#bfe4ff" stroke-width="1.6">
-      <circle cx="158" cy="118" r="4"/><circle cx="166" cy="104" r="2.6"/><circle cx="152" cy="96" r="1.8"/>
-    </g>
-    <g class="zzz" fill="#bfe4ff" font-family="Segoe UI" font-weight="700">
-      <text x="150" y="112" font-size="16">z</text>
-      <text x="164" y="98" font-size="12">z</text>
-    </g>
-  </g>
 
-  <!-- MAT — khup tai x 70..130, mieng 90..110 (moi mau cung 1 vi tri) -->
-  <g class="face">
-    <g class="eyes-normal">
-      <ellipse cx="80" cy="146" rx="6" ry="9.5" fill="#2c4f7c"/>
-      <ellipse cx="120" cy="146" rx="6" ry="9.5" fill="#2c4f7c"/>
-      <circle cx="78" cy="142" r="2.1" fill="#ffffff" opacity=".95"/>
-      <circle cx="118" cy="142" r="2.1" fill="#ffffff" opacity=".95"/>
+    <!-- ══ MẮT ══ -->
+    <g class="eyes-open">
+      <g class="pupL"><ellipse cx="80" cy="145" rx="7.5" ry="10.5" fill="#3a2a2e"/><circle cx="77" cy="140" r="2.8" fill="#fff"/></g>
+      <g class="pupR"><ellipse cx="120" cy="145" rx="7.5" ry="10.5" fill="#3a2a2e"/><circle cx="117" cy="140" r="2.8" fill="#fff"/></g>
     </g>
-    <g class="eyes-line" stroke="#2c4f7c" stroke-width="2.6" stroke-linecap="round" fill="none">
+    <g class="eyes-happy" stroke="#3a2a2e" stroke-width="3" stroke-linecap="round" fill="none">
+      <path d="M73 147 q7 -10 14 0"/><path d="M113 147 q7 -10 14 0"/>
+    </g>
+    <g class="eyes-laugh" stroke="#3a2a2e" stroke-width="3.2" stroke-linecap="round" fill="none">
+      <path d="M72 149 q7 -12 15 -2"/><path d="M113 147 q8 -10 15 2"/>
+    </g>
+    <g class="eyes-closed" stroke="#3a2a2e" stroke-width="3" stroke-linecap="round" fill="none">
       <path d="M73 146 q7 5 14 0"/><path d="M113 146 q7 5 14 0"/>
     </g>
-    <g class="eyes-happy" stroke="#2c4f7c" stroke-width="2.8" stroke-linecap="round" fill="none">
-      <path d="M73 148 q7 -9 14 0"/><path d="M113 148 q7 -9 14 0"/>
+    <g class="eyes-sad">
+      <ellipse cx="80" cy="148" rx="7" ry="9" fill="#3a2a2e"/><ellipse cx="120" cy="148" rx="7" ry="9" fill="#3a2a2e"/>
+      <circle cx="78" cy="145" r="2.4" fill="#fff"/><circle cx="118" cy="145" r="2.4" fill="#fff"/>
+      <ellipse cx="80" cy="155" rx="4" ry="2" fill="#8fb7d8" opacity=".6"/><ellipse cx="120" cy="155" rx="4" ry="2" fill="#8fb7d8" opacity=".6"/>
+    </g>
+    <g class="brow-sad" stroke="#3a2a2e" stroke-width="2.6" stroke-linecap="round" fill="none">
+      <path d="M72 133 q8 -5 15 -1"/><path d="M113 132 q7 -4 15 1"/>
+    </g>
+    <g class="eyes-cry" stroke="#3a2a2e" stroke-width="3" stroke-linecap="round" fill="none">
+      <path d="M74 142 l12 6 l-12 6"/><path d="M126 142 l-12 6 l12 6"/>
+    </g>
+    <g class="tears" fill="#7ec8f2" stroke="#4a9cc8" stroke-width="1">
+      <path d="M76 156 q-4 10 0 14 q6 -4 0 -14 Z"/><path d="M124 156 q4 10 0 14 q-6 -4 0 -14 Z"/>
+      <path d="M74 172 q-3 7 0 10 q4 -3 0 -10 Z" opacity=".7"/><path d="M126 172 q3 7 0 10 q-4 -3 0 -10 Z" opacity=".7"/>
+    </g>
+    <g class="eyes-wide">
+      <circle cx="80" cy="145" r="10.5" fill="#ffffff" stroke="#3a2a2e" stroke-width="2.4"/><circle cx="80" cy="146" r="4.4" fill="#3a2a2e"/>
+      <circle cx="120" cy="145" r="10.5" fill="#ffffff" stroke="#3a2a2e" stroke-width="2.4"/><circle cx="120" cy="146" r="4.4" fill="#3a2a2e"/>
     </g>
     <g class="eyes-alert">
-      <circle cx="80" cy="144" r="9.5" fill="#ffffff" stroke="#2c4f7c" stroke-width="2"/>
-      <circle cx="80" cy="144" r="3.6" fill="#2c4f7c"/>
-      <circle cx="120" cy="144" r="9.5" fill="#ffffff" stroke="#2c4f7c" stroke-width="2"/>
-      <circle cx="120" cy="144" r="3.6" fill="#2c4f7c"/>
+      <circle cx="80" cy="145" r="11" fill="#ffffff" stroke="#3a2a2e" stroke-width="2.4"/><circle cx="80" cy="146" r="2.6" fill="#3a2a2e"/>
+      <circle cx="120" cy="145" r="11" fill="#ffffff" stroke="#3a2a2e" stroke-width="2.4"/><circle cx="120" cy="146" r="2.6" fill="#3a2a2e"/>
     </g>
-    <path class="m-smile" d="M90 164 Q100 172 110 164" fill="none" stroke="#2c4f7c" stroke-width="2.6" stroke-linecap="round"/>
-    <ellipse class="m-o" cx="100" cy="168" rx="5" ry="6" fill="#2c4f7c"/>
-    <path class="m-flat" d="M92 168 h16" stroke="#2c4f7c" stroke-width="2.4" stroke-linecap="round"/>
-    <path class="m-grin" d="M88 162 Q100 178 112 162 Q100 170 88 162 Z" fill="#2c4f7c"/>
-    <ellipse class="m-big" cx="100" cy="170" rx="9" ry="13" fill="#2c4f7c"/>
-    <circle cx="66" cy="158" r="4.5" fill="#ff8fb8" opacity=".3"/>
-    <circle cx="134" cy="158" r="4.5" fill="#ff8fb8" opacity=".3"/>
+    <g class="eyes-spiral" stroke="#3a2a2e" stroke-width="2.4" fill="none" stroke-linecap="round">
+      <path d="M80 145 m-7 0 a7 7 0 1 1 3 5.4 m-3 -5.4 m3.6 1.8 a3.6 3.6 0 1 0 1.4 2.8"/>
+      <path d="M120 145 m7 0 a7 7 0 1 0 -3 5.4 m3 -5.4 m-3.6 1.8 a3.6 3.6 0 1 1 -1.4 2.8"/>
+    </g>
+    <g class="eyes-uneven">
+      <ellipse cx="80" cy="144" rx="8.5" ry="11.5" fill="#3a2a2e"/><circle cx="77" cy="139" r="2.6" fill="#fff"/>
+      <path d="M112 147 q8 -6 16 0" stroke="#3a2a2e" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </g>
+    <g class="eyes-up">
+      <ellipse cx="80" cy="146" rx="7.5" ry="9" fill="#3a2a2e"/><circle cx="80" cy="140" r="2.6" fill="#fff"/>
+      <ellipse cx="120" cy="146" rx="7.5" ry="9" fill="#3a2a2e"/><circle cx="120" cy="140" r="2.6" fill="#fff"/>
+    </g>
+    <g class="eyes-cool">
+      <rect x="66" y="118" width="30" height="16" rx="7" fill="#1b2536" stroke="#0e1420" stroke-width="2"/>
+      <rect x="104" y="118" width="30" height="16" rx="7" fill="#1b2536" stroke="#0e1420" stroke-width="2"/>
+      <path d="M96 124 h8" stroke="#0e1420" stroke-width="3" fill="none"/>
+      <path d="M70 121 l8 0" stroke="#5b7fb5" stroke-width="2.4" stroke-linecap="round" opacity=".85"/>
+      <path d="M108 121 l8 0" stroke="#5b7fb5" stroke-width="2.4" stroke-linecap="round" opacity=".85"/>
+    </g>
+    <g class="eyes-wink">
+      <ellipse cx="80" cy="145" rx="7.5" ry="10.5" fill="#3a2a2e"/><circle cx="77" cy="140" r="2.8" fill="#fff"/>
+      <path d="M112 146 q8 -7 16 0" stroke="#3a2a2e" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </g>
+    <g class="eyes-love" fill="#ff4d78">
+      <path d="M80 150 c-9 -7 -6 -15 0 -11 c6 -4 9 4 0 11 Z"/><path d="M120 150 c-9 -7 -6 -15 0 -11 c6 -4 9 4 0 11 Z"/>
+    </g>
+    <g class="eyes-angry">
+      <ellipse cx="80" cy="147" rx="7" ry="8.5" fill="#3a2a2e"/><ellipse cx="120" cy="147" rx="7" ry="8.5" fill="#3a2a2e"/>
+      <path d="M70 134 L88 140" stroke="#3a2a2e" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M130 134 L112 140" stroke="#3a2a2e" stroke-width="3.4" stroke-linecap="round"/>
+    </g>
+    <g class="eyes-sparkle">
+      <ellipse cx="80" cy="145" rx="7.5" ry="10" fill="#3a2a2e"/><ellipse cx="120" cy="145" rx="7.5" ry="10" fill="#3a2a2e"/>
+      <path d="M80 138 l2 4 l4 2 l-4 2 l-2 4 l-2 -4 l-4 -2 l4 -2 Z" fill="#ffe66d"/>
+      <path d="M120 138 l2 4 l4 2 l-4 2 l-2 4 l-2 -4 l-4 -2 l4 -2 Z" fill="#ffe66d"/>
+    </g>
+    <g class="eyes-half">
+      <path d="M72 142 q8 -4 16 0 l-2 8 q-6 3 -12 0 Z" fill="#3a2a2e"/>
+      <path d="M112 142 q8 -4 16 0 l-2 8 q-6 3 -12 0 Z" fill="#3a2a2e"/>
+    </g>
+
+    <!-- ══ MIỆNG ══ -->
+    <g class="m-omega">
+      <path d="M88 160 Q94 167 100 161 Q106 167 112 160" fill="none" stroke="#3a2a2e" stroke-width="2.8" stroke-linecap="round"/>
+      <path d="M95 164 q5 9 10 0 q-5 3 -10 0 Z" fill="#e08a6d"/>
+    </g>
+    <path class="m-smile" d="M90 161 Q100 170 110 161" fill="none" stroke="#3a2a2e" stroke-width="2.8" stroke-linecap="round"/>
+    <path class="m-grin" d="M86 159 Q100 178 114 159 Q100 168 86 159 Z" fill="#3a2a2e"/>
+    <path class="m-laugh" d="M84 157 Q100 182 116 157 Q100 166 84 157 Z" fill="#3a2a2e"/>
+    <path d="M92 168 q8 6 16 0 q-8 10 -16 0 Z" fill="#e08a6d" class="m-laugh"/>
+    <path class="m-frown" d="M90 168 Q100 160 110 168" fill="none" stroke="#3a2a2e" stroke-width="2.8" stroke-linecap="round"/>
+    <path class="m-cry" d="M90 164 q5 -5 10 0 q5 5 10 0 l-2 8 q-8 5 -16 0 Z" fill="#3a2a2e"/>
+    <path class="m-wave" d="M90 165 q5 -5 10 0 q5 5 10 0" fill="none" stroke="#3a2a2e" stroke-width="2.8" stroke-linecap="round"/>
+    <ellipse class="m-o" cx="100" cy="166" rx="6" ry="7.5" fill="#3a2a2e"/>
+    <path class="m-flat" d="M92 166 h16" stroke="#3a2a2e" stroke-width="2.8" stroke-linecap="round"/>
+    <ellipse class="m-big" cx="100" cy="168" rx="10" ry="13" fill="#3a2a2e"/>
+    <path class="m-smirk" d="M90 166 q12 4 20 -4" fill="none" stroke="#3a2a2e" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- ══ PHỤ KIỆN CẢM XÚC ══ -->
+    <g class="bub" fill="none" stroke="#ffffff" stroke-width="1.6" opacity=".85">
+      <circle cx="152" cy="118" r="4"/><circle cx="160" cy="104" r="2.6"/><circle cx="146" cy="96" r="1.8"/>
+    </g>
+    <g class="zzz" fill="#8a5f6e" font-family="Segoe UI" font-weight="700">
+      <text x="148" y="112" font-size="17">z</text><text x="162" y="98" font-size="12">z</text>
+    </g>
+    <g class="sparkles" fill="#ffd166">
+      <path d="M52 92 l2.4 5 l5 2.4 l-5 2.4 l-2.4 5 l-2.4 -5 l-5 -2.4 l5 -2.4 Z"/>
+      <path d="M150 148 l1.8 3.8 l3.8 1.8 l-3.8 1.8 l-1.8 3.8 l-1.8 -3.8 l-3.8 -1.8 l3.8 -1.8 Z"/>
+      <circle cx="44" cy="128" r="2"/><circle cx="158" cy="126" r="1.6"/>
+    </g>
+    <g class="hearts" fill="#ff4d78">
+      <path d="M46 118 c-7 -6 -4 -12 0 -9 c4 -3 7 3 0 9 Z"/>
+      <path d="M154 108 c-7 -6 -4 -12 0 -9 c4 -3 7 3 0 9 Z"/>
+    </g>
+    <text class="qmark" x="150" y="96" font-family="Segoe UI" font-size="26" font-weight="800" fill="#f5a623">?</text>
+    <text class="exmark" x="46" y="98" font-family="Segoe UI" font-size="26" font-weight="800" fill="#e8543f">!</text>
+    <path class="sweat" d="M154 92 q-7 12 0 16 q8 -4 0 -16 Z" fill="#7ec8f2" stroke="#4a9cc8" stroke-width="1.4"/>
+    <g class="steam" fill="none" stroke="#ff8f8f" stroke-width="2.4" stroke-linecap="round">
+      <path d="M40 96 q-6 -6 -2 -12"/><path d="M48 92 q-2 -8 4 -12"/>
+      <path d="M160 96 q6 -6 2 -12"/><path d="M152 92 q2 -8 -4 -12"/>
+    </g>
+    <g class="sigh" fill="#ffffff" opacity=".75">
+      <ellipse cx="132" cy="172" rx="7" ry="4.6"/><ellipse cx="142" cy="168" rx="4.4" ry="3.2"/>
+    </g>
+    <g class="notes" fill="#6a4a56">
+      <path d="M148 128 v-14 l10 -3 v13 M148 128 a4 3.4 0 1 1 -8 -2 a4 3.4 0 0 1 8 2 M158 124 a4 3.4 0 1 1 -8 -2 a4 3.4 0 0 1 8 2" stroke="#6a4a56" stroke-width="1.6"/>
+    </g>
+    <circle class="flash" cx="100" cy="140" r="120" fill="#ffffff" opacity="0"/>
   </g>
   <style>
-  /* VAT THE NAM DAT: khong bay. Nhip "tho" bung thanh ep doc — dinh dong, day ngam. */
-  .slime-body{transform-box:fill-box;transform-origin:center bottom;animation:sq 3.6s ease-in-out infinite}
-  @keyframes sq{0%,100%{transform:scale(1,1)}50%{transform:scale(1.03,.97)}}
-  .eyes-normal{transform-box:fill-box;transform-origin:center;animation:bl 4.5s ease-in-out infinite}
-  @keyframes bl{0%,41%,45%,100%{transform:scaleY(1)}43%{transform:scaleY(.08)}}
-  .glint{animation:gl 2.8s ease-in-out infinite}@keyframes gl{0%,100%{opacity:.6}50%{opacity:1}}
+  /* hợp đồng class: app bật/tắt nhóm theo [data-emo]; file đứng một mình = idle */
+  .slime-body{transform-box:fill-box;transform-origin:center bottom;animation:breathe 3.6s ease-in-out infinite}
+  @keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.025,.975)}}
+  @keyframes march{0%,100%{transform:translateX(-6px) rotate(-2deg)}50%{transform:translateX(6px) rotate(2deg)}}
+  @keyframes boing{0%,100%{transform:scale(1,1)}30%{transform:scale(1.14,.82)}60%{transform:scale(.92,1.1)}}
+  @keyframes hop{0%,100%{transform:translateY(0) scale(1,1)}30%{transform:translateY(-10px) scale(.96,1.06)}55%{transform:translateY(0) scale(1.08,.9)}}
+  @keyframes rock{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+  @keyframes droop{0%,100%{transform:translateY(3px) scaleY(.95)}50%{transform:translateY(5px) scaleY(.93)}}
+  @keyframes shiver{0%,100%{transform:translateX(-2px)}50%{transform:translateX(2px)}}
+  @keyframes lean{0%,100%{transform:rotate(0)}50%{transform:rotate(8deg) translateY(2px)}}
+  @keyframes tilt{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(-6deg)}}
+  @keyframes pop{0%,100%{transform:scale(1,1)}35%{transform:scale(.9,1.18)}70%{transform:scale(1.06,.94)}}
+  @keyframes nodding{0%,100%{transform:translateY(0)}30%{transform:translateY(5px) scaleY(.96)}60%{transform:translateY(-2px)}}
+  @keyframes shaking{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+  @keyframes doze{0%,100%{transform:rotate(-2deg) scaleY(.94)}50%{transform:rotate(2deg) scaleY(.92)}}
+  @keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+  @keyframes spin{0%{transform:scaleX(1)}50%{transform:scaleX(-1)}100%{transform:scaleX(1)}}
+  @keyframes tremble{0%,100%{transform:translate(-3px,1px) rotate(-1deg)}50%{transform:translate(3px,-1px) rotate(1deg)}}
+  @keyframes glow{0%,100%{opacity:.6}50%{opacity:1}}
+  @keyframes rise{0%{transform:translateY(0);opacity:.85}100%{transform:translateY(-24px);opacity:0}}
+  @keyframes blink{0%,41%,45%,100%{transform:scaleY(1)}43%{transform:scaleY(.08)}}
+  .eyes-open{transform-box:fill-box;transform-origin:center;animation:blink 4.5s ease-in-out infinite}
   .puddle{transform-box:fill-box;transform-origin:center;animation:pd 3.6s ease-in-out infinite}
   @keyframes pd{0%,100%{transform:scaleX(1);opacity:.4}50%{transform:scaleX(1.05);opacity:.48}}
-  .face g,.face .m-o,.face .m-flat,.face .m-grin,.face .m-big,.slime-body .zzz,.slime-body .bub,.slime-body .core{display:none}
-  .face .eyes-normal,.face .m-smile{display:block}
+  .drop{animation:rise 2.6s ease-in-out infinite}
+  .blush-strong,.qmark,.exmark,.sweat,.steam,.sigh,.notes,.sparkles,.hearts,.tears,.brow-sad,.zzz,.bub,.flash,
+  .face,.eyes-happy,.eyes-laugh,.eyes-closed,.eyes-sad,.eyes-cry,.eyes-wide,.eyes-alert,.eyes-spiral,.eyes-uneven,
+  .eyes-up,.eyes-wink,.eyes-love,.eyes-angry,.eyes-sparkle,.eyes-half,
+  .m-smile,.m-grin,.m-laugh,.m-frown,.m-cry,.m-wave,.m-o,.m-flat,.m-big,.m-smirk{display:none}
+  .eyes-open,.m-omega{display:block}
   </style>
 </svg>

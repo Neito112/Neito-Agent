@@ -15,6 +15,18 @@
  * với concept_classifier.js. triggers.json KHÔNG còn là nguồn kích hoạt (chỉ để
  * activeTopic tham chiếu tương thích ngược).
  */
+const EMOTION_HINTS = {
+  vui: 'Nhân vật đang VUI — giọng phấn khởi, ngắn, cổ vũ.',
+  buon: 'Nhân vật đang BUỒN — giọng nhẹ, cảm thông, an ủi.',
+  tomyo: 'Nhân vật TÒ MÒ — giọng háo hức khám phá.',
+  batngo: 'Nhân vật BẤT NGỜ — giọng giật mình, thán phục.',
+  hoangso: 'Nhân vật HOẢNG — giọng gấp, cảnh báo cao độ.',
+  ok: 'Nhân vật xác nhận OK — giọng chắc chắn, gọn.',
+  nghi: 'Nhân vật đang NGHĨ — giọng bình tĩnh, phân tích.',
+  thacmac: 'Nhân vật THẮC MẮC — giọng nghi hoặc, cần kiểm chứng.',
+  khoc: 'Nhân vật SÓT SA — giọng tiếc nuối, động viên.',
+  dau: 'Nhân vật ĐAU KHỔ — giọng đồng cảm sâu.'
+};
 const fs = require('fs');
 const path = require('path');
 
@@ -122,6 +134,9 @@ function matchSituation(slug, data, present, frame) {
 }
 
 /* ── prompt mẫu: suy luận toàn-man-hình + toàn-KB ───────────────────── */
+function emotionScene(s) {
+  return EMOTION_HINTS[s.emotion] || '';
+}
 function buildInferPrompt(slug, data, s, frame, tp) {
   const facts = (data.entries || []).slice(0, 60)
     .map(e => `- ${e.cue}: ${String(e.fact || '').slice(0, 160)}`).join('\n');
@@ -135,6 +150,7 @@ function buildInferPrompt(slug, data, s, frame, tp) {
     `- Chữ trên màn hình: ${String(frame.text || '—').replace(/\s+/g, ' ').slice(0, 600)}`,
     `TOÀN BỘ KIẾN THỨC GIAO THỨC "${data.topic || slug}":\n${facts.slice(0, 4000)}`,
     s.prompt_template ? `YÊU CẦU: ${s.prompt_template}` : 'Yêu cầu: nói 1 câu tiếng Việt hữu ích nhất cho tình huống trên, bám sát chữ/vật thể thật đang thấy.',
+    emotionScene(s),
     tp === 'urgent'
       ? 'TỐC ĐỘ LÀ SỐ 1 — trận đấu đang diễn ra: OUTPUT duy nhất 1 câu ≤ 8 từ, thẳng hành động, không giải thích, không chào hỏi.'
       : 'OUTPUT: DUY NHẤT 1 câu nói < 25 từ (sẽ được đọc thành giọng). Không giải thích, không markdown.'

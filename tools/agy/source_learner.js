@@ -257,7 +257,8 @@ const SITUATION_LOOP_SCHEMA = {
           concepts: { type: 'array', items: { type: 'string' }, description: 'khái niệm đồng hiện (tên trong kho hoặc mới)' },
           min_count: { type: 'integer' },
           window: { type: 'string' },
-          prompt_template: { type: 'string' },
+          emotion: { type: 'string', description: 'biểu cảm nhân vật khi nói tình huống này (vui|buon|tomyo|batngo|hoangso|ok|nghi|thacmac|khoc|dau)' },
+      prompt_template: { type: 'string' },
           answered_in_source: { type: 'boolean', description: 'NGUỒN NÀY có dạy cách giải quyết không?' },
           answer: { type: 'string', description: 'nếu có: câu trả lời ≤20 từ đúng theo nguồn' }
         },
@@ -292,7 +293,7 @@ async function loop2Situations(slug, srcText, images) {
     let t = d.situations.find(x => x.id === s.id);
     if (!t) {
       t = { id: s.id, situation: s.situation, concepts_required: s.concepts, min_count: s.min_count || 1,
-            window: s.window || '', prompt_template: s.prompt_template || '', answer: '', cooldown_s: 180 };
+            window: s.window || '', prompt_template: s.prompt_template || '', emotion: s.emotion || '', answer: '', cooldown_s: 180 };
       d.situations.push(t); newSit++;
     }
     if (s.answered_in_source && s.answer && !t.answer) {
