@@ -56,7 +56,7 @@ function importOne(slug) {
     if (!s || !s.id || !(s.concepts_required || []).length) continue;
     let ex = byId.get(s.id);
     if (!ex) {
-      const fresh = { id: s.id, situation: s.situation, concepts_required: s.concepts_required, min_count: s.min_count || 2, window: s.window || '', prompt_template: s.prompt_template || '', answer: s.answer || '', cooldown_s: s.cooldown_s || 180, origin: 'source', tier: 'base' };
+      const fresh = { id: s.id, situation: s.situation, protocol: mother, concepts_required: s.concepts_required, min_count: s.min_count || 2, window: s.window || '', prompt_template: s.prompt_template || '', answer: s.answer || '', cooldown_s: s.cooldown_s || 180, origin: 'source', tier: 'base' };
       if (fresh.answer) { fresh.answer_source = s.answer_source || 'learned:direct'; }
       d.situations.push(fresh); byId.set(s.id, fresh); addedS++;
     } else if (!ex.answer && s.answer) {

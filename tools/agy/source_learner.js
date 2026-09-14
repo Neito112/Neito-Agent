@@ -292,7 +292,7 @@ async function loop2Situations(slug, srcText, images) {
     if (!s || !s.id || !s.concepts || !s.concepts.length) continue;
     let t = d.situations.find(x => x.id === s.id);
     if (!t) {
-      t = { id: s.id, situation: s.situation, concepts_required: s.concepts, min_count: s.min_count || 1,
+      t = { id: s.id, situation: s.situation, protocol: slug, concepts_required: s.concepts, min_count: s.min_count || 1,
             window: s.window || '', prompt_template: s.prompt_template || '', emotion: s.emotion || '', answer: '', cooldown_s: 180 };
       d.situations.push(t); newSit++;
     }

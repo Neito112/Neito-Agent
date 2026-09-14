@@ -87,6 +87,44 @@ function saveTopic(slug, data) {
     return true;
   } catch (e) { return false; }
 }
+/* ── NHÃN GIAO THỨC (protocol) — TÁCH TUYỆT ĐỐI dữ liệu giữa các giao thức ──
+   protocolForFrame: khung hình hiện tại thuộc giao thức nào (rule window/classes
+   trong triggers.json). KHÔNG thuộc giao thức nào → trả null → engine im lặng,
+   sự kiện của game khác không có cửa bắn lung tung.
+   Mọi situation khi SINH RA phải mang trường `protocol` = slug của giao thức mẹ
+   (tool train ghi; backfill stamp cho data cũ). ── */
+const _trigCache = { mtime: 0, rules: [] };
+function triggerRules() {
+  const fp = path.join(VISION_DIR, 'triggers.json');
+  try {
+    const mt = fs.statSync(fp).mtimeMs;
+    if (_trigCache.mtime !== mt) {
+      _trigCache.rules = (JSON.parse(fs.readFileSync(fp, 'utf8')).rules) || [];
+      _trigCache.mtime = mt;
+    }
+  } catch (e) { return _trigCache.rules; }
+  return _trigCache.rules;
+}
+function protocolForFrame(frame) {
+  if (!frame || !frame.window) return null;
+  const title = String(frame.window);
+  const classes = new Set((frame.classes || []).map(c => String(c).toLowerCase()));
+  let first = null, best = null, bestHits = 0;
+  for (const r of triggerRules()) {
+    const w = r.when && r.when.window;
+    if (!w) continue;
+    let ok = false;
+    try { ok = new RegExp(String(w).replace(/^\(\?i\)/, ''), 'i').test(title); } catch (e) {}
+    if (!ok) continue;
+    const need = (r.when && r.when.classes) || [];
+    const clsHits = need.filter(c => classes.has(String(c).toLowerCase())).length;
+    if (!first) first = r;
+    if (clsHits > bestHits) { bestHits = clsHits; best = r; }
+  }
+  const win = best || first;
+  return win ? (win.topic || win.id) : null;
+}
+
 function topicFiles() {
   try {
     return fs.readdirSync(VISION_DIR)
@@ -120,6 +158,7 @@ function matchSituation(slug, data, present, frame) {
   const pset = new Set(present.map(String));
   const now = Date.now();
   for (const s of (data.situations || [])) {
+    if (s.protocol && s.protocol !== slug) continue;   // nhãn giao thức không khớp → phần tử lạc chỗ
     const req = (s.concepts_required || [s.concept]).filter(Boolean);
     const need = Math.max(1, s.min_count || Math.min(req.length, 2));
     let hits = 0;
@@ -166,7 +205,9 @@ function buildInferPrompt(slug, data, s, frame, tp) {
 function evaluate(frame) {
   if (!frame || !frame.window) return null;
   const fw = norm(frame.window);
-  for (const slug of topicFiles()) {
+  const proto = protocolForFrame(frame);
+  if (!proto) return null;                       // ngoài mọi giao thức → không sự kiện nào được bắn
+  for (const slug of [proto]) {
     const data = loadTopic(slug);
     if (!data || !(data.situations || []).length) continue;
     // ràng buộc window của tình huống (rỗng = không ràng buộc)
@@ -246,7 +287,9 @@ function matchCombat(frame) {
   if (!frame || !frame.window) return [];
   const out = [];
   const fw = norm(frame.window);
-  for (const slug of topicFiles()) {
+  const proto = protocolForFrame(frame);
+  if (!proto) return [];                          // ngoài giao thức → không combat event nào
+  for (const slug of [proto]) {
     const data = loadTopic(slug);
     if (!data || !(data.situations || []).length) continue;
     const present = presentConcepts(data, frame);
@@ -441,4 +484,4 @@ function status() {
   return out;
 }
 
-module.exports = { evaluate, matchCombat, accumulateConcepts, tierOf, classifyTopic, syncAllTiers, knowledgeSplit, setAnswer, status, buildInferPrompt, norm, loadTopic, saveTopic, registerFrame, tempo, condenseQueue, setCondensed, pacing, switchEvent, markAcked };
+module.exports = { evaluate, matchCombat, protocolForFrame, triggerRules, accumulateConcepts, tierOf, classifyTopic, syncAllTiers, knowledgeSplit, setAnswer, status, buildInferPrompt, norm, loadTopic, saveTopic, registerFrame, tempo, condenseQueue, setCondensed, pacing, switchEvent, markAcked };

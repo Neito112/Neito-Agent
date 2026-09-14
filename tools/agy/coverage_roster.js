@@ -207,7 +207,7 @@ async function buildSituations(slug, maxBatches) {
       for (const s of (g.data.situations || [])) {
         const id = 'cs_' + slugifyId(L.name) + '_' + slugifyId(s.situation);
         if (sitK.has(id)) continue;
-        d.situations.push({ id, situation: s.situation, concepts_required: (s.concepts_required || []).slice(0, 3), min_count: s.min_count || 2, window: '', prompt_template: '', answer: String(s.answer || '').trim(), cooldown_s: 180, origin: 'source', tier: 'base', answer_source: 'roster:' + L.name });
+        d.situations.push({ id, situation: s.situation, protocol: slug, concepts_required: (s.concepts_required || []).slice(0, 3), min_count: s.min_count || 2, window: '', prompt_template: '', answer: String(s.answer || '').trim(), cooldown_s: 180, origin: 'source', tier: 'base', answer_source: 'roster:' + L.name });
         sitK.add(id); done++;
       }
       saveDirect(d);

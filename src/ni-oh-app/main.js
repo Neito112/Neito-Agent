@@ -475,18 +475,10 @@ function projectDigest() {
 }
 // App/game đang mở → slug chủ đề tương ứng (đọc triggers.json: window regex)
 function activeTopic() {
+  // 1 nguồn chân lý: engine gate — khung hình hiện tại thuộc giao thức nào
   if (!lastFrame || !lastFrame.window) return null;
   if (Date.now() - (lastFrame.ts || 0) * 1000 > 180000) return null;
-  const title = String(lastFrame.window);
-  try {
-    const rules = visionBrain.loadTriggers().rules || [];
-    for (const r of rules) {
-      const w = r.when && r.when.window;
-      if (!w) continue;
-      try { if (new RegExp(w, 'i').test(title)) return r.topic || r.id; } catch (e) {}
-    }
-  } catch (e) {}
-  return null;
+  try { return situationEngine.protocolForFrame(lastFrame) || null; } catch (e) { return null; }
 }
 
 function screenContext() {
@@ -2045,18 +2037,8 @@ try {
 const _bgCache = { at: 0, list: [] };
 
 function activeTopicForWindow() {
-  try {
-    if (!lastFrame || !lastFrame.window) return null;
-    const title = String(lastFrame.window);
-    for (const t of visionBrain.listTopics()) {
-      if (!t || !t.topic) continue;
-      const hay = String(t.topic).toLowerCase();
-      for (const w of hay.split(/[\s,·\-–—()\[\]]+/)) {
-        if (w.length >= 4 && title.toLowerCase().includes(w)) return t.slug;
-      }
-    }
-  } catch (e) {}
-  return null;
+  // cùng một cổng với engine: triggers.json gate — không còn khớp tên mơ hồ
+  try { return situationEngine.protocolForFrame(lastFrame) || null; } catch (e) { return null; }
 }
 
 function bgAppList() {                       // app chạy nền — cache 10 phút, powerpoint 0 token
