@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ni-Oh Companion</title>
+<title>Neito Agent</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -322,7 +322,7 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
 
 <div class="shell">
 <aside class="rail">
-  <div class="brand"><span class="logo">⚡</span><strong>Ni-Oh</strong></div>
+  <div class="brand"><span class="logo">⚡</span><strong>Neito Agent</strong></div>
   <nav role="tablist" aria-label="Các mục">
     <button class="tab" role="tab" id="tab-overview"  aria-selected="true"  aria-controls="panel-overview"  data-tab="overview">🏠 Tổng quan</button>
     <button class="tab" role="tab" id="tab-model"     aria-selected="false" aria-controls="panel-model"     data-tab="model">🤖 Model AI</button>
@@ -571,19 +571,23 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
 
   <!-- ══ Panel: Linh hồn ══ -->
   <section class="panel" id="panel-soul" role="tabpanel" aria-labelledby="tab-soul" hidden>
-    <h2>Linh hồn Ni-Oh</h2>
-    <p class="subtitle">Định hình tính cách và phong cách giao tiếp. Ni-Oh tuân thủ nội dung này và tự bổ sung kinh nghiệm vào mục cuối file.</p>
+    <h2>Linh hồn Agent</h2>
+    <p class="subtitle">Định hình tên gọi, tính cách và phong cách giao tiếp của Agent.</p>
     <div class="card">
       <div class="field">
-        <label for="soul-editor">soul.md — nội dung kiểu Markdown</label>
-        <textarea id="soul-editor" rows="18" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;padding:10px;font-family:'Geist Mono',Consolas,monospace;resize:vertical" placeholder="# Linh hon Ni-Oh&#10;&#10;## Tinh cach&#10;- ..."></textarea>
+        <label for="soul-name">Tên nhân vật / Định danh</label>
+        <input type="text" id="soul-name" disabled style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;padding:8px 10px;font-weight:600" placeholder="VD: Ni-Oh, Sakura, Jarvis…">
+      </div>
+      <div class="field">
+        <label for="soul-editor">Mô tả linh hồn &amp; Tính cách (soul.md)</label>
+        <textarea id="soul-editor" rows="16" disabled style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;padding:10px;font-family:'Geist Mono',Consolas,monospace;resize:vertical" placeholder="# Linh hồn Ni-Oh&#10;&#10;## Tính cách&#10;- Điềm đạm, sắc sảo..."></textarea>
       </div>
       <div class="row">
-        <button class="btn btn-primary shrink" onclick="saveSoul()" data-tip="Lưu vào memory/soul.md — áp dụng cho mọi phản hồi tiếp theo">💾 Lưu</button>
+        <button class="btn btn-primary shrink" id="btn-edit-soul" onclick="toggleEditSoul()" data-tip="Mở khóa để chỉnh sửa tên và linh hồn">✏️ Sửa</button>
+        <button class="btn shrink" id="btn-save-soul" onclick="saveSoul()" disabled style="display:none" data-tip="Lưu vào memory/soul.md — áp dụng ngay">💾 Lưu</button>
         <button class="btn shrink" onclick="loadSoul()" data-tip="Tải lại nội dung từ đĩa">↻ Tải lại</button>
         <span class="status-text shrink" id="soul-status"></span>
       </div>
-      <p class="desc">Cuối file có mục <strong>“Tự rút kinh nghiệm”</strong> — Ni-Oh tự thêm dòng mỗi lần học được cách nói hay hơn; quá 40 dòng nó tự cô đọng.</p>
     </div>
   </section>
 
@@ -625,6 +629,39 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
       </div>
     </div>
   </section>
+
+  <!-- ══ Modal: cấu hình nhân vật (tên, giọng, linh hồn mặc định) ══ -->
+  <div id="char-config-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:85;align-items:center;justify-content:center">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;max-width:540px;width:92%;max-height:86vh;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)">
+        <strong id="ccm-header">⚙️ Cấu hình nhân vật</strong>
+        <button class="btn btn-sm" onclick="closeCharConfigModal()">✕</button>
+      </div>
+      <div style="overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px">
+        <div class="field" style="margin:0">
+          <label for="ccm-display-name">Tên hiển thị mặc định</label>
+          <input type="text" id="ccm-display-name" placeholder="VD: Ni-Oh, Sakura…" autocomplete="off">
+        </div>
+        <div class="field" style="margin:0">
+          <label for="ccm-default-voice">Giọng nói mặc định (profile)</label>
+          <select id="ccm-default-voice">
+            <option value="">(Giữ nguyên giọng hiện tại)</option>
+          </select>
+        </div>
+        <div class="field" style="margin:0">
+          <label for="ccm-default-soul">Linh hồn mặc định (tùy chọn — ghi đè soul.md khi chọn nhân vật này)</label>
+          <textarea id="ccm-default-soul" rows="7" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:12px;padding:8px;font-family:'Geist Mono',Consolas,monospace;resize:vertical" placeholder="Để trống nếu muốn dùng chung soul.md hiện tại"></textarea>
+        </div>
+      </div>
+      <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <span class="status-text" id="ccm-status"></span>
+        <div class="row">
+          <button class="btn shrink" onclick="closeCharConfigModal()">Đóng</button>
+          <button class="btn btn-primary shrink" onclick="saveCharConfigModal()">💾 Lưu cấu hình</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ══ Modal: thêm nhân vật / asset ══ -->
   <div id="asset-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:80;align-items:center;justify-content:center">
@@ -712,7 +749,7 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
 </main>
 
 <footer>
-  <span>Ni-Oh Companion v1.0.0</span>
+  <span>Neito Agent v1.0.0</span>
   <span>by Neito112</span>
 </footer>
 </div><!-- /main-wrap -->
@@ -908,13 +945,22 @@ async function loadCharacters() {
       return;
     }
     listEl.innerHTML = characters.map(c => {
-      const url = 'file:///' + String(c.path).split(String.fromCharCode(92)).join('/');
+      let url = '';
+      if (c.kind === 'single' && /\.(svg|json)$/i.test(c.path)) {
+        url = 'file:///' + String(c.path).split('\\').join('/').replace(/ /g, '%20');
+      } else {
+        url = 'file:///' + String(c.path).split('\\').join('/').replace(/ /g, '%20');
+      }
+      const displayName = c.displayName || (c.name === 'default' ? 'Ni-Oh' : c.name);
       return `
-      <button class="char-thumb" aria-pressed="${mainConfig?.character === c.name}" onclick="selectCharacter('${c.name}')" title="${c.name}${c.kind==='poses' ? ' — ' + c.poses + ' trạng thái' : ''}" aria-label="Chọn nhân vật ${c.name}">
-        <img src="${url}" alt="" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<span style=\'font-size:22px\'></span>')">
-        <span style="position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:9px;color:var(--text-muted);text-shadow:0 1px 3px #000">${c.name}</span>
-        ${c.kind === 'poses' ? '<span style="position:absolute;top:2px;right:4px;font-size:9px;color:var(--accent)">⚡' + c.poses + '</span>' : ''}
-      </button>`;
+      <div class="char-thumb-wrap" style="display:flex;flex-direction:column;align-items:center;gap:6px">
+        <button class="char-thumb" style="width:100%" aria-pressed="${mainConfig?.character === c.name}" onclick="selectCharacter('${c.name}')" title="${displayName}${c.kind==='poses' ? ' — ' + c.poses + ' trạng thái' : ''}" aria-label="Chọn nhân vật ${displayName}">
+          <img src="${url}" alt="" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<span style=\\'font-size:32px;display:flex;align-items:center;justify-content:center;height:100%\\'>🤖</span>')">
+          <span style="position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:10px;font-weight:600;color:#fff;text-shadow:0 1px 4px #000;background:rgba(0,0,0,.45);padding:1px 0">${displayName}</span>
+          ${c.kind === 'poses' ? '<span style="position:absolute;top:2px;right:4px;font-size:9px;color:var(--accent)">⚡' + c.poses + '</span>' : ''}
+        </button>
+        <button class="btn btn-sm" style="padding:2px 8px;font-size:11px;width:100%" onclick="event.stopPropagation();openCharConfigModal('${c.name}')">⚙️ Cấu hình</button>
+      </div>`;
     }).join('');
   } catch (e) {
     listEl.innerHTML = `<div class="empty"><div class="big">⚠️</div><strong>Lỗi tải danh sách</strong></div>`;
@@ -1397,16 +1443,73 @@ async function unlearnLastRule() {
 }
 
 // ─── Soul ───
+let _soulEditing = false;
+function toggleEditSoul() {
+  _soulEditing = !_soulEditing;
+  const nameInput = document.getElementById('soul-name');
+  const editor = document.getElementById('soul-editor');
+  const btnEdit = document.getElementById('btn-edit-soul');
+  const btnSave = document.getElementById('btn-save-soul');
+
+  nameInput.disabled = !_soulEditing;
+  editor.disabled = !_soulEditing;
+
+  if (_soulEditing) {
+    btnEdit.textContent = '✕ Hủy';
+    btnEdit.classList.remove('btn-primary');
+    btnSave.style.display = 'inline-block';
+    btnSave.disabled = false;
+    btnSave.classList.add('btn-primary');
+  } else {
+    btnEdit.textContent = '✏️ Sửa';
+    btnEdit.classList.add('btn-primary');
+    btnSave.style.display = 'none';
+    btnSave.disabled = true;
+    btnSave.classList.remove('btn-primary');
+    loadSoul();
+  }
+}
+
 async function loadSoul() {
   try {
     const t = await window.niOhAPI.getSoul();
-    document.getElementById('soul-editor').value = t || '';
-    document.getElementById('soul-status').textContent = t ? '✓ Đã tải từ đĩa' : 'Trống — viết đi Sếp';
+    let name = '';
+    let body = t || '';
+    const m = (t || '').match(/^#\s*SOUL OF\s*([^\n\r]+)/i) || (t || '').match(/^#\s*Linh hồn\s*([^\n\r]+)/i);
+    if (m) {
+      name = m[1].trim();
+    }
+    const mName = (t || '').match(/\*\s*\*\*Tên đại diện:\*\*\s*([^\n\r*]+)/i);
+    if (mName) {
+      name = mName[1].trim().replace(/\.$/, '');
+    }
+    document.getElementById('soul-name').value = name || 'Ni-Oh';
+    document.getElementById('soul-editor').value = body;
+    document.getElementById('soul-status').textContent = t ? '✓ Đã tải từ đĩa' : 'Trống';
   } catch (e) {}
 }
+
 async function saveSoul() {
-  const r = await window.niOhAPI.saveSoul(document.getElementById('soul-editor').value);
-  document.getElementById('soul-status').textContent = r.success ? '✓ Đã lưu — Ni-Oh sống theo từ câu tiếp theo' : '❌ ' + r.error;
+  const name = (document.getElementById('soul-name').value || 'Ni-Oh').trim();
+  let body = document.getElementById('soul-editor').value;
+
+  // Cập nhật tên vào nội dung soul nếu có cấu trúc
+  if (name) {
+    if (/^#\s*(SOUL OF|Linh hồn)/i.test(body)) {
+      body = body.replace(/^#\s*(SOUL OF|Linh hồn)[^\n\r]*/i, `# SOUL OF ${name.toUpperCase()}`);
+    }
+    if (/\*\s*\*\*Tên đại diện:\*\*/i.test(body)) {
+      body = body.replace(/\*\s*\*\*Tên đại diện:\*\*[^\n\r]*/i, `* **Tên đại diện:** ${name}.`);
+    }
+  }
+
+  const r = await window.niOhAPI.saveSoul(body);
+  if (r.success) {
+    document.getElementById('soul-status').textContent = '✓ Đã lưu thành công';
+    toggleEditSoul(); // Khóa lại về trạng thái không thể nhập
+  } else {
+    document.getElementById('soul-status').textContent = '❌ ' + r.error;
+  }
 }
 
 // ─── Proactive switch ───
@@ -1542,6 +1645,79 @@ async function showCharGuide() {
 function copyCharGuide() {
   const ta = document.getElementById('char-guide-text'); if (!ta) return;
   ta.select(); navigator.clipboard.writeText(ta.value).then(() => toast('Đã copy toàn bộ hướng dẫn')).catch(() => { document.execCommand('copy'); toast('Đã copy'); });
+}
+
+// ─── Modal Cấu hình Nhân vật (Giọng, Linh hồn, Tên mặc định) ───
+let _curConfigChar = null;
+async function openCharConfigModal(charName) {
+  _curConfigChar = charName;
+  document.getElementById('ccm-header').textContent = `⚙️ Cấu hình nhân vật: ${charName === 'default' ? 'Ni-Oh' : charName}`;
+  document.getElementById('ccm-status').textContent = 'Đang tải…';
+  document.getElementById('char-config-modal').style.display = 'flex';
+
+  try {
+    // 1. Tải danh sách voice profiles
+    const [metaRes, pfRes] = await Promise.all([
+      window.niOhAPI.getCharacterMeta(charName),
+      window.niOhAPI.voiceProfiles()
+    ]);
+
+    const vsel = document.getElementById('ccm-default-voice');
+    const profiles = (pfRes && pfRes.cfg && pfRes.cfg.profiles) || {};
+    vsel.innerHTML = '<option value="">(Giữ nguyên giọng hiện tại)</option>' +
+      Object.keys(profiles).map(k => `<option value="${k}">${k} — ${(profiles[k].voice || '')}</option>`).join('');
+
+    if (metaRes && metaRes.success) {
+      const d = metaRes.data || {};
+      document.getElementById('ccm-display-name').value = d.displayName || (charName === 'default' ? 'Ni-Oh' : charName);
+      document.getElementById('ccm-default-voice').value = d.defaultVoice || '';
+      document.getElementById('ccm-default-soul').value = d.defaultSoul || '';
+    }
+    document.getElementById('ccm-status').textContent = '';
+  } catch (e) {
+    document.getElementById('ccm-status').textContent = 'Lỗi nạp cấu hình: ' + e.message;
+  }
+}
+
+function closeCharConfigModal() {
+  document.getElementById('char-config-modal').style.display = 'none';
+  _curConfigChar = null;
+}
+
+async function saveCharConfigModal() {
+  if (!_curConfigChar) return;
+  const displayName = document.getElementById('ccm-display-name').value.trim();
+  const defaultVoice = document.getElementById('ccm-default-voice').value;
+  const defaultSoul = document.getElementById('ccm-default-soul').value;
+  document.getElementById('ccm-status').textContent = '⏳ Đang lưu…';
+
+  const r = await window.niOhAPI.saveCharacterMeta({
+    charName: _curConfigChar,
+    displayName,
+    defaultVoice,
+    defaultSoul
+  });
+
+  if (r && r.success) {
+    document.getElementById('ccm-status').textContent = '✓ Đã lưu cấu hình';
+    toast('Đã lưu cấu hình cho ' + _curConfigChar);
+    loadCharacters();
+    setTimeout(closeCharConfigModal, 600);
+  } else {
+    document.getElementById('ccm-status').textContent = '❌ ' + ((r && r.error) || 'Lỗi');
+  }
+}
+
+async function selectCharacter(name) {
+  try {
+    const r = await window.niOhAPI.selectCharacter(name);
+    if (r && r.success) {
+      mainConfig.character = name;
+      loadCharacters();
+      loadSoul(); // Cập nhật lại tab linh hồn nếu nhân vật có soul riêng
+      toast('Đã chọn nhân vật: ' + (name === 'default' ? 'Ni-Oh' : name));
+    }
+  } catch (e) { toast('Lỗi chọn nhân vật: ' + e.message); }
 }
 
 function openAssetModal() {

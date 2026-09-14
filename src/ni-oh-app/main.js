@@ -134,7 +134,7 @@ function createTray() {
     { type: 'separator' },
     { label: 'Thoát', click: () => app.quit() }
   ]);
-  tray.setToolTip('Ni-Oh Companion');
+  tray.setToolTip('Neito Agent');
   tray.setContextMenu(menu);
   tray.on('click', () => {
     if (dashboardWindow && dashboardWindow.isVisible()) {
@@ -1270,9 +1270,61 @@ ipcMain.handle('ollama-pull', async (e, name) => {
 
 ipcMain.handle('get-ollama-models', async () => (await ollamaTags()).map(m => ({ id: m, label: m })));
 
+// ─── Character config / defaults ───
+const CHAR_DEFAULTS_FILE = path.join(APP_DIR, 'character_defaults.json');
+function loadCharDefaults() {
+  try {
+    if (fs.existsSync(CHAR_DEFAULTS_FILE)) return JSON.parse(fs.readFileSync(CHAR_DEFAULTS_FILE, 'utf8'));
+  } catch (e) {}
+  return {};
+}
+function saveCharDefaults(data) {
+  try {
+    fs.writeFileSync(CHAR_DEFAULTS_FILE, JSON.stringify(data || {}, null, 2), 'utf8');
+  } catch (e) {}
+}
+
+ipcMain.handle('get-character-meta', (_, charName) => {
+  const dir = path.join(APP_DIR, 'assets', 'characters');
+  const defaults = loadCharDefaults();
+  const def = defaults[charName] || {};
+  let info = {
+    name: charName,
+    displayName: def.displayName || (charName === 'default' ? 'Ni-Oh' : charName),
+    defaultVoice: def.defaultVoice || '',
+    defaultSoul: def.defaultSoul || ''
+  };
+  const sub = path.join(dir, charName, 'character.json');
+  if (fs.existsSync(sub)) {
+    try {
+      const j = JSON.parse(fs.readFileSync(sub, 'utf8'));
+      if (j.defaultVoice && !info.defaultVoice) info.defaultVoice = j.defaultVoice;
+      if (j.defaultSoul && !info.defaultSoul) info.defaultSoul = j.defaultSoul;
+      if (j.displayName && !def.displayName) info.displayName = j.displayName;
+    } catch (e) {}
+  }
+  return { success: true, data: info };
+});
+
+ipcMain.handle('save-character-meta', (_, payload) => {
+  try {
+    const { charName, displayName, defaultVoice, defaultSoul } = payload || {};
+    if (!charName) return { success: false, error: 'Thiếu tên nhân vật' };
+    const defaults = loadCharDefaults();
+    defaults[charName] = {
+      displayName: displayName || (charName === 'default' ? 'Ni-Oh' : charName),
+      defaultVoice: defaultVoice || '',
+      defaultSoul: defaultSoul || ''
+    };
+    saveCharDefaults(defaults);
+    return { success: true };
+  } catch (e) { return { success: false, error: e.message }; }
+});
+
 ipcMain.handle('get-characters', () => {
   const dir = path.join(APP_DIR, 'assets', 'characters');
   const out = [];
+  const defaults = loadCharDefaults();
   try {
     if (!fs.existsSync(dir)) return [];
     for (const f of fs.readdirSync(dir)) {
@@ -1283,12 +1335,29 @@ ipcMain.handle('get-characters', () => {
         if (fs.existsSync(jf)) {
           try {
             const j = JSON.parse(fs.readFileSync(jf, 'utf8'));
-            out.push({ name: j.name || f, path: path.join(full, j.poses && j.poses.idle ? j.poses.idle : f), kind: 'poses',
-              poses: Object.keys(j.poses || {}).length });
+            const def = defaults[f] || {};
+            out.push({
+              name: f,
+              displayName: def.displayName || j.name || f,
+              path: path.join(full, j.poses && j.poses.idle ? j.poses.idle : f),
+              kind: 'poses',
+              poses: Object.keys(j.poses || {}).length,
+              defaultVoice: def.defaultVoice || j.defaultVoice || '',
+              defaultSoul: def.defaultSoul || j.defaultSoul || ''
+            });
           } catch (e) {}
         }
       } else if (/\.(png|jpg|jpeg|gif|svg|webp|apng|json)$/i.test(f)) {
-        out.push({ name: f.replace(/\.[^.]+$/,''), path: full, kind: 'single' });
+        const rawName = f.replace(/\.[^.]+$/,'');
+        const def = defaults[rawName] || {};
+        out.push({
+          name: rawName,
+          displayName: def.displayName || (rawName === 'default' ? 'Ni-Oh' : rawName),
+          path: full,
+          kind: 'single',
+          defaultVoice: def.defaultVoice || '',
+          defaultSoul: def.defaultSoul || ''
+        });
       }
     }
   } catch (e) {}
@@ -1301,6 +1370,27 @@ ipcMain.handle('select-character', (_, charName) => {
     if (!fs.existsSync(dir)) return { success:false, error:'Không có thư mục characters' };
     mainConfig.character = charName;
     mainConfig.characterImage = null;
+
+    // Áp dụng voice / soul mặc định nếu có
+    const defaults = loadCharDefaults();
+    const def = defaults[charName] || {};
+    if (def.defaultVoice) {
+      const pf = path.join(NIOH_ROOT, 'Agent_Data', 'system_config.json');
+      try {
+        if (fs.existsSync(pf)) {
+          const cfg = JSON.parse(fs.readFileSync(pf, 'utf8'));
+          cfg.active_voice_profile = def.defaultVoice;
+          fs.writeFileSync(pf, JSON.stringify(cfg, null, 2), 'utf8');
+        }
+      } catch (e) {}
+    }
+    if (def.defaultSoul && def.defaultSoul.trim()) {
+      try {
+        fs.mkdirSync(path.dirname(SOUL_FILE), { recursive: true });
+        fs.writeFileSync(SOUL_FILE, def.defaultSoul.trim(), 'utf8');
+      } catch (e) {}
+    }
+
     // ưu tiên thư mục có character.json (đa tư thế), rồi đến file đơn
     const sub = path.join(dir, charName, 'character.json');
     if (fs.existsSync(sub)) {

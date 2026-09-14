@@ -56,6 +56,8 @@ function parseSkillFront(md) {
 }
 // Skill nền tảng đi kèm Ni-Oh — ẩn khỏi danh sách để tránh gỡ nhầm
 const CORE_SKILLS = new Set([
+  // quy trình tự học core
+  'protocol-training',
   // vận hành PC
   'pc-operation-vision', 'window-control', 'process-service-control', 'file-ops', 'registry-env',
   'package-app-management', 'input-automation', 'network-diag',

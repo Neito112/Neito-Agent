@@ -898,18 +898,54 @@
     return P[key] ? (window.location.href.replace(/overlay\.html.*$/, '') + P[key]) : (P.idle ? (window.location.href.replace(/overlay\.html.*$/, '') + P.idle) : (cfg.characterImage || null));
   }
   let _lastCharName = null;
-  function apply(cfg2) {
-    cfg = cfg2 || cfg;
-    const changed = _lastCharName !== null && cfg.character !== _lastCharName;
-    _lastCharName = cfg.character;
+  function renderCharElements(targetChar, targetPoses, targetImg) {
     const img = document.getElementById('charImg');
     const svg = document.getElementById('charSvgDisk') || document.getElementById('charSvg');
-    const idleSrc = poseSrc('idle') || (cfg.characterImage && cfg.character !== 'default' ? cfg.characterImage : null);
-    if (idleSrc) { img.src = idleSrc; img.style.display = 'block'; svg.style.display = 'none'; maskFromSource(idleSrc); }
-    else { img.style.display = 'none'; svg.style.display = 'block'; buildDefaultMask(); }
-    // default.svg từ đĩa có animation sẵn → nếu đang là default, mask dựng lại sau khi load xong
+    let idleSrc = null;
+    if (targetChar !== 'default') {
+      if (targetPoses) {
+        idleSrc = targetPoses['idle'] ? (window.location.href.replace(/overlay\.html.*$/, '') + targetPoses['idle']) : (targetImg || null);
+      } else {
+        idleSrc = targetImg || null;
+      }
+    }
+    if (idleSrc) {
+      img.src = idleSrc; img.style.display = 'block'; svg.style.display = 'none';
+      maskFromSource(idleSrc);
+    } else {
+      img.style.display = 'none'; svg.style.display = 'block';
+      buildDefaultMask();
+    }
     if (!idleSrc && defaultFromDisk) buildDefaultMask();
-    if (changed) setAnim('transform', 950);   // hoạt ảnh biến đổi mỗi lần đổi nhân vật
+  }
+
+  function apply(cfg2) {
+    const oldChar = _lastCharName;
+    cfg = cfg2 || cfg;
+    const newChar = cfg.character || 'default';
+    const changed = oldChar !== null && newChar !== oldChar;
+    _lastCharName = newChar;
+
+    if (changed) {
+      // Nếu không phải đang là Ni-Oh (default) → biến hình về Ni-Oh trước rồi mới biến thành nhân vật mới
+      if (oldChar !== 'default') {
+        // 1. Biến về Ni-Oh (default)
+        renderCharElements('default', null, null);
+        setAnim('transform', 850);
+        setTimeout(() => {
+          // 2. Biến thành nhân vật mới
+          renderCharElements(newChar, cfg.characterPoses, cfg.characterImage);
+          setAnim('transform', 950);
+        }, 900);
+      } else {
+        // Đang là Ni-Oh rồi → chỉ biến đổi thẳng sang nhân vật mới
+        renderCharElements(newChar, cfg.characterPoses, cfg.characterImage);
+        setAnim('transform', 950);
+      }
+    } else {
+      renderCharElements(newChar, cfg.characterPoses, cfg.characterImage);
+    }
+
     const s = Math.min(1.8, Math.max(0.6, cfg.characterScale || 1));
     if (Math.abs(s - cscale) > 0.001) { cscale = s; scaleInput.value = Math.round(s * 100); fitWindow(true); }
     setCharHidden(!!cfg.overlayCharHidden);

@@ -91,6 +91,8 @@ contextBridge.exposeInMainWorld('niOhAPI', {
   // Soul & Tools & Topics chi tiết & Assets
   getSoul: () => ipcRenderer.invoke('get-soul'),
   saveSoul: (text) => ipcRenderer.invoke('save-soul', text),
+  getCharacterMeta: (name) => ipcRenderer.invoke('get-character-meta', name),
+  saveCharacterMeta: (payload) => ipcRenderer.invoke('save-character-meta', payload),
   getTools: () => ipcRenderer.invoke('get-tools'),
   getTopicDetail: (slug) => ipcRenderer.invoke('get-topic-detail', slug),
   deleteTopic: (slug) => ipcRenderer.invoke('delete-topic', slug),
