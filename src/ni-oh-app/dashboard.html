@@ -564,6 +564,7 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
         <button class="btn btn-sm shrink" onclick="loadCharacters()" data-tip="Quét lại thư mục asset">↻ Làm mới</button>
         <button class="btn btn-sm shrink" onclick="window.niOhAPI.openFolder('characters')" data-tip="Mở thư mục asset nhân vật">📂 Mở thư mục</button>
         <button class="btn btn-sm btn-primary shrink" onclick="openAssetModal()" data-tip="Khai báo nhân vật mới: gán ảnh cho từng trạng thái hoặc sinh bằng AI">＋ Thêm nhân vật</button>
+        <button class="btn btn-sm shrink" onclick="showCharGuide()" data-tip="Bản hướng dẫn chuẩn (markdown) để copy gửi bất kỳ agent thiết kế nào">📖 Hướng dẫn làm nhân vật</button>
       </div>
     </div>
   </section>
@@ -961,24 +962,26 @@ function mcSetModels(k, models) {
   _mcModels[k] = models || [];
   if (_mcOpen[k]) mcRender(k);
 }
-let _mcShown = {}, _mcArr = {};
+let _mcShown = {}, _mcArr = {}, _mcAll = {};
+function mcItemHTML(m, cur) { return `<div class="mc-item${m.id === cur ? ' sel' : ''}" data-mc="${String(m.id).replace(/"/g, '&quot;')}"><span class="mc-id">${m.id}</span><span class="mc-lb">${m.label && m.label !== m.id ? m.label : ''}</span></div>`; }
+function mcBindItem(el) { el.onmousedown = (e) => { e.preventDefault(); mcInput(el.closest('.mc-list').id === 'mc-chat' ? 'chat' : 'train').value = el.dataset.mc; mcClose(el.closest('.mc-list').id === 'mc-chat' ? 'chat' : 'train'); }; }
 const MC_PAGE = 60;   // render từng mẻ 60 — 400+ model không dựng DOM một lúc (giật khi mở)
 function mcRender(k, qRaw) {
   const list = document.getElementById('mc-' + k); if (!list) return;
   const inp = mcInput(k);
-  const q = (qRaw === undefined ? inp.value : qRaw).trim().toLowerCase();
+  const q = (qRaw !== undefined) ? qRaw.trim().toLowerCase() : (_mcAll[k] ? '' : inp.value.trim().toLowerCase());
   let arr = _mcModels[k];
   if (q) arr = arr.filter(m => ((m.id || '') + ' ' + (m.label || '')).toLowerCase().includes(q));
   _mcArr[k] = arr;
   const shown = _mcShown[k] = Math.min(arr.length, _mcShown[k] || MC_PAGE);
   const cur = inp.value;
-  list.innerHTML = arr.length
-    ? arr.slice(0, shown).map(m => `<div class="mc-item${m.id === cur ? ' sel' : ''}" data-mc="${String(m.id).replace(/"/g, '&quot;')}"><span class="mc-id">${m.id}</span><span class="mc-lb">${m.label && m.label !== m.id ? m.label : ''}</span></div>`).join('') +
-      (arr.length > shown ? `<div class="mc-empty">cuộn để xem tiếp — còn ${arr.length - shown} model</div>` : '')
-    : `<div class="mc-empty">${q ? 'Không có model khớp “' + q + '” — nhập tên khác hoặc bấm ↻ nạp lại.' : 'Danh sách trống — bấm ↻ nạp lại.'}</div>`;
-  list.querySelectorAll('.mc-item').forEach(el => {
-    el.onmousedown = (e) => { e.preventDefault(); inp.value = el.dataset.mc; mcClose(k); };
-  });
+  if (!arr.length) {
+    list.innerHTML = `<div class="mc-empty">${q ? 'Không có model khớp “' + q + '” — nhập tên khác hoặc bấm ↻ nạp lại.' : 'Danh sách trống — bấm ↻ nạp lại.'}</div>`;
+    return;
+  }
+  list.innerHTML = arr.slice(0, shown).map(m => mcItemHTML(m, cur)).join('') +
+    (arr.length > shown ? `<div class="mc-empty">cuộn để xem tiếp — còn ${arr.length - shown} model</div>` : '');
+  list.querySelectorAll('.mc-item').forEach(mcBindItem);
 }
 // cuộn chạm đáy → nở thêm mẻ 60 (debounce, giữ mượt)
 let _mcGrowT = null;
@@ -989,7 +992,19 @@ document.addEventListener('scroll', (e) => {
   clearTimeout(_mcGrowT);
   _mcGrowT = setTimeout(() => {
     const k = list.id === 'mc-chat' ? 'chat' : 'train';
-    if ((_mcShown[k] || MC_PAGE) < (_mcArr[k] || []).length) { _mcShown[k] = (_mcShown[k] || MC_PAGE) + MC_PAGE; mcRender(k); }
+    const arr = _mcArr[k] || [], cur = (_mcShown[k] || MC_PAGE);
+    if (cur >= arr.length) return;
+    // NỐI thêm DOM — không dựng lại → không tách node → không sinh 'scroll' giả → dropdown KHÔNG biến mất
+    const foot = list.querySelector('.mc-empty');
+    const frag = document.createElement('div');
+    const inp = mcInput(k);
+    frag.innerHTML = arr.slice(cur, cur + MC_PAGE).map(m => mcItemHTML(m, inp.value)).join('');
+    const add = [...frag.children];
+    add.forEach(mcBindItem);
+    if (foot) arr.length > cur + MC_PAGE ? foot.before(...add) : list.append(...add);
+    if (!foot && arr.length > cur + MC_PAGE) list.insertAdjacentHTML('beforeend', `<div class="mc-empty">cuộn để xem tiếp</div>`);
+    if (foot && arr.length <= cur + MC_PAGE) foot.remove();
+    _mcShown[k] = Math.min(arr.length, cur + MC_PAGE);
   }, 80);
 }, true);
 function mcPlace(k) {   // list là portal trong body → tính tọa độ theo ô input
@@ -1003,23 +1018,24 @@ function mcPlace(k) {   // list là portal trong body → tính tọa độ theo
   else { list.style.top = 'auto'; list.style.bottom = (innerHeight - r.top + 4) + 'px'; list.style.maxHeight = Math.max(120, Math.min(280, r.top - 10)) + 'px'; }
 }
 function mcOpen(k, all) {
-  _mcOpen[k] = true; _mcShown[k] = MC_PAGE;
+  _mcOpen[k] = true; _mcAll[k] = !!all; _mcShown[k] = MC_PAGE;
   const list = document.getElementById('mc-' + k);
   if (list.parentElement !== document.body) document.body.appendChild(list);  // thoát stacking context của .card (backdrop-filter)
   list.hidden = false;
   mcPlace(k);
   mcRender(k, all ? '' : undefined);
 }
-function mcClose(k) { _mcOpen[k] = false; const list = document.getElementById('mc-' + k); if (list) list.hidden = true; }
+function mcClose(k) { _mcOpen[k] = false; _mcAll[k] = false; const list = document.getElementById('mc-' + k); if (list) list.hidden = true; }
 function mcCloseSoon(k) { setTimeout(() => mcClose(k), 150); }
 function mcToggle(k) { mcOpen(k, true); }  // bấm ▾ lúc nào cũng xổ TOÀN BỘ danh sách
-function mcFilter(k) { _mcShown[k] = MC_PAGE; if (_mcOpen[k]) { mcPlace(k); mcRender(k); } else mcOpen(k); }
+function mcFilter(k) { _mcShown[k] = MC_PAGE; _mcAll[k] = false; if (_mcOpen[k]) { mcPlace(k); mcRender(k); } else mcOpen(k); }
 function mcCloseAll() { mcClose('chat'); mcClose('train'); }
 // scroll trong CHÍNH danh sách dropdown → giữ mở (trước đây capture=true bắt luôn
 // sự kiện cuộn bên trong mc-list → đóng sập ngay khi lia con lăn = 'không scroll được')
 document.addEventListener('scroll', (e) => {
   const list = e && e.target;
   if (list && list.classList && list.classList.contains('mc-list')) return;
+  if (!_mcOpen.chat && !_mcOpen.train) return;
   mcCloseAll();
 }, true);
 window.addEventListener('resize', mcCloseAll);
@@ -1498,6 +1514,28 @@ const POSES = [
   ['sleepy', '😴 Chờ lâu', 'Không tương tác quá lâu']
 ];
 let _amFiles = {};
+async function showCharGuide() {
+  const r = await window.niOhAPI.getCharactersGuide();
+  const txt = (r && r.text) || '(không tìm thấy file HUONG_DAN_THIET_KE.md)';
+  const ex = document.getElementById('char-guide-box'); if (ex) ex.remove();
+  const box = document.createElement('div');
+  box.className = 'card'; box.id = 'char-guide-box';
+  box.style.marginTop = 'var(--sp-4)';
+  const esc = txt.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  box.innerHTML = '<h3>📖 Hướng dẫn thiết kế nhân vật — copy nguyên khối gửi agent thiết kế</h3>' +
+    '<textarea id="char-guide-text" readonly rows="16" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:12px;padding:10px;font-family:Consolas,monospace;resize:vertical">' + esc + '</textarea>' +
+    '<div class="row" style="margin-top:8px"><button class="btn btn-sm btn-primary shrink" onclick="copyCharGuide()">📋 Copy tất cả</button>' +
+    '<button class="btn btn-sm shrink" onclick="document.getElementById(\'char-guide-box\').remove()">Đóng</button>' +
+    '<span class="status-text shrink">Đem file .json/.svg/png về thả vào thư mục nhân vật là app dùng ngay.</span></div>';
+  const panel = document.getElementById('panel-character');
+  panel.insertBefore(box, panel.children[panel.children.length - 1].nextSibling);
+  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function copyCharGuide() {
+  const ta = document.getElementById('char-guide-text'); if (!ta) return;
+  ta.select(); navigator.clipboard.writeText(ta.value).then(() => toast('Đã copy toàn bộ hướng dẫn')).catch(() => { document.execCommand('copy'); toast('Đã copy'); });
+}
+
 function openAssetModal() {
   _amFiles = {}; _amSingle = null;
   amSetMode('poses');

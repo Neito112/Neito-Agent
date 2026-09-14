@@ -135,7 +135,7 @@ async function cmdSuggest() {
   const callAgy = async (slug) => {
     const prompt = [
       `Tôi cần học giao thức/chủ đề "${slug}".`,
-      `Hãy liệt kê ĐÚNG 3 URL nguồn tiếng Việt hoặc tiếng Anh chất lượng.`,
+      `Hãy liệt kê 6-8 URL nguồn tiếng Việt hoặc tiếng Anh chất lượng, phủ đủ: docs chính hãng từng mục (nhiều trang con khác nhau), wiki/fandom, guide cơ bản→nâng cao, trang mẹo/shortcut/build, forum hỗ trợ.`,
       `Quy tắc bắt buộc:`,
       `  - Ưu tiên: trang docs/wiki chính thức của hãng (official), guide chơi/cách dùng (guide), trang mẹo trick (tricks)`,
       `  - CẤM tuyệt đối: youtube.com, youtu.be, twitch.tv, tiktok.com, facebook.com, filehippo, softpedia, cnet.com, trang tải phần mềm, trang tin tức chung chung`,
@@ -188,11 +188,10 @@ async function cmdSuggest() {
     console.log(`[${slug}] Đang gợi ý nguồn... (model: ${model})`);
     let result = await callAgy(slug);
 
-    // Nếu quota hoặc 429 → chờ 120s, thử lại 1 lần
+    // Lệnh Sếp: agy cạn quota → NGƯNG train, không chờ đốt tiếp
     if (!result.ok && (result.quota || result.rate)) {
-      console.log(`  ⚠ ${result.quota ? 'quota' : '429/rate'} — chờ 120s rồi thử lại 1 lần...`);
-      await sleep(120000);
-      result = await callAgy(slug);
+      console.log(`🛑 ${result.quota ? 'quota' : '429/rate'} agy — DỪNG suggest (chạy lại khi Sếp bảo).`);
+      break;
     }
 
     if (!result.ok) {
@@ -282,12 +281,9 @@ async function cmdRun() {
   for (let i = 0; i < maxN; i++) {
     const avail = activeModels();
     if (!avail.length) {
-      // Tất cả model đang bị quota — chờ đến khi model đầu tiên hết ban
-      const minBan = Math.min(...allModels.map(m => ts.banned_until[m] || 0));
-      const waitMs = Math.max(5000, minBan - Date.now() + 1000);
-      console.log(`Tất cả model bị quota — chờ ${Math.ceil(waitMs / 1000)}s...`);
-      await sleep(waitMs);
-      continue;
+      // Lệnh Sếp: agy cạn quota → NGƯNG train, không ngồi chờ đốt chu kỳ
+      console.log('🛑 Tất cả model agy cạn quota — DỪNG marathon (chạy lại lệnh khi Sếp bảo).');
+      break;
     }
 
     // Chọn model theo vòng luân phiên trong danh sách còn hoạt động

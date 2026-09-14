@@ -1300,6 +1300,10 @@ ipcMain.handle('overlay-drag-start', () => {
   return { x: dragState.dx, y: dragState.dy };
 });
 ipcMain.on('show-dashboard', () => showDashboard());
+ipcMain.handle('characters-guide', () => {
+  try { return { text: fs.readFileSync(path.join(APP_DIR, 'assets', 'characters', 'HUONG_DAN_THIET_KE.md'), 'utf8') }; }
+  catch (e) { return { text: '' }; }
+});
 ipcMain.on('overlay-drag-move', () => {
   if (!dragState || !overlayWindow || overlayWindow.isDestroyed()) return;
   const cur = require('electron').screen.getCursorScreenPoint();
@@ -1853,8 +1857,11 @@ async function idleCondenseRun() {
       const st = learner.statusOut();
       if (st.sources_pending > 0 || st.unanswered_open > 0) {
         console.log('[Learner] nhàn rỗi → học 1 nguồn/lượt...');
-        await learner.once();
-        idleBusy = false; scheduleIdleWorker();
+        const lr = await learner.once();
+        idleBusy = false;
+        // Lệnh Sếp: agy cạn quota → NGƯNG train (chờ dài 2h, không đốt chu kỳ 10 phút)
+        if (lr && lr.quota) { console.log('[Learner] 🛑 agy cạn quota — tạm ngưng tự học 2h'); clearTimeout(idleTimer); idleTimer = setTimeout(idleCondenseRun, 2 * 60 * 60 * 1000); return; }
+        scheduleIdleWorker();
         return;                       // mỗi lượt chỉ 1 nguồn — dành CPU cho Sếp
       }
     } catch (e) { console.warn('[Learner]', String(e.message || e).slice(0, 120)); }

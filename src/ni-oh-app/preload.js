@@ -39,6 +39,7 @@ contextBridge.exposeInMainWorld('niOhAPI', {
 
   // Character
   getCharacters: () => ipcRenderer.invoke('get-characters'),
+  getCharactersGuide: () => ipcRenderer.invoke('characters-guide'),
   selectCharacter: (name) => ipcRenderer.invoke('select-character', name),
 
   // Overlay — kéo thả bám con trỏ (main đọc cursor OS, chuẩn DPI)
