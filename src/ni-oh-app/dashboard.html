@@ -65,6 +65,9 @@ body {
   border:2px solid transparent; background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.22); background-clip: padding-box; }
+.ol-scroll-list::-webkit-scrollbar { width:6px; }
+.ol-scroll-list::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.3); border-radius:3px; }
+.ol-scroll-list::-webkit-scrollbar-thumb:hover { background: rgba(59,130,246,0.6); }
 ::selection { background: var(--accent-soft); }
 
 .chip {
@@ -1056,10 +1059,10 @@ async function renderOllamaBlock(elId, role) {
     return '<div class="row" style="gap:8px;align-items:center;margin:3px 0"><span style="width:160px;font-size:12px">' + m.id + '</span><span class="desc" style="flex:1">' + m.size + ' · ' + m.note + '</span><button class="btn btn-sm shrink" data-olpull="' + m.id + '" onclick="ollamaPull(this.dataset.olpull,this)">' + btnTxt + '</button></div>';
   }).join('');
   el.innerHTML = '<div class="row" style="gap:6px;margin:6px 0;align-items:center">' +
-      '<button class="btn btn-sm" style="flex:0 0 auto" onclick="olToggle(\'' + elId + '\')">' + (open ? '▾ Ẩn' : '📋 Hiện') + ' danh sách model tối ưu cho máy (' + mine.length + ')</button>' +
+      '<button class="btn btn-sm" style="flex:0 0 auto" onclick="olToggle(\'' + elId + '\')">' + (open ? '▾ Ẩn' : '📋 Hiện') + ' danh sách model cho máy — đủ dải siêu nhẹ → nặng (' + mine.length + ')</button>' +
       '<button class="btn btn-sm" style="flex:0 0 auto" onclick="olOpenApp()" data-tip="Mở app Ollama — muốn đổi nơi lưu model thì chỉnh trong đó; bên Ni-Oh chỉ việc tải và theo dõi tiến độ">🚀 Mở Ollama</button>' +
       '<span class="desc ol-dir-desc" style="flex:1;min-width:120px;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span></div>' +
-    '<div style="padding-left:6px"' + (open ? '' : ' hidden') + '>' + rows + '</div>';
+    '<div class="ol-scroll-list" style="padding-left:6px;padding-right:6px;max-height:198px;overflow-y:auto;border:1px solid rgba(255,255,255,0.07);border-radius:6px;margin-top:4px;background:rgba(0,0,0,0.15)"' + (open ? '' : ' hidden') + '>' + rows + '</div>';
   olShowDir();
 }
 function olToggle(elId) { _olOpen[elId] = !_olOpen[elId]; renderOllamaAll(); }
