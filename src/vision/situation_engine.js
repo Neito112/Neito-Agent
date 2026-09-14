@@ -292,10 +292,10 @@ function setCondensed(slug, id, short) {
   return saveTopic(slug, d);
 }
 
-/* ── NHỊP GIAO TIẾP ĐỌC TỪ SOUL — mục "## Nhịp giao tiếp" trong memory/soul.md
-   Engine parse mỗi lần file đổi; thiếu trường → mặc định. Sếp chỉnh soul là
-   Ni-Oh đổi tốc độ/tần suất nói theo, không cần sửa code. ── */
-const SOUL_FILE = path.join(__dirname, '..', '..', 'memory', 'soul.md');
+/* ── NHỊP GIAO TIẾP — TÍNH NĂNG RIÊNG, đọc từ memory/pacing.json (KHÔNG đụng soul.md).
+   Soul chỉ định hình VĂN PHONG; nhịp nằm ở file ẩn này, thiếu → mặc định.
+   Luật BẤT BIẾN 30/40/30 của Sếp nằm trong main.js — file này không được sửa nó. ── */
+const PACING_FILE = path.join(__dirname, '..', '..', 'memory', 'pacing.json');
 const DEFAULT_PACING = {
   startup_ack: true, chit_min_s: 90, chit_max_s: 240,
   tempo_urgency_threshold: 'urgent', debounce_scene_ms: 300,
@@ -303,29 +303,24 @@ const DEFAULT_PACING = {
 };
 let _pacing = null, _pacingMtime = 0;
 function pacing() {
-  let st; try { st = fs.statSync(SOUL_FILE); } catch (e) { return DEFAULT_PACING; }
+  let st; try { st = fs.statSync(PACING_FILE); } catch (e) { return DEFAULT_PACING; }
   if (_pacing && _pacingMtime === st.mtimeMs) return _pacing;
-  let raw = ''; try { raw = fs.readFileSync(SOUL_FILE, 'utf8'); } catch (e) { return DEFAULT_PACING; }
-  const sec = (raw.split(/^##\s*Nhịp giao tiếp/m)[1] || '').split(/^##\s/m)[0];
-  const get = (key) => { const m = sec.match(new RegExp('\\*\\*' + key + '\\s*[:*]+\\s*\\*\\*?\\s*[:*]*\\s*(.+)')) || sec.match(new RegExp('\\*\\*' + key + '[^*]*\\*\\*:\\s*(.+)')); return m ? m[1].replace(/\*/g, '').trim() : null; };
+  let j = {}; try { j = JSON.parse(fs.readFileSync(PACING_FILE, 'utf8')); } catch (e) { return DEFAULT_PACING; }
   const num = (s, dmin, dmax) => {
-    if (!s) return null;
-    const a = String(s).match(/(\d+)\s*s?\s*[-–~]\s*(\d+)/);
+    if (s == null) return null;
+    const a = String(s).match(/(\d+)\s*s?\s*[-\u2013~]\s*(\d+)/);
     if (a) return [Math.max(dmin, +a[1]), Math.min(3600, +a[2])];
     const n = parseInt(s, 10); return isNaN(n) ? null : [n, n];
   };
-  const chit = num(get('chit_chat_range'), 15, 3600);
-  const db = parseInt(get('debounce_scene_ms'), 10);
-  const cb = parseInt(get('cooldown_base_s'), 10);
-  const ft = (get('forbidden_topics') || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+  const chit = num(j.chit_chat_range, 15, 3600);
   _pacing = {
-    startup_ack: !/^false/i.test(get('startup_ack') || 'true'),
+    startup_ack: j.startup_ack !== false,
     chit_min_s: chit ? chit[0] : DEFAULT_PACING.chit_min_s,
     chit_max_s: chit ? chit[1] : DEFAULT_PACING.chit_max_s,
-    tempo_urgency_threshold: (get('tempo_urgency_threshold') || 'urgent').trim().toLowerCase(),
-    debounce_scene_ms: isNaN(db) ? DEFAULT_PACING.debounce_scene_ms : Math.min(5000, Math.max(0, db)),
-    cooldown_base_s: isNaN(cb) ? DEFAULT_PACING.cooldown_base_s : Math.max(5, cb),
-    forbidden_topics: ft.length ? ft : DEFAULT_PACING.forbidden_topics
+    tempo_urgency_threshold: String(j.tempo_urgency_threshold || 'urgent').trim().toLowerCase(),
+    debounce_scene_ms: Math.min(5000, Math.max(0, parseInt(j.debounce_scene_ms, 10) || DEFAULT_PACING.debounce_scene_ms)),
+    cooldown_base_s: Math.max(5, parseInt(j.cooldown_base_s, 10) || DEFAULT_PACING.cooldown_base_s),
+    forbidden_topics: Array.isArray(j.forbidden_topics) && j.forbidden_topics.length ? j.forbidden_topics.map(x => String(x).toLowerCase()) : DEFAULT_PACING.forbidden_topics
   };
   _pacingMtime = st.mtimeMs;
   return _pacing;

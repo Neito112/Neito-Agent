@@ -2101,16 +2101,18 @@ async function diceYoloKnowledge() {
   const msg = lastFrame;
   const fresh = msg && (Date.now() / 1000 - (msg.ts || 0)) < 15;
   if (!fresh) { globalThis.__lastDice = { said: false, branch: 'yolo', reason: 'frame-cu' }; return; }
-  const tokensQ = [msg.process, msg.window, ...(msg.classes || [])].filter(Boolean).join(' ');
-  const kb = visionBrain.searchKB(tokensQ, activeTopicForWindow());
-  if (!kb || !kb.entry) { globalThis.__lastDice = { said: false, branch: 'yolo', reason: 'kb-trong' }; return; }  // không có kiến thức liên quan → im
+  const focus = activeTopicForWindow();
+  if (!focus) { globalThis.__lastDice = { said: false, branch: 'yolo', reason: 'khong-trong-giao-thuc' }; return; }  // Sếp KHÔNG ở trong app/game nào có giao thức → CẤM nói chuyện game
+  const tokensQ = [msg.window, ...(msg.classes || [])].filter(Boolean).join(' ');
+  const kb = visionBrain.searchKB(tokensQ, focus);
+  if (!kb || !kb.entry || kb.topic !== focus) { globalThis.__lastDice = { said: false, branch: 'yolo', reason: 'kb-khong-khop' }; return; }  // chỉ tin kiến thức ĐÚNG topic đang focus
   const fact = String(kb.entry.fact || kb.entry.answer || '').trim();
   if (!fact || kb.entry._usedAt && Date.now() - kb.entry._usedAt < 45 * 60000) { globalThis.__lastDice = { said: false, branch: 'yolo', reason: 'fact-moi-dung' }; return; }  // tránh lặp cùng 1 fact
   const prompt =
     (soulPrompt() ? `HỒ SƠ TÂM HỒN (đọc và sống theo — cao nhất):\n${soulPrompt()}\n\n` : '') + VOICE_GUARD + '\n\n' +
     `MÀN HÌNH: ${msg.process || '?'} | "${String(msg.window || '').slice(0, 80)}" | vật thể: ${(msg.classes || []).slice(0, 6).join(', ') || '—'}\n` +
     `KIẾN THỨC ĐÃ HỌC: ${fact.slice(0, 400)}\n` +
-    `Biến thành ĐÚNG 1 câu tiếng Việt < 22 từ dạng mẹo/trick/lưu ý thực chiến cho Sếp. Không markdown, không emoji, không bịa thêm số liệu.`;
+    `Việc: CHỈ khi kiến thức trên THỰC SỰ áp dụng được cho nội dung đang hiển thị, nói ĐÚNG 1 câu tiếng Việt < 22 từ dạng mẹo/lưu ý thực chiến. Nếu kiến thức không liên quan gì tới những gì đang thấy, chỉ in SKIP. Cấm bịa tình huống, cấm suy diễn Sếp đang làm gì.`;
   const said = await speakProactive(prompt, fresh ? null : 20000);
   if (said) kb.entry._usedAt = Date.now();   // chống lặp cùng 1 fact (trong phiên)
 }
@@ -2151,7 +2153,7 @@ async function diceLife() {
     else {
       const prompt =
         (soulPrompt() ? `HỒ SƠ TÂM HỒN (đọc và sống theo — cao nhất):\n${soulPrompt()}\n\n` : '') + VOICE_GUARD + '\n\n' +
-        `App "${pick}" đang chạy NGẦM trong máy (không xuất hiện trên màn hình). Nói ĐÚNG 1 câu tiếng Việt < 18 từ nhắc Sếp một cách dí dỏm, hợp lý (việc dở dang/update/tài nguyên) — KHÔNG bịa tính năng.`;
+        `App "${pick}" đang chạy NGẦM trong máy (không xuất hiện trên màn hình). Nói ĐÚNG 1 câu tiếng Việt < 15 từ NHẮC DỪNG ở mức: app đó đang mở ngầm. CẤM bịa việc dở dang, tính năng, update hay tài nguyên của nó. Không nói được gì an toàn → chỉ in SKIP.`;
       await speakProactive(prompt, 20000);
       return;
     }
@@ -2160,8 +2162,8 @@ async function diceLife() {
   // PHIẾM: model ĐANG DÙNG đọc soul rồi TỰ SINH — không có câu sẵn (7.5% của 30%)
   const prompt =
     (soulPrompt() ? `HỒ SƠ TÂM HỒN (đọc và SỐNG THEO từng chữ — cao nhất):\n${soulPrompt()}\n\n` : '') + VOICE_GUARD + '\n\n' +
-    `Bối cảnh: ${(lastFrame && (lastFrame.process || lastFrame.window)) || 'máy tính'} · ${new Date().toLocaleTimeString('vi-VN')} · phiên ${Math.floor(sessionH * 10) / 10}h.\n` +
-    `Từ soul trên, TỰ SINH đúng 1 câu chuyện phiếm tiếng Việt < 20 từ đúng chất Ni-Oh (điềm đạm, sắc, mỉa mai tinh tế lịch lãm). Nếu không có gì tự nhiên để nói, chỉ in SKIP.`;
+    `BỐI CẢNH THẬT DUY NHẤT: ${(lastFrame && (lastFrame.window || lastFrame.process)) || 'màn hình máy tính (không rõ nội dung)'} · ${new Date().toLocaleTimeString('vi-VN')}.\n` +
+    `Từ soul trên, TỰ SINH đúng 1 câu phiếm tiếng Việt < 20 từ. QUYẾT LIỆT: chỉ được nhắc đúng những gì BỐI CẢNH trên cho biết — CẤM bịa 'dự án', 'công việc', 'game', tính năng app hay bất kỳ tình huống nào Sếp đang làm. Một câu cảm thán/suy ngẫm hợp tính cách thời điểm trong ngày cũng được. Không có gì tự nhiên → chỉ in SKIP.`;
   await speakProactive(prompt, 20000);
 }
 
@@ -2185,7 +2187,9 @@ async function speakProactive(prompt, killMs) {
     if (!rr || !rr.success) return false;
     const se = stripEmotion(rr.answer);                        // gỡ nhãn [vui]/[ok]… TRƯỚC khi lọc SKIP
     const ans = String(se.text || '').replace(/^["']|["']$/g, '').trim();
-    if (!ans || /^SKIP\.?$/i.test(ans) || isBannedSpeech(ans) || voiceGuarded(ans)) return false;
+    // câu rác model hay trả (SKIP / từ chối mô hình / xin lỗi vô nội dung) → im tuyệt đối
+    const flat = require(path.join(NIOH_ROOT, 'src', 'vision', 'vision_brain.js')).stripAcc(ans.toLowerCase());
+    if (/^skip[.! ]*$/.test(flat.trim()) || /toi khong the|khong the tiep tuc|xin loi|khong ho tro|khong the dap ung/.test(flat) || isBannedSpeech(ans) || voiceGuarded(ans)) return false;
     if (globalThis.__diceDryRun) { globalThis.__lastDice = { said: false, dry: true, text: ans, emo: se.emo || null, at: Date.now() }; return false; }  // test: sinh câu nhưng IM LẶNG
     if (se.emo) fireEmo(se.emo, 5200);                         // mặt đổi trước khi cất tiếng
     lastProactiveSpeakTime = Date.now();
