@@ -727,6 +727,8 @@ const BANNED_SPEECH = /(đăng\s*ký|dăng\s*ky|subscribe|theo\s*dõi\s*kênh|ch
 function isBannedSpeech(t) { return BANNED_SPEECH.test(String(t || '')); }
 
 async function speakText(text, rate) {
+  // CHỐT CUỐI mọi đường nói: phát ngôn skip/"không có gì để nói" → im, không đổi mặt
+  if (isSkipIntent(stripEmotion(text).text)) return { success:false, error:'skip — im lặng' };
   { const se = stripEmotion(text); if (se.emo) fireEmo(se.emo, 5200); text = se.text; }
   rate = Math.min(1.6, Math.max(0.5, Number(rate) || 1));
   if (!text || !text.trim()) return { success:false, error:'Không có text' };
@@ -1634,6 +1636,7 @@ async function handleSwitchEvent(msg) {
 
 // Chạy 1 tình huống: instant = đọc data luôn (0 suy luận); infer = não suy luận rồi lưu vĩnh viễn
 async function runSituation(hit) {
+  if (hit && hit.slug && !watcherOn(hit.slug)) { globalThis.__lastDice = { said: false, reason: 'watcher-tat', slug: hit.slug }; return; }  // Sếp tắt mắt giao thức này → im tuyệt đối
   eyeBusy = true;
   try {
     if (hit.situation && hit.situation.emotion) fireEmo(hit.situation.emotion, 5000);  // kịch bản biểu cảm đã train theo tình huống
@@ -1728,7 +1731,11 @@ function logReflexMiss(label, conf) {
 function scanCombatReflex(msg) {
   // ĐỌC data đã train — matchCombat chỉ tính trong RAM, không ghi file.
   let matches;
-  try { matches = situationEngine.matchCombat(msg); } catch (e) { return false; }
+  try {
+    const proto = situationEngine.protocolForFrame(msg);
+    if (!proto || !watcherOn(proto)) return false;                 // Sếp tắt mắt giao thức này → reflex im
+    matches = situationEngine.matchCombat(msg);
+  } catch (e) { return false; }
   if (!matches || !matches.length) return false;
   const now = Date.now();
   // SỰ KIỆN = tập tình huống ĐỔI so với khung trước (cảnh đứng yên KHÔNG phải
@@ -2086,6 +2093,7 @@ async function diceYoloKnowledge() {
   if (!fresh) { globalThis.__lastDice = { said: false, branch: 'yolo', reason: 'frame-cu' }; return; }
   const focus = activeTopicForWindow();
   if (!focus) { globalThis.__lastDice = { said: false, branch: 'yolo', reason: 'khong-trong-giao-thuc' }; return; }  // Sếp KHÔNG ở trong app/game nào có giao thức → CẤM nói chuyện game
+  if (!watcherOn(focus)) { globalThis.__lastDice = { said: false, branch: 'yolo', reason: 'watcher-tat' }; return; }  // Sếp TẮT mắt giao thức này → không có quyền chủ động nói về nó
   const tokensQ = [msg.window, ...(msg.classes || [])].filter(Boolean).join(' ');
   const kb = visionBrain.searchKB(tokensQ, focus);
   if (!kb || !kb.entry || kb.topic !== focus) { globalThis.__lastDice = { said: false, branch: 'yolo', reason: 'kb-khong-khop' }; return; }  // chỉ tin kiến thức ĐÚNG topic đang focus
@@ -2171,6 +2179,21 @@ async function diceLife() {
   await speakProactive(prompt, 20000);
 }
 
+// ═══ QUY TẮC SKIP TUYỆT ĐỐI (Sếp): skip là IM — bất kỳ phát ngôn nào thể hiện ý
+// "bỏ lượt" phải chết ở đây, kể cả dạng câu có giải thích hay ký hiệu trang trí.
+function isSkipIntent(s) {
+  let t = String(s || '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')      // bo dau
+    .replace(/đ/g, 'd').replace(/\u0111/g, 'd')             // d gach cross = ky tu khong phai to hop
+    .replace(/[*_~`>\[\](){}«”„"'—.–\-→•·|!?.;:]+/g, ' ')  // bo ky hieu trang tri
+    .replace(/\s+/g, ' ').trim();
+  if (!t) return true;                                       // rong sau khi don → khong co gi noi
+  if (/\bskip(ped|ping|s)?\b/.test(t)) return true;          // MOI phat ngon chü 'skip' = bo luot
+  if (/^(bo luot|bo qua|nhat cu|im lang|tu choi|nothing|none|no comment|no action|\\-+)$/.test(t)) return true;
+  if (/khong co gi|khong noi (gi|them|duoc|lai)|nothing (to )?(say|add)|chua den luc|den luc se noi|khong (co loi|binh luan)|(em|toi) xin?( ph[eé]p)? im lang|xin.{0,8}im lan/.test(t)) return true;
+  return false;
+}
+
 // executor chung: sinh qua agy (đọc soul) → phao Ollama → lọc → TTS. Trả true nếu đã nói.
 async function speakProactive(prompt, killMs) {
   eyeBusy = true;
@@ -2190,10 +2213,11 @@ async function speakProactive(prompt, killMs) {
     const rr = r.success ? r : await localBrain(prompt);       // API sập → não cục bộ vẫn cất tiếng được
     if (!rr || !rr.success) return false;
     const se = stripEmotion(rr.answer);                        // gỡ nhãn [vui]/[ok]… TRƯỚC khi lọc SKIP
-    const ans = String(se.text || '').replace(/^["']|["']$/g, '').trim();
-    // câu rác model hay trả (SKIP / từ chối mô hình / xin lỗi vô nội dung) → im tuyệt đối
+    const ans = String(se.text || '').replace(/^["'“”]+|["'“”]+$/g, '').trim();
+    // MỌI phát ngônSkip/dạy-dỗ-không-nói → im tuyệt đối, không vào TTS (Sếp: skip là IM)
+    if (isSkipIntent(ans)) { globalThis.__lastDice = Object.assign(globalThis.__lastDice || {}, { said: false, reason: 'model-skip' }); return false; }
     const flat = require(path.join(NIOH_ROOT, 'src', 'vision', 'vision_brain.js')).stripAcc(ans.toLowerCase());
-    if (/^skip[.! ]*$/.test(flat.trim()) || /toi khong the|khong the tiep tuc|xin loi|khong ho tro|khong the dap ung/.test(flat) || isBannedSpeech(ans) || voiceGuarded(ans)) return false;
+    if (/toi khong the|khong the tiep tuc|xin loi|khong ho tro|khong the dap ung/.test(flat) || isBannedSpeech(ans) || voiceGuarded(ans)) return false;
     if (globalThis.__diceDryRun) { globalThis.__lastDice = { said: false, dry: true, text: ans, emo: se.emo || null, at: Date.now() }; return false; }  // test: sinh câu nhưng IM LẶNG
     if (se.emo) fireEmo(se.emo, 5200);                         // mặt đổi trước khi cất tiếng
     lastProactiveSpeakTime = Date.now();
@@ -2202,6 +2226,42 @@ async function speakProactive(prompt, killMs) {
     return true;
   } catch (e) { return false; } finally { eyeBusy = false; }
 }
+
+// ═══ WATCHER per-giao-thức (Sếp: mỗi giao thức 1 nút tự bật/tắt quyền cất tiếng) ═══
+// watcher=false trong memory/vision/<slug>.json → Ni-Oh IM LẶNG mọi đường CHỦ ĐỘNG về
+// giao thức đó (tình huống, reflex combat, mẹo xúc xắc). HỎI ĐÁP không bị ảnh hưởng.
+const _watcherCache = new Map();   // slug → {v, at}
+function watcherOn(slug) {
+  if (!slug) return true;
+  const c = _watcherCache.get(slug);
+  if (c && Date.now() - c.at < 20000) return c.v;
+  let v = true;
+  try {
+    const fp = require(path.join(NIOH_ROOT, 'src', 'vision', 'vision_brain.js')).VISION_DIR
+      ? path.join(VISION_DIR, String(slug).replace(/[^a-z0-9\-]/g, '') + '.json') : null;
+    if (fp && fs.existsSync(fp)) {
+      const d = JSON.parse(fs.readFileSync(fp, 'utf8'));
+      v = d.watcher !== false;                       // thiếu field = BẬT (mặc định cũ)
+    }
+  } catch (e) {}
+  _watcherCache.set(slug, { v, at: Date.now() });
+  return v;
+}
+ipcMain.handle('toggle-watcher', (e, slug) => {
+  try {
+    const clean = String(slug || '').replace(/[^a-z0-9\-]/g, '');
+    if (!clean) return { success: false, error: 'slug rỗng' };
+    const fp = path.join(VISION_DIR, clean + '.json');
+    if (!fs.existsSync(fp)) return { success: false, error: 'không có giao thức' };
+    const d = JSON.parse(fs.readFileSync(fp, 'utf8'));
+    const nv = d.watcher === false;                  // lật: tắt → bật
+    d.watcher = nv;
+    fs.writeFileSync(fp, JSON.stringify(d, null, 2));
+    _watcherCache.set(clean, { v: nv, at: Date.now() });
+    console.log('[Watcher]', clean, nv ? 'BẬT' : 'TẮT');
+    return { success: true, watcher: nv };
+  } catch (e) { return { success: false, error: String(e.message || e).slice(0, 120) }; }
+});
 
 // Test hook (ẩn, chỉ CDP): ép nhánh xúc xắc — 'yolo' | 'health' | 'bg' | 'phim' | 'roll'
 ipcMain.handle('dice-test', async (e, which) => {

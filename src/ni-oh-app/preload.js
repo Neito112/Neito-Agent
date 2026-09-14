@@ -26,6 +26,7 @@ contextBridge.exposeInMainWorld('niOhAPI', {
 
   // Voice / TTS
   speak: (text) => ipcRenderer.invoke('speak', text),
+  toggleWatcher: (slug) => ipcRenderer.invoke('toggle-watcher', slug),
   testVoice: () => ipcRenderer.invoke('test-voice'),
   onSay: (cb) => ipcRenderer.on('say', (_, t) => cb(t)),
   onTalkState: (cb) => ipcRenderer.on('talk-state', (_, on) => cb(on)),

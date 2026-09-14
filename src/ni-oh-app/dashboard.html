@@ -1220,8 +1220,12 @@ async function loadTopics() {
         : t.concept_state === 'loading_concepts'
         ? `<span class="chip" style="font-size:10px;padding:1px 7px"><span class="dot"></span> 📥 đang nạp ${t.concepts} khái niệm…${userTag}</span>`
         : `<span class="chip" style="font-size:10px;padding:1px 7px"><span class="dot"></span> chưa nạp khái niệm${userTag}</span>`;
+      const wOn = t.watcher !== false;
+      const wBtn = `<button class="btn btn-sm" style="float:right;padding:2px 8px;font-size:12px;opacity:.85"
+          title="${wOn ? 'Đang được phép chủ động nói về giao thức này — bấm để TẮT watcher' : 'Watcher ĐANG TẮT — Ni-Oh chỉ trả lời khi được hỏi, không tự cất tiếng — bấm để BẬT'}"
+          onclick="event.stopPropagation(); watcherToggle('${t.slug}', this)">${wOn ? '👁 watcher' : '🚫 im lặng'}</button>`;
       return `<div class="card" style="margin:0; padding:10px 12px; cursor:pointer" data-tip="Mở xem chi tiết khái niệm + tình huống đã train — từng cái, tự gắn câu trả lời, hoặc train lại" onclick="openTopicModal('${t.slug}','${name.replace(/'/g, '')}')">
-        <strong style="font-size:13px">🧠 ${name}</strong>
+        ${wBtn}<strong style="font-size:13px">🧠 ${name}</strong>
         <p class="desc" style="margin-top:2px">${t.concepts || 0} khái niệm · ${t.situations || 0} tình huống${t.entries ? ' · ' + t.entries + ' entry cũ' : ''} · mắt theo: ${(t.yolo_watch||[]).slice(0,3).join(', ')||'—'}</p>
         <div style="margin-top:4px">${stChip}</div>
       </div>`;
@@ -1231,6 +1235,17 @@ async function loadTopics() {
   } catch (e) {
     el.innerHTML = `<div class="empty">⚠️ Không đọc được danh sách</div>`;
   }
+}
+
+async function watcherToggle(slug, btn) {
+  const r = await window.niOhAPI.toggleWatcher(slug);
+  if (!r || !r.success) { toast('Lỗi: ' + ((r && r.error) || '?')); return; }
+  if (btn) {
+    btn.textContent = r.watcher ? '👁 watcher' : '🚫 im lặng';
+    btn.title = r.watcher ? 'Đã BẬT watcher — được phép chủ động nói về giao thức này'
+                          : 'Đã TẮT watcher — chỉ trả lời khi được hỏi';
+  }
+  toast(r.watcher ? '👁 ' + slug + ': Ni-Oh được phép chủ động nói' : '🤫 ' + slug + ': chỉ nói khi Sếp hỏi');
 }
 
 let _learnerTopics = [];
