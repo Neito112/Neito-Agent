@@ -44,10 +44,7 @@ const SPEC = {
   self_study:          ['Tự học 1 chủ đề ngay (tra web → ghi kho): {topic}', false, false],
   learn_video:         ['Học 1 video (transcript+frames → kho): {url}', false, false],
   convert_media:       ['Chuyển đổi/cắt audio-video bằng ffmpeg: {input,output,cmd}', false, false],
-  // Discord-only → tự tắt khi chạy độc lập
-  join_voice:          ['[Discord] Vào voice channel', false, true],
-  leave_voice:         ['[Discord] Rời voice channel', false, true],
-  delegate_task:       ['[Discord] Giao việc sub-agent 6 bot', false, true],
+  // Giao thức và trạng thái hệ thống
   set_protocol:        ['Đổi giao thức tác chiến: {protocol}', false, false],
   list_protocols:      ['Liệt kê giao thức', false, false],
   get_system_status:   ['Trạng thái toàn hệ thống', false, false]
@@ -60,15 +57,13 @@ function bad(error) { return { success: false, error: String(error).slice(0, 300
 function buildBridgeTools(existingNames) {
   const out = {};
   if (!agentTool) return out;
-  for (const [tool, [desc, needAdmin, discordOnly]] of Object.entries(SPEC)) {
+  for (const [tool, [desc, needAdmin]] of Object.entries(SPEC)) {
     if (existingNames.has(tool)) continue;             // bản app thắng nếu đã có
     out[tool] = {
       name: tool,
-      desc: discordOnly ? desc + ' — CHỈ khi chạy kèm bot Discord (chưa nối)' : desc,
+      desc: desc,
       adminRequired: !!needAdmin,
-      discordOnly: !!discordOnly,
       run: async (args, ctx) => {
-        if (discordOnly) return bad('Tool Discord — app độc lập chưa nối bot. Nối token Discord trong Settings để mở khóa.');
         const adm = (ctx && ctx.adminState) ? ctx.adminState() : (() => {
           try { return require(path.join(__dirname, 'extensions_manager.js')).adminState(); } catch (e) { return { granted: false }; }
         })();
