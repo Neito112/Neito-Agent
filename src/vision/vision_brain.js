@@ -11,6 +11,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { resolveActivation } = require('./activation');
 
 const VISION_DIR = path.join(__dirname, '..', '..', 'memory', 'vision');
 
@@ -166,6 +167,9 @@ function addEntry(topicSlug, entry, section) {
   const norm = stripAcc(entry.cue);
   const idx = d.entries.findIndex(x => stripAcc(x.cue || '') === norm);
   const merged = Object.assign({}, idx >= 0 ? d.entries[idx] : {}, entry);
+  // ĐIỀU KIỆN KÍCH HOẠT bóc tách từ CHÍNH kiến thức (Sếp): item chứa giờ/lịch/sinh hiệu
+  // → mang trường activation ngay trong dữ liệu của nó. Tool train không cần biết.
+  merged.activation = resolveActivation(merged, merged.activation);
   merged.aliases = [...new Set([].concat(entry.aliases || [], d.entries[idx]?.aliases || []))];
   if (section) merged.section = section;
   merged.updated_at = new Date().toISOString();

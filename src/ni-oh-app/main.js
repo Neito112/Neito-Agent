@@ -208,6 +208,7 @@ function createDashboardWindow(openTab) {
 const agyTool = require(path.join(NIOH_ROOT, 'tools', 'agy', 'resolver.js'));
 const extMan = require(path.join(APP_DIR, 'extensions_manager.js'));
 const situationEngine = require(path.join(NIOH_ROOT, 'src', 'vision', 'situation_engine.js'));
+const activation = require(path.join(NIOH_ROOT, 'src', 'vision', 'activation.js'));
 // Args agy + cờ KHO MỞ RỘNG (skill/tool/mcp/plugin) + quyền admin nếu đã cấp
 function agyArgsX(prompt, model) { return agyTool.agyArgs(prompt, model, extMan.agyFlags()); }
 // Đường NÓI (bình luận màn hình/tình huống): chạy agy CÔ LẬP trong temp rỗng.
@@ -373,9 +374,9 @@ function classifyMode(q, sc, kb) {
   return 'chat';
 }
 function toolHint(mode) {
-  if (mode === 'lookup') return '\n\n(Chế độ TRA CỨU: được phép trả về ACTION để dùng tool nếu cần. Format cuối câu trả lời, mỗi lệnh trên 1 dòng riêng: ACTION {"tool":"web_search","args":{"query":"..."}} — tool khả dụng:\n' + toolRegistry.toolsPrompt() + ')';
+  if (mode === 'lookup') return '\n\n(Chế độ TRA CỨU: được phép trả về ACTION để dùng tool nếu cần. Format cuối câu trả lời, mỗi lệnh trên 1 dòng riêng: ACTION {"tool":"web_search","args":{"query":"..."}} — tool khả dụng:\n' + toolRegistry.toolsPrompt() + '\n' + (() => { try { return extMan.storePrompt(); } catch (e) { return ''; } })() + ')';
   if (mode === 'screen') return '\n\n(Chế độ MÀN HÌNH: bám sát snapshot đã cho. Nếu thiếu dữ liệu, có thể ACTION {"tool":"screen_snapshot","args":{}} hoặc {"tool":"list_windows","args":{}}.)';
-  return '\n\n(Chế độ TRÒ CHUYỆN: trả lời ngay tức thì, KHÔNG tra cứu web, KHÔNG ACTION, dưới 20 từ.)';
+  return '\n\n(Chế độ TRÒ CHUYỆN: trả lời ngay tức thì, dưới 20 từ, KHÔNG tra cứu web. NGOẠI LỆ: nếu Sếp yêu cầu một HÀNH ĐỘNG thật (mở app, tạo file, ghi âm, hẹn lịch, chạy lệnh…) thì được phép ACTION bằng tool phù hợp thay vì chỉ nói.)';
 }
 function firstAction(s) {   // trích ACTION {json} ĐẦU TIÊN (vòng ngoặc cân bằng), không greedy sang ACTION sau
   const i = s.search(/ACTION\s*\{/i);
@@ -2099,30 +2100,51 @@ async function diceYoloKnowledge() {
   if (said) kb.entry._usedAt = Date.now();   // chống lặp cùng 1 fact (trong phiên)
 }
 
-// ── 30%: SỨC KHỎE (mốc thời gian) / NHẮC NHỞ (app chạy ngầm) / PHIẾM (sinh từ soul) ──
+// ── 30%: SỨC KHỎE — item có ĐIỀU KIỆN KÍCH HOẠT bóc từ dữ liệu train ──
 async function diceLife() {
   const sub = Math.random();
-  const h = new Date().getHours();
-  const min = new Date().getMinutes();
-  const sitMin = Math.floor((Date.now() - lastUserActivityMs) / 60000);
-  const sessionH = (Date.now() - APP_START_MS) / 3600000;
 
-  // SỨC KHỎE: có ĐIỀU KIỆN THỜI GIAN thật — trưa/đêm/khuya hoặc ngồi lì ≥45p (15% của 30%)
-  const healthDue = (h >= 22 || h < 5) || (h >= 11 && h < 13 && min < 45) || sitMin >= 45 || sessionH >= 3;
-  if (sub < 0.15 && !healthDue) { globalThis.__lastDice = { said: false, branch: 'health', reason: 'chua-toi-moc' }; }
-  else if (sub < 0.15 && healthDue) {
-    const cond = (h >= 22 || h < 5) ? `Đã ${h}h${min ? ':' + String(min).padStart(2, '0') : ''} — mốc khuya/đêm` :
-      (h >= 11 && h < 13) ? 'Đang khoảng 11h-13h30 — mốc bữa trưa' :
-      sitMin >= 45 ? `Sếp ngồi không hoạt động chuột/phím ${sitMin} phút — mốc vận động` :
-      `Phiên làm việc đã ${Math.floor(sessionH)} tiếng — mốc nghỉ định kỳ`;
-    const kb = visionBrain.searchKB('nghỉ giữa hiệp nước cột sống mắt vận động', 'fitness-gym')
-      || visionBrain.searchKB('thể chất nghỉ ngơi', 'the-thao')
-      || visionBrain.searchKB('vận động nghỉ ngơi nước', null);
+  // KHUON MAU CHUNG (Sếp): moi item kien thuc duoc train co the mang truong
+  // `activation` - dieu kien kich hoat BOC TACH TU CHINH BAI VIET (gio ngu, gio mo cua,
+  // ngay dien ra, nhip tim, lich trinh...). Day khong phai kich ban suc khoe:
+  // quet TOAN BO moi protocol, item nao co activation va dieu kien cua NO toi han
+  // thi duoc goi ten. Dieu kien vuot kha nang doc (sinh hieu chua ket noi) => im lang.
+  if (sub < 0.15) {
+    const sitMin = Math.floor((Date.now() - lastUserActivityMs) / 60000);
+    const ctxNow = { now: new Date(), sitMinutes: sitMin, hasVitals: false };   // hasVitals: flip true khi co vong dai/đồng hồ thông minh nối vào
+    let picked = null;
+    try {
+      const seen = new Set();
+      for (const t of visionBrain.listTopics()) {
+        if (seen.has(t.slug)) continue; seen.add(t.slug);
+        const d = visionBrain.loadKnowledge(t.slug);
+        if (!d || !d.entries) continue;
+        for (const e of d.entries) {
+          if (!e.activation) continue;                                   // chỉ item điều-kiện-hóa
+          if (e._saidAt && Date.now() - e._saidAt < 6 * 3600000) continue;   // chống lặp cùng item
+          if (!e.fact && !e.answer) continue;
+          if (!activation.checkActivation(e.activation, ctxNow)) continue;   // dieu kien cua NO xet theo NO
+          picked = { slug: t.slug, e }; break;
+        }
+        if (picked) break;
+      }
+    } catch (e) {}
+    if (!picked) { globalThis.__lastDice = { said: false, branch: 'health', reason: 'chua-item-nao-den-gio' }; return; }
+    const cond = activation.describeActivation(picked.e.activation);
     const prompt =
       (soulPrompt() ? `HỒ SƠ TÂM HỒN (đọc và sống theo — cao nhất):\n${soulPrompt()}\n\n` : '') + VOICE_GUARD + '\n\n' +
-      `ĐIỀU KIỆN: ${cond}.${kb && kb.entry ? '\nKIẾN THỨC SỨC KHỎE ĐÃ HỌC: ' + String(kb.entry.fact || '').slice(0, 300) : ''}\n` +
-      `Nói ĐÚNG 1 câu tiếng Việt < 20 từ nhắc Sếp một hành vi sức khỏe hợp điều kiện trên — như quản gia điềm đạm, không giảng đạo, không "Dạ…nha…nè".`;
-    await speakProactive(prompt, 20000);
+      `ĐIỀU KIỆN ĐÃ TỚI: ${cond}\nLỜI NHẮC ĐÃ TRAIN (nguồn duy nhất, CẤM bịa thêm): ${String(picked.e.fact || picked.e.answer).slice(0, 300)}\n` +
+      `Nói ĐÚNG 1 câu tiếng Việt < 20 từ nhắc Sếp đúng hành vi của lời nhắc trên, hợp điều kiện "${cond}" — như quản gia điềm đạm, không giảng đạo, không "Dạ…nha…nè".`;
+    const said = await speakProactive(prompt, 20000);
+    if (said) {
+      picked.e._saidAt = Date.now();
+      try {
+        const fp = path.join(VISION_DIR || path.join(NIOH_ROOT, 'memory', 'vision'), picked.slug + '.json');
+        const dd = JSON.parse(fs.readFileSync(fp, 'utf8'));
+        const ee = (dd.entries || []).find(x => x.cue === picked.e.cue);
+        if (ee) { ee._saidAt = picked.e._saidAt; fs.writeFileSync(fp, JSON.stringify(dd, null, 2)); }
+      } catch (e) {}
+    }
     return;
   }
 

@@ -156,7 +156,7 @@ function storePrompt() {
   const sk = listSkills(), tl = listExtTools(), mc = listMcp().filter(m => m.enabled), pl = listPlugins().filter(p => p.enabled);
   const adm = adminState().granted;
   const lines = [];
-  if (sk.length) lines.push('KỸ NĂNG (skill) đang có:\n' + sk.map(s => `- ${s.id}: ${s.description}`).join('\n'));
+  if (sk.length) lines.push('KỸ NĂNG (skill) đang có — khi việc cần làm khớp skill, ĐỌC file SKILL.md của nó (read_file) rồi làm theo:\n' + sk.map(s => `- ${s.id}: ${s.description} [file: extensions/skills/${s.id}/SKILL.md]`).join('\n'));
   if (tl.length) lines.push('TOOL mở rộng:\n' + tl.map(t => `- ${t.id}: ${t.desc}`).join('\n'));
   if (mc.length) lines.push('MCP server đang bật:\n' + mc.map(m => `- ${m.name} (${m.command})`).join('\n'));
   if (pl.length) lines.push('PLUGIN đang bật:\n' + pl.map(p => `- ${p.name}`).join('\n'));

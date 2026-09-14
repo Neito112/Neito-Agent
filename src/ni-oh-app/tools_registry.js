@@ -256,6 +256,16 @@ function loadUserTools() {
 }
 loadUserTools();
 
+// nạp bộ tool agent (file office, sheets/drive, lịch, shell, web, ảnh...) — app độc lập
+try {
+  const { buildBridgeTools } = require('./agent_bridge.js');
+  const bridge = buildBridgeTools(new Set(Object.keys(TOOLS)));
+  for (const [id, def] of Object.entries(bridge)) {
+    TOOLS[id] = { name: def.name, desc: def.desc, run: def.run, bridge: true };
+  }
+  console.log('[Tools] agent bridge nạp thêm', Object.keys(bridge).length, 'tool');
+} catch (e) { console.warn('[Tools] bridge lỗi:', e.message); }
+
 function toolCatalog() {
   return Object.entries(TOOLS).map(([id, t]) => ({ id, name: t.name, desc: t.desc, user: !!t.user }));
 }

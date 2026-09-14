@@ -332,24 +332,7 @@ function listDriveFiles(agentKey) {
   return out;
 }
 
-<<<<<<< HEAD
 // ─── Master Tool Dispatcher ───────────────────────────────────────────────
-=======
-function loadSecrets() {
-  try {
-    const dockerRaw = fs.readFileSync(path.join(__dirname, '..', 'config/secrets/docker.json'), 'utf8');
-    const hfRaw = fs.readFileSync(path.join(__dirname, '..', 'config/secrets/huggingface.json'), 'utf8');
-    const googleRaw = fs.readFileSync(path.join(__dirname, '..', 'config/secrets/google_oauth.json'), 'utf8');
-    return {
-      docker: JSON.parse(dockerRaw).docker || JSON.parse(dockerRaw),
-      huggingface: JSON.parse(hfRaw).huggingface || JSON.parse(hfRaw),
-      google_oauth: JSON.parse(googleRaw).google_oauth || JSON.parse(googleRaw)
-    };
-  } catch (e) { return null; }
-}
-
-// ─── Master Tool Dispatcher ────────────────────────────────────────────────
->>>>>>> 0ec3b26 (feat: Ni-Oh Hub Mode + Realtime Logger (2-tier architecture))
 async function executeOpenClawTool(toolName, args, context = {}) {
   console.log('[OpenClawToolkit] Running "' + toolName + '" for ' + (context.agentKey || 'default') + ':', JSON.stringify(args));
   try {
@@ -940,26 +923,6 @@ async function executeOpenClawTool(toolName, args, context = {}) {
         return `[ĐÃ ĐIỀU PHỐI NHIỆM VỤ]: Đã giao cho Agent [${target.toUpperCase()}]: "${task}". Agent này đã nhận lệnh và bắt đầu tác chiến.`;
       }
 
-<<<<<<< HEAD
-=======
-      // ─── 3 TOKENS MỚI ĐÃ NẠP (Docker, HuggingFace, Google OAuth) ────────────
-      case 'docker_login': {
-        const secrets = loadSecrets();
-        if (!secrets || !secrets.docker) return '[LỖI DOCKER]: File docker.json không tồn tại.';
-        return `[DOCKER LOGIN]: User: ${secrets.docker.username} | Token đã lưu an toàn (dckr_pat_...). Sẵn sàng dùng lệnh docker CLI.`;
-      }
-      case 'huggingface_auth': {
-        const secrets = loadSecrets();
-        if (!secrets || !secrets.huggingface) return '[LỖI HUGGINGFACE]: File huggingface.json không tồn tại.';
-        return `[HUGGINGFACE AUTH]: Token đã lưu an toàn (hf_...). Sẵn sàng tải/upload model.`;
-      }
-      case 'google_oauth_auth': {
-        const secrets = loadSecrets();
-        if (!secrets || !secrets.google_oauth) return '[LỖI GOOGLE OAUTH]: File google_oauth.json không tồn tại.';
-        return `[GOOGLE OAUTH]: Client: ${secrets.google_oauth.client_id} | Project: ${secrets.google_oauth.project_id} | Secret đã lưu an toàn.`;
-      }
-
->>>>>>> 0ec3b26 (feat: Ni-Oh Hub Mode + Realtime Logger (2-tier architecture))
       default:
         return '[Khong tim thay cong cu: ' + toolName + ']';
     }
@@ -1118,7 +1081,6 @@ module.exports = {
   executeOpenClawTool,
   OPENCLAW_TOOL_SYSTEM_PROMPT,
   TOOL_SYSTEM_PROMPT: null, // placeholder - will be set below for backward compat
-<<<<<<< HEAD
   executeAgentResponseTools
 };
 
@@ -1127,14 +1089,3 @@ module.exports.TOOL_SYSTEM_PROMPT = module.exports.OPENCLAW_TOOL_SYSTEM_PROMPT;
 
 
 
-=======
-  executeAgentResponseTools,
-  loadSecrets
-};
-
-// Backward compatibility alias
-module.exports.TOOL_SYSTEM_PROMPT = module.exports.OPENCLAW_TOOL_SYSTEM_PROMPT;
-
-
-
->>>>>>> 0ec3b26 (feat: Ni-Oh Hub Mode + Realtime Logger (2-tier architecture))
