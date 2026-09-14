@@ -367,6 +367,8 @@ function classifyMode(q, sc, kb) {
   if (kb && kb.direct) return 'instant';                       // KB có sẵn → 0 request
   if (/\b(là gì|ở đâu|sao|tại sao|thế nào|hướng dẫn|cách |check|tra cứu|tìm|search|update|giá|meta|phiên bản|code|lỗi|fix|dạy|học|train|giao thức|chủ đề|marathon)\b/.test(s)) return 'lookup';
   if (/(tự học|marathon|giao thức|mở mắt|bắt đầu học|dạy thêm|check_game_support)/i.test(s)) return 'lookup';
+  const sNangLuc = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
+  if (/(lam duoc (gi|gì|nhung gi|nhung dieu|kha nang|ky nang)|giup duoc gi|ky nang|nang luc|ho tro (gi|gì|nhung)|biet lam gi|co the lam gi|what can you|liet ke tai nang)/.test(sNangLuc)) return 'lookup';  // hỏi NĂNG LỰC → tra catalog THẬT, không bịa
   const sNfd = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/d/g, 'd');   // bỏ dấu: khớp mẫu ổn định không cần liệt kê mọi tổ hợp dấu
   if (/(ho tro|ho tro|game tro|choi game|lam duoc game|game .{0,16}(khong|ko|hem|day|nay|chu)|da ho tro .*(game|app))/.test(sNfd)) return 'lookup';   // 'em có hỗ trợ game X không?' → lookup để được gọi check_game_support
   if (s.length <= 18 && !sc) return 'chat';                    // câu ngắn, không liên quan màn hình → chuyện trò
@@ -374,7 +376,8 @@ function classifyMode(q, sc, kb) {
   return 'chat';
 }
 function toolHint(mode) {
-  if (mode === 'lookup') return '\n\n(Chế độ TRA CỨU: được phép trả về ACTION để dùng tool nếu cần. Format cuối câu trả lời, mỗi lệnh trên 1 dòng riêng: ACTION {"tool":"web_search","args":{"query":"..."}} — tool khả dụng:\n' + toolRegistry.toolsPrompt() + '\n' + (() => { try { return extMan.storePrompt(); } catch (e) { return ''; } })() + ')';
+  if (mode === 'lookup') return '\n\n(Chế độ TRA CỨU: được phép trả về ACTION để dùng tool nếu cần. Format cuối câu trả lời, mỗi lệnh trên 1 dòng riêng: ACTION {"tool":"web_search","args":{"query":"..."}} — tool khả dụng:\n' + toolRegistry.toolsPrompt() + '\n' + (() => { try { return extMan.storePrompt(); } catch (e) { return ''; } })() +
+    '\n\nNếu Sếp hỏi NĂNG LỰC/KỸ NĂNG của bạn: liệt kê TÓM TẮT theo nhóm đúng từ danh mục tool+skill trên (đây là kho THẬT — cấm nói thiếu, cấm bịa món không có). Kèm: kỹ năng đọc được từ file SKILL.md bằng tool read_file khi cần chi tiết.)';
   if (mode === 'screen') return '\n\n(Chế độ MÀN HÌNH: bám sát snapshot đã cho. Nếu thiếu dữ liệu, có thể ACTION {"tool":"screen_snapshot","args":{}} hoặc {"tool":"list_windows","args":{}}.)';
   return '\n\n(Chế độ TRÒ CHUYỆN: trả lời ngay tức thì, dưới 20 từ, KHÔNG tra cứu web. NGOẠI LỆ: nếu Sếp yêu cầu một HÀNH ĐỘNG thật (mở app, tạo file, ghi âm, hẹn lịch, chạy lệnh…) thì được phép ACTION bằng tool phù hợp thay vì chỉ nói.)';
 }
@@ -2092,6 +2095,7 @@ async function diceYoloKnowledge() {
   const fresh = msg && (Date.now() / 1000 - (msg.ts || 0)) < 15;
   if (!fresh) { globalThis.__lastDice = { said: false, branch: 'yolo', reason: 'frame-cu' }; return; }
   const focus = activeTopicForWindow();
+  globalThis.__activeProtocol = focus;   // watcher ↔ focus: cùng 1 biến — kho data nào đang được dùng
   if (!focus) { globalThis.__lastDice = { said: false, branch: 'yolo', reason: 'khong-trong-giao-thuc' }; return; }  // Sếp KHÔNG ở trong app/game nào có giao thức → CẤM nói chuyện game
   if (!watcherOn(focus)) { globalThis.__lastDice = { said: false, branch: 'yolo', reason: 'watcher-tat' }; return; }  // Sếp TẮT mắt giao thức này → không có quyền chủ động nói về nó
   const tokensQ = [msg.window, ...(msg.classes || [])].filter(Boolean).join(' ');
@@ -2105,7 +2109,16 @@ async function diceYoloKnowledge() {
     `KIẾN THỨC ĐÃ HỌC: ${fact.slice(0, 400)}\n` +
     `Việc: CHỈ khi kiến thức trên THỰC SỰ áp dụng được cho nội dung đang hiển thị, nói ĐÚNG 1 câu tiếng Việt < 22 từ dạng mẹo/lưu ý thực chiến. Nếu kiến thức không liên quan gì tới những gì đang thấy, chỉ in SKIP. Cấm bịa tình huống, cấm suy diễn Sếp đang làm gì.`;
   const said = await speakProactive(prompt, fresh ? null : 20000);
-  if (said) kb.entry._usedAt = Date.now();   // chống lặp cùng 1 fact (trong phiên)
+  if (said) {
+    kb.entry._usedAt = Date.now();
+    // PERSIST vào file — searchKB đọc lại từ đĩa mỗi lần nên gắn tạm trên copy là VÔ NGHĨA (lỗi lặp câu cũ)
+    try {
+      const fp = path.join(VISION_DIR, focus + '.json');
+      const dd = JSON.parse(fs.readFileSync(fp, 'utf8'));
+      const ee = (dd.entries || []).find(x => x.cue === kb.entry.cue);
+      if (ee) { ee._usedAt = Date.now(); fs.writeFileSync(fp, JSON.stringify(dd, null, 2)); }
+    } catch (e) {}
+  }
 }
 
 // ── 30%: SỨC KHỎE — item có ĐIỀU KIỆN KÍCH HOẠT bóc từ dữ liệu train ──
@@ -2219,8 +2232,10 @@ async function speakProactive(prompt, killMs) {
     const flat = require(path.join(NIOH_ROOT, 'src', 'vision', 'vision_brain.js')).stripAcc(ans.toLowerCase());
     if (/toi khong the|khong the tiep tuc|xin loi|khong ho tro|khong the dap ung/.test(flat) || isBannedSpeech(ans) || voiceGuarded(ans)) return false;
     if (globalThis.__diceDryRun) { globalThis.__lastDice = { said: false, dry: true, text: ans, emo: se.emo || null, at: Date.now() }; return false; }  // test: sinh câu nhưng IM LẶNG
+    if (alreadySaidRecently(ans)) { globalThis.__lastDice = Object.assign(globalThis.__lastDice || {}, { said: false, reason: 'lap-cau-qua' }); return false; }  // KHÔNG nói lại câu đã nói trong 24h
     if (se.emo) fireEmo(se.emo, 5200);                         // mặt đổi trước khi cất tiếng
     lastProactiveSpeakTime = Date.now();
+    markSaid(ans);
     await speakText(ans);
     globalThis.__lastDice = { said: true, text: ans, emo: se.emo || null, at: Date.now() };
     return true;
@@ -2262,6 +2277,20 @@ ipcMain.handle('toggle-watcher', (e, slug) => {
     return { success: true, watcher: nv };
   } catch (e) { return { success: false, error: String(e.message || e).slice(0, 120) }; }
 });
+
+// ═══ NHẪN CÂU ĐÃ NÓI (Sếp: "nó đang tự nói lại câu trả lời cũ") ═══
+// chủ động nói mà trùng câu trong 24h qua → im lặng tuyệt đối (model được phép sinh câu khác)
+const _saidRing = new Map();   // norm(text) → ts lần nói cuối
+function normSaid(s) { return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim(); }
+function alreadySaidRecently(s, windowMs) {
+  const k = normSaid(s); if (!k) return false;
+  const t = _saidRing.get(k);
+  return !!t && Date.now() - t < (windowMs || 24 * 3600000);
+}
+function markSaid(s) {
+  const k = normSaid(s); if (k) _saidRing.set(k, Date.now());
+  if (_saidRing.size > 400) for (const [kk, tt] of _saidRing) { if (Date.now() - tt > 24 * 3600000) _saidRing.delete(kk); }
+}
 
 // Test hook (ẩn, chỉ CDP): ép nhánh xúc xắc — 'yolo' | 'health' | 'bg' | 'phim' | 'roll'
 ipcMain.handle('dice-test', async (e, which) => {
