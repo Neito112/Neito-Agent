@@ -290,9 +290,9 @@ function callOpenRouter(question, modelName, apiKey) {
 
 // ─── AI Provider: Ollama (local) ──────────────────────────────────────────
 function callOllama(question, modelName) {
-  const model = modelName || 'qwen2.5:7b';
+  const model = modelName || 'gemma3:4b';   // Sếp chỉ chạy gemma3 — không mặc định model nặng khác
   return new Promise((resolve) => {
-    const payload = JSON.stringify({ model, messages:[{role:'user',content:question}], stream:false, keep_alive:-1 });  // warm-up kiểu BMO: giữ model nội trú VRAM, khỏi 'dừng-động-cơ-mỗi-lần-lái'
+    const payload = JSON.stringify({ model, messages:[{role:'user',content:question}], stream:false, keep_alive:600 });  // giữ nội trú 10 phút rồi tự nhả VRAM (trước: -1 = ghim vĩnh viễn → tràn VRAM gây giật)
     const req = http.request({
       hostname:'127.0.0.1', port:11434, path:'/api/chat', method:'POST',
       headers:{'Content-Type':'application/json'}, timeout:60000
@@ -542,7 +542,7 @@ function screenContext() {
 // Model theo lựa chọn của Sếp (offlineModel), mặc định theo mức tối ưu máy.
 function localBrainModel() {
   if (mainConfig.modelProvider === 'ollama' && mainConfig.modelName) return mainConfig.modelName;
-  return mainConfig.offlineModel || 'qwen2.5:7b-instruct-q4_K_M';
+  return mainConfig.offlineModel || 'gemma3:4b';
 }
 async function localBrain(prompt) {
   const r = await callOllama(prompt, localBrainModel());
