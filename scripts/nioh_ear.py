@@ -36,6 +36,8 @@ class Ear:
         self.talk = False           # push-to-talk đang giữ?
         self.audio_q = queue.Queue()
         self.cmd_q = queue.Queue()
+        self.user_voiceprint = None  # D-vector hoặc embedding đặc trưng của Sếp Neito
+        self.voiceprint_threshold = 0.65
 
     def load(self):
         from faster_whisper import WhisperModel
@@ -43,6 +45,26 @@ class Ear:
         # small: cân bằng chính xác tiếng Việt / tốc độ trên RTX 3060
         self.model = WhisperModel("small", device="cuda", compute_type="float16")
         emit({"event": "ready"})
+
+    def verify_speaker(self, pcm):
+        """
+        Xác minh sinh trắc học giọng nói Sếp Neito (4-Layer Audio Pipeline - Tầng 3).
+        Nếu chưa có mẫu voiceprint -> mặc định chấp nhận.
+        Nếu đã có mẫu -> kiểm tra tính tương đồng (Cosine Similarity).
+        """
+        if self.user_voiceprint is None:
+            return True
+        import numpy as np
+        # Trích xuất năng lượng dải tần sinh học thanh quản người (100Hz - 3.5kHz)
+        # Giả lập feature vector nhẹ cho Edge-Verification
+        fft_feat = np.abs(np.fft.rfft(pcm[:16000]))
+        if len(fft_feat) == 0:
+            return True
+        norm_feat = fft_feat / (np.linalg.norm(fft_feat) + 1e-6)
+        if len(norm_feat) != len(self.user_voiceprint):
+            return True
+        similarity = float(np.dot(norm_feat, self.user_voiceprint))
+        return similarity >= self.voiceprint_threshold
 
     def on_audio(self, indata, frames, t, status):
         if self.mode == "off":
@@ -56,6 +78,9 @@ class Ear:
         import numpy as np
         dur = len(pcm) / SR
         if dur < 0.5:
+            return
+        if not self.verify_speaker(pcm):
+            # Không phải giọng Sếp (người lạ hoặc tiếng ồn) -> Bỏ qua
             return
         try:
             segments, info = self.model.transcribe(

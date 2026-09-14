@@ -1885,36 +1885,103 @@ function setEmotion(mood, sec) {
   try { if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('emotion', mood, sec); } catch (e) {}
 }
 
-// ═══ TRÒ CHUYỆN PHIẾM THEO MÀN HÌNH ═══
-// Định kỳ (ngẫu nhiên 90–240s) gửi ĐÚNG nội dung màn hình đang thấy cho não:
-// nó nhận diện Sếp đang mở gì và chỉ nói về thứ trông thấy thật — không kịch bản.
+// ═══ TRÒ CHUYỆN PHIẾM & CHỦ ĐỘNG NÓI THEO XÁC SUẤT XÚC XẮC (DICE RNG) ═══
+// Thiết kế theo yêu cầu Sếp Neito & Audit từ Gemini 3.1 Pro:
+// Mỗi 5s kiểm tra: 30% kích hoạt nói / 70% im lặng (im lặng tiếp 5-15s).
+// Khi kích hoạt nói: 70% YOLO/mẹo/cổ vũ, 20% sức khỏe đời sống, 10% tin tức game/app.
 let chitTimer = null;
+let lastProactiveSpeakTime = 0;
+
+const HEALTH_POOL = [
+  "Sếp ơi, ngồi thẳng lưng lên chút nào, kẻo cột sống lại biểu tình đấy ạ.",
+  "Đã ngồi máy tính khá lâu rồi, Sếp nhớ chớp mắt vài cái và uống ngụm nước nhé.",
+  "Vươn vai thả lỏng cổ tay 5 giây đi Sếp, giữ phong độ chuẩn eSports nào!",
+  "Sếp nhớ hít một hơi thật sâu rồi thở chậm ra nhé, nạp lại năng lượng thôi ạ.",
+  "Uống một ngụm nước ấm đi Sếp ơi, mắt và não bộ cần cấp ẩm rồi đó."
+];
+
 function scheduleChit() {
   clearTimeout(chitTimer);
   if (!mainConfig.eyeProactive || !mainConfig.realtimeScanEnabled) return;
-  const P = situationEngine.pacing();
-  const lo = P.chit_min_s, hi = Math.max(lo + 10, P.chit_max_s);
-  const wait = (lo + Math.random() * (hi - lo)) * 1000;   // khoảng đọc từ soul "Nhịp giao tiếp"
-  chitTimer = setTimeout(chitAboutScreen, wait);
+
+  // 1. Gieo xúc xắc tỉ lệ 30% Nói / 70% Im lặng
+  const roll = Math.random();
+  if (roll > 0.30) {
+    // 70% IM LẶNG: Xổ xúc xắc thời gian nghỉ tiếp theo (5 - 15 giây)
+    const silentSeconds = 5 + Math.random() * 10;
+    chitTimer = setTimeout(scheduleChit, silentSeconds * 1000);
+    return;
+  }
+
+  // 2. 30% KÍCH HOẠT NÓI: Chạy ngay vào luồng thực thi
+  // Áp dụng cooldown tối thiểu 15s giữa 2 lần chủ động nói để không gây phiền
+  const now = Date.now();
+  if (now - lastProactiveSpeakTime < 15000) {
+    chitTimer = setTimeout(scheduleChit, 5000);
+    return;
+  }
+
+  chitTimer = setTimeout(chitAboutScreen, 100);
 }
+
 async function chitAboutScreen(eventNow) {
   try {
     if (!mainConfig.eyeProactive || !mainConfig.realtimeScanEnabled) return;
+    if (eyeBusy || answeringVoice) return;
+
     const msg = lastFrame;
-    const fresh = msg && (Date.now() / 1000 - (msg.ts || 0)) < 12;
-    if (!fresh || eyeBusy || answeringVoice) return;   // mắt chưa thấy gì mới → im lặng
-    // Cảnh YouTube/video: chỉ được nói về thứ Sếp ĐANG XEM, cấm bình luận nút/bản quyền
+    const fresh = msg && (Date.now() / 1000 - (msg.ts || 0)) < 15;
+    
+    // Gieo xúc xắc phân bổ nội dung (70% YOLO / 20% Sức khỏe / 10% Tin tức)
+    const contentRoll = Math.random();
+
+    // ── NHÁNH 20%: SỨC KHỎE & ĐỜI SỐNG (0-Token, tức thì) ──
+    if (contentRoll >= 0.70 && contentRoll < 0.90) {
+      const healthMsg = HEALTH_POOL[Math.floor(Math.random() * HEALTH_POOL.length)];
+      lastProactiveSpeakTime = Date.now();
+      await speakText(healthMsg);
+      return;
+    }
+
+    // ── NHÁNH 10%: TIN TỨC / UPDATE LIÊN QUAN APP/GAME ──
+    if (contentRoll >= 0.90) {
+      const appName = msg && (msg.process || msg.window) ? (msg.process || msg.window) : '';
+      if (appName) {
+        const soul = soulPrompt();
+        const prompt = (soul ? `HỒ SƠ TÂM HỒN:\n${soul}\n\n` : '') + VOICE_GUARD + '\n\n' +
+          `Sếp đang mở "${appName}". Hãy nói đúng 1 câu ngắn (< 20 từ) chia sẻ 1 mẹo hot, meta hiện tại hoặc nhắc nhở thú vị về app/game này. Tiếng Việt, dí dỏm, không markdown.`;
+        eyeBusy = true;
+        try {
+          const a = agyArgsVoice(prompt, 'gemini-3.8-flash-low');
+          const r = await new Promise((resolve) => {
+            const child = spawn(a.exe, a.args, { windowsHide: true, cwd: a.cwd });
+            const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch(e){} resolve({ success:false }); }, 20000);
+            let out = '';
+            child.stdout.on('data', d => out += d);
+            child.on('close', code => { clearTimeout(to); resolve(code === 0 && out.trim() ? { success:true, answer: out.trim() } : { success:false }); });
+            child.on('error', () => resolve({ success:false }));
+          });
+          if (r.success && r.answer && !isBannedSpeech(r.answer) && !voiceGuarded(r.answer)) {
+            lastProactiveSpeakTime = Date.now();
+            await speakText(r.answer);
+            return;
+          }
+        } finally { eyeBusy = false; }
+      }
+    }
+
+    // ── NHÁNH 70%: NỘI DUNG YOLO ĐANG QUAN SÁT (Mẹo, Cổ vũ, Phản xạ thao tác) ──
+    if (!fresh) return; // Mắt chưa thấy gì mới -> bỏ qua
     const soul = soulPrompt();
     const prompt =
       (soul ? `HỒ SƠ TÂM HỒN (sống theo — cao nhất):\n${soul}\n\n` : '') + VOICE_GUARD + '\n\n' +
-      `BẠN LÀ NI-OH — ${eventNow ? 'Sếp vừa QUAY LẠI màn hình này, nói về NỘI DUNG vừa xuất hiện' : 'vừa LIẾC'} lúc ${new Date().toLocaleTimeString('vi-VN')}.\n` +
-      `CẢNH THỰC TẾ (nguồn duy nhất, không có trong này là không tồn tại):\n` +
+      `BẠN LÀ NI-OH — ${eventNow ? 'Sếp vừa QUAY LẠI màn hình này' : 'vừa LIẾC'} lúc ${new Date().toLocaleTimeString('vi-VN')}.\n` +
+      `CẢNH THỰC TẾ:\n` +
       `- App on top: ${msg.process || '?'} | Cửa sổ: "${msg.window || '?'}"\n` +
       `- Vật thể: ${(msg.classes || []).join(', ') || 'không có'}\n` +
       `- Chữ đọc được: ${String(msg.text || '—').replace(/\n/g, ' ').slice(0, 300)}\n\n` +
-      `Nhiệm vụ: nếu cảnh có gì THẬT SỰ đáng nói với công việc của Sếp (tiến độ, lỗi, thao tác tiếp theo, thứ thú vị đang xem) → viết ĐÚNG 1 câu tiếng Việt < 22 từ bám sát chữ/vật thể trên.\n` +
-      `OUTPUT "SKIP" nếu: chỉ là phụ đề/lời video/nút giao diện (subscribe, like, đăng ký kênh, bình luận, chuông), màn hình desktop bình thường không có gì mới, hoặc em định nói câu chào xã giao rỗng.\n` +
-      `Chỉ output câu nói hoặc SKIP. Không giải thích.`;
+      `Nhiệm vụ: Viết ĐÚNG 1 câu tiếng Việt < 22 từ bám sát màn hình (mẹo chơi, cảm thán, hoặc cổ vũ thao tác của Sếp).\n` +
+      `OUTPUT "SKIP" nếu màn hình bình thường không có gì mới.`;
     eyeBusy = true;
     try {
       if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('thinking', 15);
@@ -1931,7 +1998,10 @@ async function chitAboutScreen(eventNow) {
       });
       if (r.success) {
         const ans = r.answer.replace(/^["']|["']$/g, '').trim();
-        if (ans && !/^SKIP\.?$/i.test(ans) && !isBannedSpeech(ans) && !voiceGuarded(ans)) await speakText(ans);
+        if (ans && !/^SKIP\.?$/i.test(ans) && !isBannedSpeech(ans) && !voiceGuarded(ans)) {
+          lastProactiveSpeakTime = Date.now();
+          await speakText(ans);
+        }
       }
     } finally { eyeBusy = false; }
   } finally { scheduleChit(); }
