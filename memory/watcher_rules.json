@@ -1,0 +1,7 @@
+{
+  "skipPct": 30,
+  "yoloPct": 40,
+  "lifePct": 30,
+  "intervalS": 5,
+  "cooldownS": 15
+}

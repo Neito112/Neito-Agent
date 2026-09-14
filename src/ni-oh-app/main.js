@@ -329,6 +329,33 @@ function callGemini(question, modelName, apiKey) {
   });
 }
 
+// ─── AI Provider: Nous Research Portal (OpenAI-compatible) ────────────────
+// Endpoint chính thức đã xác minh: https://inference-api.nousresearch.com/v1
+function callNous(question, modelName, apiKey) {
+  const key = apiKey || mainConfig.apiKey || process.env.NOUS_API_KEY;
+  if (!key) return { success:false, error:'Thiếu Nous API key (lấy tại portal.nousresearch.com)', provider:'nous' };
+  const model = modelName || 'nousresearch/hermes-4-instruct-llama-3.1-70b';
+  return new Promise((resolve) => {
+    const payload = JSON.stringify({
+      model, messages: [{ role: 'user', content: question }], max_tokens: 1500, temperature: 0.3
+    });
+    const req = https.request({
+      hostname: 'inference-api.nousresearch.com', path: '/v1/chat/completions', method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'User-Agent': 'NeitoAgent/1.0 (+https://ni-oh.local)' },
+      timeout: 30000
+    }, (res) => {
+      let b=''; res.on('data',c=>b+=c);
+      res.on('end',()=>{ try{ const j=JSON.parse(b); const t=j.choices?.[0]?.message?.content;
+        if(t&&t.trim()) resolve({success:true,answer:t.trim(),provider:'nous'});
+        else resolve({success:false,error:b.substring(0,300),provider:'nous'});
+      }catch(e){ resolve({success:false,error:e.message,provider:'nous'}); }});
+    });
+    req.on('error',e=>resolve({success:false,error:e.message,provider:'nous'}));
+    req.on('timeout',()=>{req.destroy();resolve({success:false,error:'Timeout',provider:'nous'});});
+    req.write(payload); req.end();
+  });
+}
+
 // ─── Unified AI dispatcher ────────────────────────────────────────────────
 // ═══ SOUL — tính cách Sếp tự viết, Ni-Oh tự lớn dần ═══
 function soulPrompt() {
@@ -589,6 +616,10 @@ async function askAI(rawQuestion) {
   if (p === 'ollama') return await callOllama(question, m);
   if (p === 'gemini') {
     const r = await callGemini(question, m, k);
+    return r.success ? r : await localBrain(question);
+  }
+  if (p === 'nous') {
+    const r = await callNous(question, m, k);
     return r.success ? r : await localBrain(question);
   }
 
@@ -1063,6 +1094,19 @@ ipcMain.handle('get-openrouter-models', async () => {
         free: /:free$/.test(m.id) || (m.pricing && m.pricing.prompt === '0')
       }))
       .sort((a, b2) => (b2.free ? 1 : 0) - (a.free ? 1 : 0) || a.label.localeCompare(b2.label));
+  });
+});
+ipcMain.handle('get-nous-models', async () => {
+  // Catalog công khai của Nous Portal (~400 model, OpenAI-compatible /v1/models)
+  // Cloudflare chặn request không User-Agent (403 HTML) → phải gửi UA như curl
+  return cachedFetch('nous', 'https://inference-api.nousresearch.com/v1/models', { Authorization: 'Bearer ' + (mainConfig.apiKey || ''), 'User-Agent': 'NeitoAgent/1.0 (+https://ni-oh.local)' }, b => {
+    const j = JSON.parse(b);
+    const list = (j.data && j.data.data) || j.data || [];
+    return list
+      .filter(m => m && m.id)
+      .filter(m => !/embed|tts|whisper|rerank|moderation|transcri|speech-|image|dall|flux/i.test(String(m.id)))
+      .map(m => ({ id: m.id, label: m.name || m.id }))
+      .sort((a, b2) => a.label.localeCompare(b2.label));
   });
 });
 ipcMain.handle('get-gemini-models', async () => {
@@ -2169,18 +2213,19 @@ function bgAppList() {                       // app chạy nền — cache 10 ph
 function scheduleChit() {
   clearTimeout(chitTimer);
   if (!mainConfig.eyeProactive || !mainConfig.realtimeScanEnabled) return;
-  chitTimer = setTimeout(rollDice, 5000);    // core loop: mỗi 5s một lần lắc
+  chitTimer = setTimeout(rollDice, watcherRules().intervalS * 1000);   // thời gian xoay vòng chỉnh được
 }
 
 async function rollDice() {
   try {
     if (!mainConfig.eyeProactive || !mainConfig.realtimeScanEnabled) return;
     if (eyeBusy || answeringVoice) { globalThis.__lastDice = { said: false, skip: true, reason: 'busy' }; return; }
-    if (Date.now() - lastProactiveSpeakTime < 15000) { globalThis.__lastDice = { said: false, skip: true, reason: 'cooldown' }; return; }  // chống phiền
-    const r = Math.random();
-    if (r < 0.30) { globalThis.__lastDice = { said: false, skip: true, roll: +r.toFixed(3) }; return; }  // 30% SKIP = IM LẶNG tuyệt đối
-    if (r < 0.70) { await diceYoloKnowledge(); return; }       // 40% YOLO → kiến thức tự học
-    await diceLife();                                          // 30% sức khỏe / nhắc nhở / phiếm
+    const wr = watcherRules();
+    if (Date.now() - lastProactiveSpeakTime < wr.cooldownS * 1000) { globalThis.__lastDice = { said: false, skip: true, reason: 'cooldown' }; return; }  // chống phiền
+    const r = Math.random() * 100;                       // thuật toán nhánh theo % Sếp chỉnh (mỗi lắc TRÚNG 1 nhánh)
+    if (r < wr.skipPct) { globalThis.__lastDice = { said: false, skip: true, roll: +r.toFixed(1), reason: 'skip' }; return; }   // SKIP = IM LẶNG tuyệt đối
+    if (r < wr.skipPct + wr.yoloPct) { await diceYoloKnowledge(); return; }   // YOLO → kiến thức tự học
+    await diceLife();                                                          // còn lại → sức khỏe / nhắc nhở / phiếm
   } finally { scheduleChit(); }
 }
 
@@ -2336,6 +2381,41 @@ async function speakProactive(prompt, killMs) {
     return true;
   } catch (e) { return false; } finally { eyeBusy = false; }
 }
+
+// ═══ QUY TẮC WATCHER TOÀN CỤC (Sếp: tỉ lệ thoại + thời gian xoay vòng chỉnh được, không cố định) ═══
+// memory/watcher_rules.json — nguồn duy nhất, dashboard đọc/ghi qua IPC.
+const WATCHER_RULES_FILE = path.join(NIOH_ROOT, 'memory', 'watcher_rules.json');
+const WATCHER_RULES_DEFAULT = { skipPct: 30, yoloPct: 40, lifePct: 30, intervalS: 5, cooldownS: 15 };
+function watcherRules() {
+  try {
+    if (!fs.existsSync(WATCHER_RULES_FILE)) return { ...WATCHER_RULES_DEFAULT };
+    const r = JSON.parse(fs.readFileSync(WATCHER_RULES_FILE, 'utf8'));
+    const out = { ...WATCHER_RULES_DEFAULT, ...r };
+    // chốt an toàn: tỉ lệ luôn tổng về 100, chu kỳ 2..120s, cooldown 0..600s
+    out.skipPct = Math.max(0, Math.min(100, Number(out.skipPct) || 0));
+    out.yoloPct = Math.max(0, Math.min(100, Number(out.yoloPct) || 0));
+    out.lifePct = Math.max(0, Math.min(100, Number(out.lifePct) || 0));
+    const sum = out.skipPct + out.yoloPct + out.lifePct;
+    if (sum !== 100 && sum > 0) {   // chia lại về 100 giữ tương quan
+      out.skipPct = Math.round(out.skipPct * 100 / sum);
+      out.yoloPct = Math.round(out.yoloPct * 100 / sum);
+      out.lifePct = 100 - out.skipPct - out.yoloPct;
+    } else if (sum === 0) { out.skipPct = 30; out.yoloPct = 40; out.lifePct = 30; }
+    out.intervalS = Math.max(2, Math.min(120, Number(out.intervalS) || 5));
+    out.cooldownS = Math.max(0, Math.min(600, Number(out.cooldownS) ?? 15));
+    return out;
+  } catch (e) { return { ...WATCHER_RULES_DEFAULT }; }
+}
+ipcMain.handle('get-watcher-rules', () => watcherRules());
+ipcMain.handle('save-watcher-rules', (e, r) => {
+  try {
+    const merged = { ...watcherRules(), ...(r || {}) };
+    fs.writeFileSync(WATCHER_RULES_FILE, JSON.stringify(merged, null, 2), 'utf8');
+    scheduleChit();   // đổi chu kỳ → vòng lặp lắc nhận ngay, không cần restart
+    console.log('[Watcher] quy tắc mới:', JSON.stringify(watcherRules()));
+    return { success: true, rules: watcherRules() };
+  } catch (e2) { return { success: false, error: String(e2.message || e2).slice(0, 120) }; }
+});
 
 // ═══ WATCHER per-giao-thức (Sếp: mỗi giao thức 1 nút tự bật/tắt quyền cất tiếng) ═══
 // watcher=false trong memory/vision/<slug>.json → Ni-Oh IM LẶNG mọi đường CHỦ ĐỘNG về

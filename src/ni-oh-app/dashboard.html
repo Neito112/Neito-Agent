@@ -385,10 +385,11 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
 
     <div class="card">
       <div class="ctrl">
-        <span class="ico">️</span>
-        <div class="meta"><strong>Ni-Oh tự lên tiếng</strong><small>Bật: chủ động nhận xét khi màn hình có diễn biến đáng chú ý. Tắt: chỉ phản hồi khi được hỏi.</small></div>
+        <span class="ico">👁</span>
+        <div class="meta"><strong>Watcher — Ni-Oh tự lên tiếng</strong><small>Quan sát màn hình và chủ động cất tiếng theo tỉ lệ Sếp đặt. Tắt: chỉ phản hồi khi được hỏi.</small></div>
         <span class="state" id="st-pro">—</span>
         <label class="switch"><input type="checkbox" id="sw-pro" onchange="setProactive(this.checked)"><span class="track"></span></label>
+        <button class="btn btn-sm" onclick="openWatcherRules()" style="margin-left:8px">⚙️ Sửa quy tắc watcher</button>
       </div>
     </div>
 
@@ -414,6 +415,7 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
           <select id="setting-model-provider" onchange="onProviderChange()">
             <option value="antigravity">Antigravity CLI — mặc định, không cần key</option>
             <option value="openrouter">OpenRouter</option>
+            <option value="nous">Nous Research (Hermes · Portal)</option>
             <option value="ollama">Ollama (local)</option>
             <option value="gemini">Google Gemini</option>
           </select>
@@ -448,6 +450,7 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
           <select id="setting-train-provider" onchange="onTrainProviderChange()">
             <option value="antigravity">Antigravity CLI — mặc định</option>
             <option value="openrouter">OpenRouter</option>
+            <option value="nous">Nous Research (Hermes · Portal)</option>
             <option value="ollama">Ollama (local)</option>
             <option value="gemini">Google Gemini</option>
           </select>
@@ -631,6 +634,26 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
   </section>
 
   <!-- ══ Modal: cấu hình nhân vật (tên, giọng, linh hồn mặc định) ══ -->
+  <!-- ══ Modal: Quy tắc Watcher (tỉ lệ thoại + thời gian xoay vòng — Sếp chỉnh, không cố định) ══ -->
+  <div id="watcher-rules-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:86;align-items:center;justify-content:center">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;width:min(460px,92vw)">
+      <h3 style="margin:0 0 4px">⚙️ Quy tắc Watcher</h3>
+      <p class="desc" style="margin:0 0 12px">Mỗi vòng xoay, Ni-Oh lắc 1 lần và trúng đúng 1 nhánh theo tỉ lệ dưới đây. Tỉ lệ tự chuẩn về tổng 100.</p>
+      <div class="field"><label for="wr-skip">Im lặng (skip) — %</label><input type="number" id="wr-skip" min="0" max="100" step="5"></div>
+      <div class="field"><label for="wr-yolo">Kiến thức giao thức đang focus (YOLO) — %</label><input type="number" id="wr-yolo" min="0" max="100" step="5"></div>
+      <div class="field"><label for="wr-life">Sức khỏe / nhắc nhở / phiếm — %</label><input type="number" id="wr-life" min="0" max="100" step="5"></div>
+      <div class="row" style="display:flex;gap:10px">
+        <div class="field" style="flex:1"><label for="wr-interval">Thời gian xoay vòng (giữa 2 lần lắc, giây)</label><input type="number" id="wr-interval" min="2" max="120" step="1"></div>
+        <div class="field" style="flex:1"><label for="wr-cooldown">Nghỉ sau mỗi câu đã nói (giây)</label><input type="number" id="wr-cooldown" min="0" max="600" step="5"></div>
+      </div>
+      <p class="desc" id="wr-sum" style="margin:0 0 10px">—</p>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-sm" onclick="closeWatcherRules()">Đóng</button>
+        <button class="btn btn-primary btn-sm" onclick="saveWatcherRules()">💾 Lưu quy tắc</button>
+      </div>
+    </div>
+  </div>
+
   <div id="char-config-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:85;align-items:center;justify-content:center">
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;max-width:540px;width:92%;max-height:86vh;display:flex;flex-direction:column">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)">
@@ -985,6 +1008,9 @@ async function loadModels() {
     } else if (provider === 'openrouter') {
       models = await window.niOhAPI.getOpenRouterModels();
       if (!models.length) models = [{ id:'upstage/solar-pro4:free', label:'(không tải được danh sách OpenRouter)' }];
+    } else if (provider === 'nous') {
+      models = await window.niOhAPI.getNousModels();
+      if (!models.length) models = [{ id:'nousresearch/hermes-4-instruct-llama-3.1-70b', label:'(không tải được danh sách Nous Portal)' }];
     } else if (provider === 'gemini') {
       models = await window.niOhAPI.getGeminiModels();
       if (!models.length) models = GEMINI_STATIC.map(m => ({ id: m, label: m + ' (cần key để gọi)' }));
@@ -1096,12 +1122,13 @@ function mcKeys(ev, k) {
 function onProviderChange() {
   const provider = document.getElementById('setting-model-provider').value;
   document.getElementById('api-key-group').style.display =
-    (provider === 'openrouter' || provider === 'gemini') ? 'block' : 'none';
+    (provider === 'openrouter' || provider === 'gemini' || provider === 'nous') ? 'block' : 'none';
   renderOllamaAll();
   const hint = document.getElementById('model-hint');
   if (provider === 'antigravity') hint.textContent = 'Antigravity CLI — tích hợp sẵn trong dự án, không cần khóa API.';
   else if (provider === 'ollama') hint.textContent = 'Ollama cục bộ — ollama serve phải đang chạy. Danh sách tuyển chọn + tải model bên dưới.';
   else if (provider === 'openrouter') hint.textContent = 'Danh sách ĐẦY ĐỦ model từ OpenRouter (Free xếp trước) — gõ từ khóa vào ô Model để lọc, khi hỏi mới cần key.';
+  else if (provider === 'nous') hint.textContent = 'Nous Portal (Hermes) — danh sách model công khai từ inference-api.nousresearch.com; model nào key của Sếp thực sự dùng được sẽ hiện khi gọi.'
   else if (provider === 'gemini') hint.textContent = 'Google KHÔNG cho xem danh sách model khi thiếu credential (khác OpenRouter) — nạp key vào ô API key, bấm ↻ để lấy danh sách thật theo key của Sếp.';
   loadModels();
 }
@@ -1111,8 +1138,8 @@ document.addEventListener('change', (ev) => {
   if (ev.target && (ev.target.id === 'setting-api-key' || ev.target.id === 'setting-train-key')) {
     const mp = document.getElementById('setting-model-provider');
     const tp = document.getElementById('setting-train-provider');
-    if (mp && (mp.value === 'openrouter' || mp.value === 'gemini')) loadModels();
-    if (tp && (tp.value === 'openrouter' || tp.value === 'gemini')) loadTrainModels();
+    if (mp && ['openrouter','gemini','nous'].includes(mp.value)) loadModels();
+    if (tp && ['openrouter','gemini','nous'].includes(tp.value)) loadTrainModels();
   }
 });
 
@@ -1346,7 +1373,7 @@ async function onVoiceSampleSelected(input) { onVcSample(input); }
 function onTrainProviderChange() {
   const provider = document.getElementById('setting-train-provider').value;
   document.getElementById('train-key-group').style.display =
-    (provider === 'openrouter' || provider === 'gemini') ? 'block' : 'none';
+    (provider === 'openrouter' || provider === 'gemini' || provider === 'nous') ? 'block' : 'none';
   loadTrainModels();
   renderOllamaAll();
 }
@@ -1361,6 +1388,10 @@ async function loadTrainModels() {
     else if (provider === 'openrouter') {
       models = await window.niOhAPI.getOpenRouterModels();
       if (!models.length) models = [{ id:'meta-llama/llama-3.3-70b-instruct:free', label:'(không tải được danh sách OpenRouter)' }];
+    }
+    else if (provider === 'nous') {
+      models = await window.niOhAPI.getNousModels();
+      if (!models.length) models = [{ id:'nousresearch/hermes-4-instruct-llama-3.1-70b', label:'(không tải được danh sách Nous Portal)' }];
     }
     else if (provider === 'ollama') {
       const cat = await ollamaCatalog();
@@ -1510,6 +1541,40 @@ async function saveSoul() {
   } else {
     document.getElementById('soul-status').textContent = '❌ ' + r.error;
   }
+}
+
+// ─── Modal quy tắc Watcher ───
+async function openWatcherRules() {
+  try {
+    const r = await window.niOhAPI.getWatcherRules();
+    document.getElementById('wr-skip').value = r.skipPct;
+    document.getElementById('wr-yolo').value = r.yoloPct;
+    document.getElementById('wr-life').value = r.lifePct;
+    document.getElementById('wr-interval').value = r.intervalS;
+    document.getElementById('wr-cooldown').value = r.cooldownS;
+    wrSumHint();
+    document.getElementById('watcher-rules-modal').style.display = 'flex';
+  } catch (e) { toast('Không đọc được quy tắc watcher: ' + e.message); }
+}
+function closeWatcherRules() { document.getElementById('watcher-rules-modal').style.display = 'none'; }
+function wrSumHint() {
+  const s = +document.getElementById('wr-skip').value || 0, y = +document.getElementById('wr-yolo').value || 0, l = +document.getElementById('wr-life').value || 0;
+  const el = document.getElementById('wr-sum');
+  el.textContent = (s + y + l === 100) ? 'Tổng 3 nhánh: 100 ✓' : 'Tổng hiện tại ' + (s + y + l) + ' — khi lưu sẽ tự chia lại về 100 giữ tương quan.';
+  el.style.color = (s + y + l === 100) ? 'var(--accent)' : 'var(--muted-foreground)';
+}
+['wr-skip','wr-yolo','wr-life'].forEach(id => document.getElementById(id).addEventListener('input', wrSumHint));
+async function saveWatcherRules() {
+  const r = {
+    skipPct: +document.getElementById('wr-skip').value || 0,
+    yoloPct: +document.getElementById('wr-yolo').value || 0,
+    lifePct: +document.getElementById('wr-life').value || 0,
+    intervalS: +document.getElementById('wr-interval').value || 5,
+    cooldownS: +document.getElementById('wr-cooldown').value || 0
+  };
+  const res = await window.niOhAPI.saveWatcherRules(r);
+  if (res && res.success) { toast('Đã lưu quy tắc watcher — vòng lặp nhận ngay, không cần restart'); closeWatcherRules(); }
+  else toast('Lỗi lưu: ' + ((res && res.error) || 'không rõ'));
 }
 
 // ─── Proactive switch ───
