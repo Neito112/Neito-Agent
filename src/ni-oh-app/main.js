@@ -1645,7 +1645,11 @@ async function runSituation(hit) {
     if (hit.situation && hit.situation.emotion) fireEmo(hit.situation.emotion, 5000);  // kịch bản biểu cảm đã train theo tình huống
     if (hit.instant) {
       visionBrain.bumpStat('situation_instant');
-      if (!isBannedSpeech(hit.text)) await speakText(hit.text, hit.rate);
+      if (alreadySaidRecently(hit.text)) return;
+      if (!isBannedSpeech(hit.text)) {
+        markSaid(hit.text);
+        await speakText(hit.text, hit.rate);
+      }
       return;
     }
     visionBrain.bumpStat('situation_infer');
@@ -1662,8 +1666,9 @@ async function runSituation(hit) {
     if (!r.success) r = await localBrain(hit.prompt);   // mất API → ollama cục bộ vẫn bình luận được
     if (r.success) {
       const ans = r.answer.replace(/^["\']+|["\']+$/g, '').trim().split('\n')[0];
-      if (ans && !isBannedSpeech(ans)) {
+      if (ans && !isBannedSpeech(ans) && !alreadySaidRecently(ans)) {
         hit.save(ans);                       // lưu answer → lần sau bắn tức thì, 0 suy luận
+        markSaid(ans);
         await speakText(ans);
       }
     }
