@@ -220,7 +220,7 @@ input[type="range"] { width:100%; accent-color: var(--accent); }
 .modelcombo > input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); background:rgba(7,8,10,.85); }
 .mc-arrow { position:absolute; right:4px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:6px 5px; font-size:12px; line-height:1; border-radius:6px; }
 .mc-arrow:hover { color:var(--text); background:var(--accent-soft); }
-.mc-list { position:fixed; z-index:400; max-height:280px; overflow:auto; background:#0b0c0e; border:1px solid var(--border-strong); border-radius:var(--radius-sm); box-shadow:0 12px 32px rgba(0,0,0,.55); box-shadow:0 12px 32px rgba(0,0,0,.55); padding:4px; }
+.mc-list { position:fixed; z-index:400; max-height:280px; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; background:#0b0c0e; border:1px solid var(--border-strong); border-radius:var(--radius-sm); box-shadow:0 12px 32px rgba(0,0,0,.55); box-shadow:0 12px 32px rgba(0,0,0,.55); padding:4px; }
 .mc-item { display:flex; gap:8px; align-items:baseline; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:13px; font-size:13px; }
 .mc-item:hover { background:var(--accent-soft); }
 .mc-item.sel { background:rgba(126,255,180,.10); }
@@ -478,12 +478,14 @@ footer { padding: var(--sp-3) var(--sp-5); border-top:1px solid var(--border); b
         <div class="empty" aria-busy="true">Đang tải…</div>
       </div>
       <div class="card" style="margin-top:var(--sp-4)">
-        <h3>🎓 Marathon tự học</h3>
-        <p class="desc" style="margin-top:-4px;margin-bottom:10px">Ni-Oh khai thác nguồn chính thức, hướng dẫn sử dụng và mẹo mẹo — mỗi nguồn qua hai vòng: nạp khái niệm (thêm mới / bỏ qua trùng / gộp đồng nghĩa) rồi phát hiện tình huống kèm cách xử lý ngay trong nguồn. Tình huống không có lời giải được đưa vào hàng đợi truy vấn các nguồn khác. Video được tách phụ đề và khung hình để đọc cả chữ lẫn ảnh. Việc học chạy lúc nhàn rỗi, mỗi lượt một nguồn.</p>
-        <p class="desc">Hàng đợi marathon: <em>nói với Ni-Oh</em> — "dạy Ni-Oh chơi Dota 2 theo link này", "bật tự học", "học ngay nguồn tới".</p>
-        <div id="learner-stats" class="desc" style="margin-top:10px"></div>
-        <div id="learner-log" style="margin-top:6px;font-size:11px;line-height:1.7;color:var(--muted-foreground);max-height:120px;overflow-y:auto"></div>
-        
+        <h3>🌐 Nguồn tra cứu tự học</h3>
+        <p class="desc" style="margin-top:-4px;margin-bottom:8px">Danh mục web Ni-Oh dùng khi tự học &amp; tra cứu cho từng giao thức. Sau khi chat, nếu em tìm được nguồn mới hay, nó tự động được nạp vào đây — Sếp có thể thêm bằng tay hoặc loại bỏ nguồn không đáng tin.</p>
+        <div class="row" style="gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <input id="src-add-url" class="input" style="flex:1;min-width:160px" placeholder="https://nguồn-uy-tin... (vd wiki chính thức của game)" autocomplete="off">
+          <select id="src-add-slug" class="input" style="width:150px;flex:0 0 auto" data-tip="Giao thức áp dụng nguồn này"></select>
+          <button class="btn btn-sm shrink" onclick="srcAdd()">＋ Thêm nguồn</button>
+        </div>
+        <div id="src-list" style="max-height:260px;overflow-y:auto" class="ol-scroll-list"></div>
       </div>
     </div>
   </section>
@@ -733,6 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
       panel.hidden = false; panel.classList.add('active');
       const tEl = document.getElementById('topbar-title');
       if (tEl) tEl.textContent = tab.textContent.trim().replace(/^\S+\s+/, '');
+      if (tab.dataset.tab === 'model') loadSources();
       if (tab.dataset.tab === 'overview') loadOverview();
       if (tab.dataset.tab === 'ext') loadExt();
       if (tab.dataset.tab === 'voice') loadVoiceTab();
@@ -958,21 +961,37 @@ function mcSetModels(k, models) {
   _mcModels[k] = models || [];
   if (_mcOpen[k]) mcRender(k);
 }
+let _mcShown = {}, _mcArr = {};
+const MC_PAGE = 60;   // render từng mẻ 60 — 400+ model không dựng DOM một lúc (giật khi mở)
 function mcRender(k, qRaw) {
   const list = document.getElementById('mc-' + k); if (!list) return;
   const inp = mcInput(k);
   const q = (qRaw === undefined ? inp.value : qRaw).trim().toLowerCase();
   let arr = _mcModels[k];
   if (q) arr = arr.filter(m => ((m.id || '') + ' ' + (m.label || '')).toLowerCase().includes(q));
+  _mcArr[k] = arr;
+  const shown = _mcShown[k] = Math.min(arr.length, _mcShown[k] || MC_PAGE);
   const cur = inp.value;
   list.innerHTML = arr.length
-    ? arr.slice(0, 160).map(m => `<div class="mc-item${m.id === cur ? ' sel' : ''}" data-mc="${String(m.id).replace(/"/g, '&quot;')}"><span class="mc-id">${m.id}</span><span class="mc-lb">${m.label && m.label !== m.id ? m.label : ''}</span></div>`).join('') +
-      (arr.length > 160 ? `<div class="mc-empty">… còn ${arr.length - 160} model nữa — gõ thêm từ khóa</div>` : '')
+    ? arr.slice(0, shown).map(m => `<div class="mc-item${m.id === cur ? ' sel' : ''}" data-mc="${String(m.id).replace(/"/g, '&quot;')}"><span class="mc-id">${m.id}</span><span class="mc-lb">${m.label && m.label !== m.id ? m.label : ''}</span></div>`).join('') +
+      (arr.length > shown ? `<div class="mc-empty">cuộn để xem tiếp — còn ${arr.length - shown} model</div>` : '')
     : `<div class="mc-empty">${q ? 'Không có model khớp “' + q + '” — nhập tên khác hoặc bấm ↻ nạp lại.' : 'Danh sách trống — bấm ↻ nạp lại.'}</div>`;
   list.querySelectorAll('.mc-item').forEach(el => {
     el.onmousedown = (e) => { e.preventDefault(); inp.value = el.dataset.mc; mcClose(k); };
   });
 }
+// cuộn chạm đáy → nở thêm mẻ 60 (debounce, giữ mượt)
+let _mcGrowT = null;
+document.addEventListener('scroll', (e) => {
+  const list = e && e.target;
+  if (!list || !list.classList || !list.classList.contains('mc-list')) return;
+  if (list.scrollTop + list.clientHeight < list.scrollHeight - 40) return;
+  clearTimeout(_mcGrowT);
+  _mcGrowT = setTimeout(() => {
+    const k = list.id === 'mc-chat' ? 'chat' : 'train';
+    if ((_mcShown[k] || MC_PAGE) < (_mcArr[k] || []).length) { _mcShown[k] = (_mcShown[k] || MC_PAGE) + MC_PAGE; mcRender(k); }
+  }, 80);
+}, true);
 function mcPlace(k) {   // list là portal trong body → tính tọa độ theo ô input
   const list = document.getElementById('mc-' + k), inp = mcInput(k);
   if (!list || !inp) return;
@@ -984,7 +1003,7 @@ function mcPlace(k) {   // list là portal trong body → tính tọa độ theo
   else { list.style.top = 'auto'; list.style.bottom = (innerHeight - r.top + 4) + 'px'; list.style.maxHeight = Math.max(120, Math.min(280, r.top - 10)) + 'px'; }
 }
 function mcOpen(k, all) {
-  _mcOpen[k] = true;
+  _mcOpen[k] = true; _mcShown[k] = MC_PAGE;
   const list = document.getElementById('mc-' + k);
   if (list.parentElement !== document.body) document.body.appendChild(list);  // thoát stacking context của .card (backdrop-filter)
   list.hidden = false;
@@ -994,9 +1013,15 @@ function mcOpen(k, all) {
 function mcClose(k) { _mcOpen[k] = false; const list = document.getElementById('mc-' + k); if (list) list.hidden = true; }
 function mcCloseSoon(k) { setTimeout(() => mcClose(k), 150); }
 function mcToggle(k) { mcOpen(k, true); }  // bấm ▾ lúc nào cũng xổ TOÀN BỘ danh sách
-function mcFilter(k) { if (_mcOpen[k]) { mcPlace(k); mcRender(k); } else mcOpen(k); }
+function mcFilter(k) { _mcShown[k] = MC_PAGE; if (_mcOpen[k]) { mcPlace(k); mcRender(k); } else mcOpen(k); }
 function mcCloseAll() { mcClose('chat'); mcClose('train'); }
-document.addEventListener('scroll', mcCloseAll, true);
+// scroll trong CHÍNH danh sách dropdown → giữ mở (trước đây capture=true bắt luôn
+// sự kiện cuộn bên trong mc-list → đóng sập ngay khi lia con lăn = 'không scroll được')
+document.addEventListener('scroll', (e) => {
+  const list = e && e.target;
+  if (list && list.classList && list.classList.contains('mc-list')) return;
+  mcCloseAll();
+}, true);
 window.addEventListener('resize', mcCloseAll);
 
 function mcKeys(ev, k) {
@@ -1112,6 +1137,46 @@ function renderOllamaAll() {
   paint(tp, 'ol-train', 'train');
 }
 
+
+// ═══ DANH MỤC NGUỒN TỰ HỌC (web_sources.json) ═══
+async function loadSources() {
+  const el = document.getElementById('src-list'); if (!el) return;
+  let d = null;
+  try { d = await window.niOhAPI.getWebSources(); } catch (e) {}
+  const list = (d && d.sources) || [];
+  let vs = { topics: [] }; try { vs = (await window.niOhAPI.getVisionStatus()) || vs; } catch (e) {}
+  const sel = document.getElementById('src-add-slug');
+  if (sel && sel.options.length < 2) {
+    sel.innerHTML = (vs.topics || []).map(x => `<option value="${x.slug}">${x.topic || x.slug}</option>`).join('') + '<option value="general">Chung</option>';
+  }
+  const kindIco = { official: '🏛️', wiki: '📖', meta: '📊', news: '📰', community: '💬', auto: '✨' };
+  const groups = {};
+  list.forEach(s => { (groups[s.slug] = groups[s.slug] || []).push(s); });
+  el.innerHTML = list.length ? Object.entries(groups).map(([slug, arr]) => {
+    const topic = ((vs && vs.topics) || []).find(x => x.slug === slug);
+    return '<div class="desc" style="font-size:11px;margin:8px 0 3px;text-transform:uppercase;letter-spacing:.5px">🎯 ' + (topic ? topic.topic : slug) + '</div>' +
+      arr.map(s => `<div class="row" style="gap:8px;align-items:center;margin:2px 0;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,.03)">
+        <span title="${(s.kind || '').toUpperCase()}" style="flex:0 0 auto">${kindIco[s.kind] || '🔗'}</span>
+        <span style="flex:0 0 auto;width:150px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${s.name || s.url}">${s.name || 'Chưa đặt tên'}</span>
+        <a href="${s.url}" target="_blank" style="flex:1;font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none" title="${s.url}">${s.url}</a>
+        ${s.added_by === 'auto' ? '<span style="font-size:9px;color:#7ddc9b;flex:0 0 auto">tự nạp</span>' : ''}
+        <button class="btn btn-sm shrink" style="flex:0 0 auto;padding:1px 7px;font-size:11px" title="Loại bỏ nguồn này" onclick="srcRemove('${(s.url || '').replace(/'/g, "\\'")}','${slug}')">✕</button>
+      </div>`).join('');
+  }).join('') : '<p class="desc">Chưa có nguồn nào — thêm ở ô phía trên.</p>';
+}
+async function srcAdd() {
+  const inp = document.getElementById('src-add-url');
+  const url = (inp.value || '').trim();
+  if (!/^https?:\/\/\S+$/i.test(url)) { toast('Nhập URL hợp lệ (bắt đầu bằng https://)'); return; }
+  const slug = document.getElementById('src-add-slug').value || 'general';
+  const r = await window.niOhAPI.addWebSource({ slug, url, name: '', kind: 'community' });
+  if (r && r.success) { inp.value = ''; toast('Đã thêm nguồn vào ' + slug); loadSources(); }
+  else toast('Lỗi: ' + ((r && r.error) || '?'));
+}
+async function srcRemove(url, slug) {
+  const r = await window.niOhAPI.removeWebSource({ slug, url });
+  if (r && r.success) { toast('Đã loại bỏ nguồn'); loadSources(); }
+}
 
 // ─── Danh sách chủ đề đã train ───
 async function loadTopics() {

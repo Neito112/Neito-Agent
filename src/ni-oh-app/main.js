@@ -72,6 +72,15 @@ function saveConfig() {
   } catch (e) { console.warn('[Config] Save error:', e.message); }
   broadcastConfig();
 }
+// Vặt đổi trong phiên (lastAnswer…): ghi đĩa DEBOUNCE, KHÔNG broadcast —
+// mỗi câu nói từng save+broadcast → dashboard rebuild UI (applyConfig+renderOllama) = GIẬT CẢ MÁY.
+let _cfgSaveT = null;
+function saveConfigQuiet() {
+  clearTimeout(_cfgSaveT);
+  _cfgSaveT = setTimeout(() => {
+    try { fs.writeFileSync(CONFIG_FILE, JSON.stringify(mainConfig, null, 2), 'utf8'); } catch (e) {}
+  }, 4000);
+}
 
 loadConfig();
 
@@ -386,6 +395,7 @@ async function toolLoop(rawQ, first, model, mode) {
     rounds++;
     console.log('[tool] ' + act.tool + ' ' + JSON.stringify(act.args || {}));
     const tr = await toolRegistry.runTool(act.tool, act.args || {}, { screenContext, speakText, main: selfLearningBridge });
+    if ((act.tool === 'web_search' || act.tool === 'web_fetch') && tr && tr.ok) autoAddSourcesFrom(JSON.stringify(tr.data || ''), activeTopic());
     const follow = 'Sếp hỏi: ' + rawQ + '\n\nEm đã gọi tool "' + act.tool + '" và nhận kết quả:\n' +
       JSON.stringify(tr.data || tr.error).slice(0, 1200) +
       '\n\nNếu vẫn còn phần việc Sếp yêu cầu chưa xong, được phép ACTION tiếp theo ngay cuối câu. Nếu đủ rồi thì trả lời Sếp bằng tiếng Việt, DƯỚI 30 từ, chỉ dựa vào kết quả tool.' +
@@ -499,6 +509,18 @@ function screenContext() {
   return parts.join(' | ');
 }
 
+// ─── NÃO CỤC BỘ (offline safety-net): API/agy chết → Ollama gánh mọi suy luận ───
+// Model theo lựa chọn của Sếp (offlineModel), mặc định theo mức tối ưu máy.
+function localBrainModel() {
+  if (mainConfig.modelProvider === 'ollama' && mainConfig.modelName) return mainConfig.modelName;
+  return mainConfig.offlineModel || 'qwen2.5:7b-instruct-q4_K_M';
+}
+async function localBrain(prompt) {
+  const r = await callOllama(prompt, localBrainModel());
+  if (r.success) return { ...r, provider: 'ollama-fallback' };
+  return r;
+}
+
 async function askAI(rawQuestion) {
   const p = mainConfig.modelProvider;
   const m = mainConfig.modelName;
@@ -553,13 +575,20 @@ async function askAI(rawQuestion) {
 
   if (p === 'antigravity') {
     let r = await callAgY(question + toolHint(mode), speedModel);
-    // Vòng tool: não xin dùng tool → chạy → đưa kết quả cho não trả lời tiếp
-    r = await toolLoop(rawQuestion, r, speedModel, mode);
+    if (r.success) r = await toolLoop(rawQuestion, r, speedModel, mode);
+    // API/agy sập (mất net, hết quota) → NÃO CỤC BỘ trả lời tiếp — app không bao giờ câm
+    if (!r.success) r = await localBrain(question);
     return r;
   }
-  if (p === 'openrouter') return await callOpenRouter(question, m, k);
+  if (p === 'openrouter') {
+    const r = await callOpenRouter(question, m, k);
+    return r.success ? r : await localBrain(question);
+  }
   if (p === 'ollama') return await callOllama(question, m);
-  if (p === 'gemini') return await callGemini(question, m, k);
+  if (p === 'gemini') {
+    const r = await callGemini(question, m, k);
+    return r.success ? r : await localBrain(question);
+  }
 
   // Auto fallback: agy → openrouter → ollama
   let r = await callAgY(question, m);
@@ -716,7 +745,7 @@ async function speakText(text, rate) {
     // Điếc tạm thời khi đang nói — chống mic nghe tiếng loa rồi tự hỏi tự đáp
     earSend({ cmd: 'mute', sec: Math.min(30, (2 + normalizeForSpeech(text).length * 0.12) / rate) });
     mainConfig.lastAnswer = text;
-    saveConfig();
+    saveConfigQuiet();   // không broadcast mỗi câu — bubble đi cùng caption play-file rồi
     if (overlayWindow && !overlayWindow.isDestroyed() && overlayWindow.isVisible()) {
       const wc = overlayWindow.webContents;
       // CHỈ phát ở overlay — không nhân bản ra audioWindow (tránh tiếng chồng tiếng).
@@ -1270,6 +1299,7 @@ ipcMain.handle('overlay-drag-start', () => {
   dragState = { dx: cur.x - wx, dy: cur.y - wy };
   return { x: dragState.dx, y: dragState.dy };
 });
+ipcMain.on('show-dashboard', () => showDashboard());
 ipcMain.on('overlay-drag-move', () => {
   if (!dragState || !overlayWindow || overlayWindow.isDestroyed()) return;
   const cur = require('electron').screen.getCursorScreenPoint();
@@ -1584,7 +1614,7 @@ async function runSituation(hit) {
     }
     visionBrain.bumpStat('situation_infer');
     if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('thinking', 20);
-    const r = await new Promise((resolve) => {
+    let r = await new Promise((resolve) => {
       const a = agyArgsVoice(hit.prompt, mainConfig.modelName || 'gemini-3.8-flash-low');
       const child = spawn(a.exe, a.args, { windowsHide: true, cwd: a.cwd });
       const to = setTimeout(() => { try { child.kill('SIGKILL'); } catch(e){} resolve({ success:false, error:'agy timeout' }); }, 60000);
@@ -1593,6 +1623,7 @@ async function runSituation(hit) {
       child.on('close', code => { clearTimeout(to); resolve(code === 0 && out.trim() ? { success:true, answer: out.trim() } : { success:false, error:'agy exit '+code }); });
       child.on('error', e => { clearTimeout(to); resolve({ success:false, error: e.message }); });
     });
+    if (!r.success) r = await localBrain(hit.prompt);   // mất API → ollama cục bộ vẫn bình luận được
     if (r.success) {
       const ans = r.answer.replace(/^["\']+|["\']+$/g, '').trim().split('\n')[0];
       if (ans && !isBannedSpeech(ans)) {
@@ -1985,6 +2016,7 @@ async function chitAboutScreen(eventNow) {
     eyeBusy = true;
     try {
       if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('thinking', 15);
+      let r2 = null;
       const r = await new Promise((resolve) => {
         const urgent = situationEngine.tempo() === situationEngine.pacing().tempo_urgency_threshold;
         const a = agyArgsVoice(prompt, urgent ? 'gemini-3.8-flash-low' : (mainConfig.modelName || 'gemini-3.8-flash-low'));
@@ -1996,8 +2028,10 @@ async function chitAboutScreen(eventNow) {
         child.on('close', code => { clearTimeout(to); resolve(code === 0 && out.trim() ? { success:true, answer: out.trim() } : { success:false, error: (err||out||'agy exit '+code).toString().slice(0,300) }); });
         child.on('error', e => { clearTimeout(to); resolve({ success:false, error: e.message }); });
       });
-      if (r.success) {
-        const ans = r.answer.replace(/^["']|["']$/g, '').trim();
+      if (!r.success) r2 = await localBrain(prompt);   // API sập → Ollama vẫn chủ động trò chuyện được
+      const rr = (r.success ? r : r2);
+      if (rr && rr.success) {
+        const ans = rr.answer.replace(/^["']|["']$/g, '').trim();
         if (ans && !/^SKIP\.?$/i.test(ans) && !isBannedSpeech(ans) && !voiceGuarded(ans)) {
           lastProactiveSpeakTime = Date.now();
           await speakText(ans);
@@ -2019,6 +2053,48 @@ ipcMain.handle('toggle-realtime-scan', () => {
     return { success: true, running: false };
   }
 });
+
+// ═══ DANH MỤC NGUỒN TRA CỨU TỰ HỌC (memory/learning/web_sources.json) ═══
+const WEB_SOURCES = path.join(NIOH_ROOT, 'memory', 'learning', 'web_sources.json');
+function loadWebSources() { try { return JSON.parse(fs.readFileSync(WEB_SOURCES, 'utf8')); } catch (e) { return { sources: [] }; } }
+function saveWebSources(d) {
+  d.updated_at = new Date().toISOString();
+  const tmp = WEB_SOURCES + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(d, null, 1)); fs.renameSync(tmp, WEB_SOURCES);
+}
+function addWebSource(e) {
+  if (!e || !/^https?:\/\/\S+$/i.test(e.url || '')) return { success: false, error: 'URL không hợp lệ' };
+  const d = loadWebSources();
+  const slug = String(e.slug || 'general').toLowerCase().replace(/[^a-z0-9-]+/g, '-').slice(0, 50);
+  if (d.sources.some(s => s.url === e.url && s.slug === slug)) return { success: true, dup: true };
+  if (d.sources.length > 500) d.sources.splice(0, d.sources.length - 500);   // trần an toàn
+  d.sources.push({ slug, url: e.url, name: e.name || '', kind: e.kind || 'auto', added_by: e.added_by || 'user', added_at: new Date().toISOString() });
+  saveWebSources(d);
+  return { success: true };
+}
+ipcMain.handle('get-web-sources', () => loadWebSources());
+ipcMain.handle('add-web-source', (_, e) => addWebSource(e));
+ipcMain.handle('remove-web-source', (_, e) => {
+  const d = loadWebSources();
+  const before = d.sources.length;
+  d.sources = d.sources.filter(s => !(s.url === e.url && (e.slug === undefined || s.slug === e.slug)));
+  saveWebSources(d);
+  return { success: true, removed: before - d.sources.length };
+});
+// Tự nạp: toolLoop thấy URL mới trong kết quả web_search → ghi vào danh mục
+function autoAddSourcesFrom(text, slug) {
+  try {
+    const urls = String(text).match(/https?:\/\/[^\s"'>\)]+/g) || [];
+    let added = 0;
+    for (const raw of urls.slice(0, 6)) {
+      const url = raw.replace(/[.,;]+$/, '');
+      if (/localhost|127\.0\.0\.1|\.exe|discord\.com\/api/i.test(url)) continue;
+      const r = addWebSource({ slug: slug || 'general', url, name: '', kind: 'auto', added_by: 'auto' });
+      if (r.success && !r.dup) added++;
+    }
+    if (added) console.log('[web_sources] tự nạp +' + added + ' nguồn mới');
+  } catch (e) {}
+}
 
 // ─── SOUL ───
 ipcMain.handle('get-soul', () => { try { return fs.existsSync(SOUL_FILE) ? fs.readFileSync(SOUL_FILE, 'utf8') : ''; } catch (e) { return ''; } });
@@ -2302,7 +2378,8 @@ ipcMain.handle('ext-ask', async (_, question) => {
   const prompt = extMan.storePrompt() + '\n\nCẢNH MÀN HÌNH (mắt YOLO): ' + screenContext() +
     '\n\nYÊU CẦU CỦA SẾP: ' + question +
     '\nTrả lời tiếng Việt, ngắn gọn để đọc TTS. Nếu cần thao tác máy và có quyền → nêu việc sẽ làm rồi làm.';
-  return await agyRun(prompt, mainConfig.modelName || 'gemini-3.8-flash-medium', 120000);
+  const r = await agyRun(prompt, mainConfig.modelName || 'gemini-3.8-flash-medium', 120000);
+  return r.success ? r : await localBrain(prompt);   // mất API → não cục bộ vẫn trả lời được câu hỏi kho mở rộng
 });
 ipcMain.handle('get-tools', () => toolRegistry.toolCatalog());
 
@@ -2959,6 +3036,10 @@ ipcMain.handle('unlearn-last-rule', () => {
 });
 
 // ─── App lifecycle ───────────────────────────────────────────────────────
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) { app.quit(); }
+else { app.on('second-instance', () => showDashboard()); }
+
 app.whenReady().then(() => {
   const { Menu } = require('electron');
   Menu.setApplicationMenu(null);

@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('niOhAPI', {
   onSwitchTab: (cb) => ipcRenderer.on('switch-tab', (_, t) => cb(t)),
 
   // Window controls (frameless)
+  showDashboard: () => ipcRenderer.send('show-dashboard'),
   winMinimize: () => ipcRenderer.send('win-minimize'),
   winMaximize: () => ipcRenderer.send('win-maximize'),
   winClose: () => ipcRenderer.send('win-close'),
@@ -71,6 +72,9 @@ contextBridge.exposeInMainWorld('niOhAPI', {
   getOpenRouterModels: () => ipcRenderer.invoke('get-openrouter-models'),
   getGeminiModels: () => ipcRenderer.invoke('get-gemini-models'),
   ollamaPull: (name) => ipcRenderer.invoke('ollama-pull', name),
+  getWebSources: () => ipcRenderer.invoke('get-web-sources'),
+  addWebSource: (e) => ipcRenderer.invoke('add-web-source', e),
+  removeWebSource: (e) => ipcRenderer.invoke('remove-web-source', e),
   getOllamaModelDir: () => ipcRenderer.invoke('ollama-model-dir'),
   setOllamaModelDir: () => ipcRenderer.invoke('ollama-set-model-dir'),
   openOllamaApp: () => ipcRenderer.invoke('open-ollama-app'),
