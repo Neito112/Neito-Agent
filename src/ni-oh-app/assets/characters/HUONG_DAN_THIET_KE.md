@@ -77,7 +77,7 @@ Quy tắc cứng:
 ## 4. DANH MỤC CLASS SVG (tên selector app đã tham chiếu — thiếu là state đó không đổi mặt)
 Mắt: `eyes-open eyes-happy eyes-laugh eyes-closed eyes-sad brow-sad eyes-cry tears eyes-wide eyes-alert eyes-spiral eyes-uneven eyes-up eyes-cool eyes-wink eyes-love eyes-angry eyes-sparkle eyes-half`
 Miệng: `m-omega m-o m-big m-smile m-grin m-laugh m-frown m-cry m-wave m-flat m-smirk`
-Phụ kiện: `qmark exmark bub zzz sweat sparkles hearts notes steam sigh drop flash`
+Phụ kiện: `qmark exmark bub zzz sweat sparkles hearts notes steam sigh flash`
 Má: `blush blush-strong`   Cấu trúc: `slime-body glint puddle pupL pupR`
 
 ## 5. HÌNH HỌC NEO (chuẩn để mặt không lệch khi đổi state)
@@ -85,8 +85,8 @@ Má: `blush blush-strong`   Cấu trúc: `slime-body glint puddle pupL pupR`
 |---|---|
 | viewBox | `0 0 200 240` |
 | đáy thân | `y ≈ 196–206` |
-| `puddle` | `cx=100 cy≈208 rx=55–76 ry≈8` |
-| tâm mắt trái/phải | `(78,142)` / `(122,142)`, rx ≤ 13 |
+| `puddle` | `cx=100 cy≈211 rx=55–70 ry≈9` |
+| tâm mắt trái/phải | `(80,146)` / `(120,146)`, rx ≤ 13 |
 | neo miệng | `(100,166 ± 6)` |
 | trục đối xứng | `x = 100` |
 | đỉnh đầu | không vượt `y = 20` |

@@ -59,22 +59,36 @@
   .glint { animation: glow 2.8s ease-in-out infinite; }
   @keyframes blink { 0%,41%,45%,100%{ transform:scaleY(1);} 43%{ transform:scaleY(.08);} }
   @keyframes glow { 0%,100%{ opacity:.6;} 50%{ opacity:1;} }
-  @keyframes breathe { 0%,100%{ transform:scale(1,1);} 50%{ transform:scale(1.025,.975);} }
-  @keyframes march { 0%,100%{ transform:translateX(-6px) rotate(-2deg);} 50%{ transform:translateX(6px) rotate(2deg);} }
-  @keyframes boing { 0%,100%{ transform:scale(1,1);} 30%{ transform:scale(1.14,.82);} 60%{ transform:scale(.92,1.1);} }
-  @keyframes hop { 0%,100%{ transform:translateY(0) scale(1,1);} 30%{ transform:translateY(-10px) scale(.96,1.06);} 55%{ transform:translateY(0) scale(1.08,.9);} }
-  @keyframes rock { 0%,100%{ transform:rotate(-6deg);} 50%{ transform:rotate(6deg);} }
-  @keyframes droop { 0%,100%{ transform:translateY(3px) scaleY(.95);} 50%{ transform:translateY(5px) scaleY(.93);} }
-  @keyframes shiver { 0%,100%{ transform:translateX(-2px);} 50%{ transform:translateX(2px);} }
-  @keyframes lean { 0%,100%{ transform:rotate(0);} 50%{ transform:rotate(8deg) translateY(2px);} }
-  @keyframes tilt { 0%,100%{ transform:rotate(-9deg);} 50%{ transform:rotate(-6deg);} }
-  @keyframes pop { 0%,100%{ transform:scale(1,1);} 35%{ transform:scale(.9,1.18);} 70%{ transform:scale(1.06,.94);} }
-  @keyframes nodding { 0%,100%{ transform:translateY(0);} 30%{ transform:translateY(5px) scaleY(.96);} 60%{ transform:translateY(-2px);} }
-  @keyframes shaking { 0%,100%{ transform:rotate(0);} 25%{ transform:rotate(-8deg);} 75%{ transform:rotate(8deg);} }
-  @keyframes doze { 0%,100%{ transform:rotate(-2deg) scaleY(.94);} 50%{ transform:rotate(2deg) scaleY(.92);} }
-  @keyframes sway { 0%,100%{ transform:rotate(-3deg);} 50%{ transform:rotate(3deg);} }
+  /* breathe: hơi thở 2 pha vào-ra không đều (có sự sống, không metronome) */
+  @keyframes breathe { 0%{ transform:scale(1,1);} 30%{ transform:scale(1.018,.982);} 55%{ transform:scale(1.008,.992);} 80%{ transform:scale(1.022,.978);} 100%{ transform:scale(1,1);} }
+  /* march: hai nhịp + gồng thân nhỏ khi đổi chân (no property fight: 1 transform duy nhất) */
+  @keyframes march { 0%,100%{ transform:translateX(-6px) rotate(-2deg) scale(1,1);} 25%{ transform:translateX(-2px) rotate(-1deg) scale(.985,1.015);} 50%{ transform:translateX(6px) rotate(2deg) scale(1,1);} 75%{ transform:translateX(2px) rotate(1deg) scale(.985,1.015);} }
+  /* boing: NHÚN — anticipation nén trước (12%) → stretch (34%) → squash tiếp đất (58%) → rebound → settle */
+  @keyframes boing { 0%{ transform:scale(1,1);} 12%{ transform:scale(1.08,.93);} 34%{ transform:scale(.92,1.09);} 58%{ transform:scale(1.13,.88);} 80%{ transform:scale(.98,1.02);} 100%{ transform:scale(1,1);} }
+  /* hop: NHẢY KÈM ĐẤT — khuỵu anticipation → bay lên stretch → rơi → SQUASH va chạm tại đáy → nảy settle */
+  @keyframes hop { 0%{ transform:translateY(0) scale(1,1);} 15%{ transform:translateY(2px) scale(1.1,.9);} 40%{ transform:translateY(-14px) scale(.94,1.07);} 62%{ transform:translateY(-11px) scale(.98,1.02);} 80%{ transform:translateY(0) scale(1.12,.89);} 92%{ transform:translateY(-3px) scale(.98,1.02);} 100%{ transform:translateY(0) scale(1,1);} }
+  /* rock: CƯỜI PHÁ — nghiêng 2 phía kèm bật nhẹ thể tích (haha pulse), tắt dần về giữa */
+  @keyframes rock { 0%{ transform:rotate(-6deg) scale(.97,1.03);} 25%{ transform:rotate(-2deg) scale(1.02,.98);} 50%{ transform:rotate(6deg) scale(.97,1.03);} 75%{ transform:rotate(2deg) scale(1.02,.98);} 100%{ transform:rotate(-6deg) scale(.97,1.03);} }
+  /* droop: BUỒN — thõm xuống chậm (xẹp = rộng hơn, bảo toàn thể tích), không nảy lại */
+  @keyframes droop { 0%{ transform:translateY(2px) scale(1.03,.97);} 50%{ transform:translateY(5px) scale(1.06,.94);} 100%{ transform:translateY(2px) scale(1.03,.97);} }
+  /* shiver: run lập cập tần số cao — linear (không easing: rung cơ học) */
+  @keyframes shiver { 0%,100%{ transform:translateX(-2px) rotate(-.5deg);} 25%{ transform:translateX(2px) rotate(.5deg);} 50%{ transform:translateX(-2px);} 75%{ transform:translateX(2px);} }
+  /* lean: TÒ MÒ — ngả tới overshoot nhẹ rồi giữ tư thế nghiêng, về chậm (weight feel) */
+  @keyframes lean { 0%{ transform:rotate(0) translateY(0);} 35%{ transform:rotate(9deg) translateY(2px);} 55%{ transform:rotate(7deg) translateY(2px);} 100%{ transform:rotate(0) translateY(0);} }
+  /* tilt: LIẾC — nghiêng đầu sang phía con trỏ, dao động nhỏ quanh góc nghiêng (đang ngắm) */
+  @keyframes tilt { 0%,100%{ transform:rotate(-9deg) scale(1,1);} 50%{ transform:rotate(-6deg) scale(1.01,.99);} }
+  /* pop: GIẬT MÌNH — nén nhanh (EASE_OUT) rồi bung, thể tích bảo toàn 1.18*.85≈1 */
+  @keyframes pop { 0%{ transform:scale(1,1);} 20%{ transform:scale(1.1,.9);} 45%{ transform:scale(.88,1.16);} 70%{ transform:scale(1.05,.96);} 100%{ transform:scale(1,1);} }
+  /* nodding: GẬT 2 nhịp giảm dần (follow-through), kèm squash va đáy nhịp 1 */
+  @keyframes nodding { 0%,100%{ transform:translateY(0) scale(1,1);} 20%{ transform:translateY(5px) scale(1.05,.95);} 45%{ transform:translateY(-3px) scale(.98,1.03);} 68%{ transform:translateY(3px) scale(1.02,.98);} 88%{ transform:translateY(-1px);} }
+  /* shaking: LẮC — overshoot rotate xa hơn rồi tắt dần về 0, 3 biên độ giảm (damped) */
+  @keyframes shaking { 0%{ transform:rotate(0);} 20%{ transform:rotate(-9deg);} 45%{ transform:rotate(8deg);} 68%{ transform:rotate(-5deg);} 86%{ transform:rotate(3deg);} 100%{ transform:rotate(0);} }
+  /* doze: NGỦ GẬT — thân lỏng lẻo xẹp, đầu gật xuống chậm (anticipation) rồi ngẩng hờ */
+  @keyframes doze { 0%{ transform:rotate(-2deg) scale(1.04,.96);} 45%{ transform:rotate(4deg) translateY(3px) scale(1.06,.94);} 60%{ transform:rotate(3deg) translateY(2px) scale(1.05,.95);} 100%{ transform:rotate(-2deg) scale(1.04,.96);} }
+  /* sway: NHỊP NGHỈ — đung đưa trọng lượng: rotate kèm dịch ngang nhỏ ngược pha */
+  @keyframes sway { 0%,100%{ transform:rotate(-3deg) translateX(-2px);} 50%{ transform:rotate(3deg) translateX(2px);} }
   @keyframes spinT { 0%{ transform:scaleX(1) scale(1); filter:brightness(1);} 45%{ transform:scaleX(-1) scale(.72); filter:brightness(2.4);} 55%{ transform:scaleX(-1) scale(.72) rotate(8deg); filter:brightness(2.4);} 100%{ transform:scaleX(1) scale(1); filter:brightness(1);} }
-  @keyframes tremble { 0%,100%{ transform:translate(-3px,1px) rotate(-1deg);} 50%{ transform:translate(3px,-1px) rotate(1deg);} }
+  @keyframes tremble { 0%,100%{ transform:translate(-3px,1px) rotate(-1deg);} 33%{ transform:translate(3px,-1px) rotate(1deg);} 66%{ transform:translate(-2px,1px) rotate(-.6deg);} }
   @keyframes rise { 0%{ transform:translateY(0); opacity:.85;} 100%{ transform:translateY(-24px); opacity:0;} }
   @keyframes talk { from { transform: scaleY(.3);} to { transform: scaleY(1.25);} }
   .drop { animation: rise 2.6s ease-in-out infinite; }
@@ -83,11 +97,15 @@
   .eyes-happy,.eyes-laugh,.eyes-closed,.eyes-sad,.brow-sad,.eyes-cry,.tears,.eyes-wide,.eyes-alert,.eyes-spiral,
   .eyes-uneven,.eyes-up,.eyes-wink,.eyes-love,.eyes-angry,.eyes-sparkle,.eyes-half,
   .m-omega,.m-smile,.m-grin,.m-laugh,.m-frown,.m-cry,.m-wave,.m-o,.m-flat,.m-big,.m-smirk,
-  .blush,.blush-strong,.bub,.zzz,.sparkles,.hearts,.qmark,.exmark,.sweat,.steam,.sigh,.notes,.flash ,.eyes-cool{ display:none; }
+  .blush,.blush-strong,.bub,.zzz,.sparkles,.hearts,.qmark,.exmark,.sweat,.steam,.sigh,.notes,.flash,.eyes-cool,.core { display:none; }
   .eyes-open { display:block; }
   .m-omega { display:block; }
   .puddle { transform-box:fill-box; transform-origin:center; animation: puddle 3.6s ease-in-out infinite; }
   @keyframes puddle { 0%,100%{ transform:scaleX(1); opacity:.4;} 50%{ transform:scaleX(1.05); opacity:.48;} }
+  /* bóng phải ĐỔI theo động tác: hop/boing cùng pha với thân (rộng khi squash, mờ khi bay cao) */
+  #char[data-emo="happy"] .puddle, #char[data-emo="love"] .puddle { animation: puddleHop 1.3s cubic-bezier(.3,-.2,.5,1) infinite; }
+  #char[data-emo="bounce"] .puddle { animation: puddleHop 1.1s cubic-bezier(.34,1.4,.64,1) infinite; }
+  @keyframes puddleHop { 0%{ transform:scaleX(1); opacity:.4;} 15%{ transform:scaleX(1.1); opacity:.46;} 40%{ transform:scaleX(.8); opacity:.24;} 80%{ transform:scaleX(1.14); opacity:.5;} 100%{ transform:scaleX(1); opacity:.4;} }
   /* máy biểu cảm: JS chèn rules theo NIOH_EMOTIONS vào #emo-style */
   #char[data-emo="talk"] .m-o { display:block; animation: talk .26s ease-in-out infinite alternate; transform-box:fill-box; transform-origin:center; }
   #char[data-emo="talk"].lipsync .m-o { animation:none; }
@@ -225,228 +243,187 @@
     <div class="char" id="char">
       <div class="floaty">
         <svg class="character" id="charSvg" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
-  <!-- Ni-Oh slime — tái hiện sát ảnh mẫu (Llor slime): dome hồng rộng đáy gần phẳng,
-       chóp nhỏ lệch phải, viền đen mảnh, gloss vệt trắng lớn, bong bóng tách rời
-       góc trên phải, mắt chấm nâu đen highlight kép, miệng mèo w + lưỡi thè.
-       Vật thể TIẾP ĐỊA: đáy y~200 + ellipse bóng. Mọi nhóm biểu cảm display:none
-       trừ eyes-open + m-omega — app bật theo [data-emo] (emotions.js). -->
+  <!-- Ni-Oh slime chuẩn RPG: thân vòm rộng, ĐÁY PHẲNG NẰM MẶT ĐẤT (không lơ lửng),
+       có bóng tiếp xúc + bóng tạt. Bộ biểu cảm đầy đủ cùng khup mặt (x 70..130,
+       miệng 88..112 @ y 160..180). Mặc định hiện: eyes-open + m-omega; mọi nhóm
+       khác app bật/ẩn theo [data-emo] (emotions.js). -->
   <defs>
-    <linearGradient id="slimeG" x1="0.25" y1="0" x2="0.75" y2="1">
-      <stop offset="0" stop-color="#ffd2da"/>
-      <stop offset=".45" stop-color="#ffbbc6"/>
-      <stop offset="1" stop-color="#f78e9f"/>
-    </linearGradient>
-    <radialGradient id="dropG" cx=".35" cy=".3" r=".95">
-      <stop offset="0" stop-color="#ffe6ec"/>
-      <stop offset="1" stop-color="#fb9cad"/>
+    <radialGradient id="slimeG" cx="34%" cy="26%" r="86%">
+      <stop offset="0%" stop-color="#e6f2ff"/>
+      <stop offset="42%" stop-color="#a8c9f2"/>
+      <stop offset="100%" stop-color="#6890da"/>
     </radialGradient>
-    <linearGradient id="tongueG" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f8a094"/>
-      <stop offset="1" stop-color="#ee7268"/>
-    </linearGradient>
+    <radialGradient id="coreG" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#cdefff" stop-opacity="1"/>
+      <stop offset="55%" stop-color="#5aa7e8" stop-opacity=".75"/>
+      <stop offset="100%" stop-color="#5aa7e8" stop-opacity="0"/>
+    </radialGradient>
   </defs>
 
-  <!-- bóng tiếp địa -->
-  <ellipse class="puddle" cx="100" cy="209" rx="76" ry="8" fill="#1a1a1a" opacity=".15"/>
+  <!-- bóng đổ dưới đất (xa: loang, gần: đậm) -->
+  <ellipse class="puddle" cx="100" cy="212" rx="62" ry="10" fill="#9ec1ee" opacity=".4"/>
+  <ellipse cx="100" cy="211" rx="34" ry="4.5" fill="#5b7fb8" opacity=".38"/>
 
   <g class="slime-body">
-    <!-- bong bóng tinh nghịch tách rời (đọc từ ảnh mẫu) -->
-    <g class="drop">
-      <circle cx="163" cy="55" r="12.5" fill="url(#dropG)" stroke="#1a1a1a" stroke-width="3"/>
-      <circle cx="158.8" cy="50.5" r="3.4" fill="#fff" opacity=".95"/>
+    <!-- THAN VOM: dau 200 → 96, day phang tai y=200, gợn nhẹ đỉnh -->
+    <path d="M42 200 C36 152 58 102 92 98 C96 89 104 89 108 98 C142 102 164 152 158 200 Q100 208 42 200 Z"
+          fill="url(#slimeG)" stroke="#b7d2f2" stroke-width="2" opacity=".95"/>
+    <!-- đáy dạng vì trong suốt + lớp trong suốt -->
+    <path d="M48 190 q52 14 104 0 q-6 9 -52 9 q-46 0 -52 -9 Z" fill="#5b8bd6" opacity=".22"/>
+    <path d="M60 176 q40 10 80 0 q-36 8 -80 0 Z" fill="#ffffff" opacity=".1"/>
+    <!-- nét gãy sáng trên mái -->
+    <path d="M58 128 q22 -12 34 2 q-20 10 -34 -2 Z" fill="#ffffff" opacity=".16"/>
+    <!-- lưỡng thể: lõi trong tâm -->
+    <g class="core">
+      <circle cx="100" cy="150" r="26" fill="url(#coreG)"/>
+      <path d="M100 136 l10 14 l-10 14 l-10 -14 Z" fill="#cfeaff" stroke="#7db8ea" stroke-width="1.4" class="glint"/>
+    </g>
+    <!-- đầu như mới trong suốt -->
+    <ellipse class="glint" cx="66" cy="118" rx="12" ry="18" fill="#ffffff" opacity=".62" transform="rotate(-22 66 118)"/>
+    <circle cx="140" cy="150" r="3.4" fill="#ffffff" opacity=".35"/>
+    <g class="bub" fill="none" stroke="#bfe4ff" stroke-width="1.6">
+      <circle cx="158" cy="118" r="4"/><circle cx="166" cy="104" r="2.6"/><circle cx="152" cy="96" r="1.8"/>
+    </g>
+    <g class="zzz" fill="#bfe4ff" font-family="Segoe UI" font-weight="700">
+      <text x="150" y="112" font-size="16">z</text>
+      <text x="164" y="98" font-size="12">z</text>
     </g>
 
-    <!-- thân: dome rộng, đáy gần phẳng, chóp lệch phải -->
-    <path d="M18 196 C10 148 20 100 54 79 C74 67 90 63 104 62 C108 54 112 47 117 42 C121 49 123 56 125 62 C158 68 190 118 182 196 Q100 208 18 196 Z"
-          fill="url(#slimeG)" stroke="#1a1a1a" stroke-width="3.6" stroke-linejoin="round"/>
-
-    <!-- gloss: vệt trắng lớn nghiêng trái-trên + 2 shine nhỏ (đúng ảnh mẫu) -->
-    <ellipse class="glint" cx="64" cy="90" rx="25" ry="10.5" fill="#fff" opacity=".95" transform="rotate(-32 64 90)"/>
-    <ellipse cx="32" cy="152" rx="7.5" ry="4" fill="#fff" opacity=".9" transform="rotate(-14 32 152)"/>
-    <ellipse cx="166" cy="166" rx="9.5" ry="5" fill="#fff" opacity=".9" transform="rotate(14 166 166)"/>
-
-    <!-- má hồng (ẩn — state vui/yêu bật) -->
-    <g class="blush" fill="#ff7d95" opacity=".5">
-      <ellipse cx="60" cy="158" rx="8" ry="4.5"/><ellipse cx="140" cy="158" rx="8" ry="4.5"/>
-    </g>
-    <g class="blush-strong" fill="#ff5f7f" opacity=".75">
-      <ellipse cx="58" cy="158" rx="9.5" ry="5.5"/><ellipse cx="142" cy="158" rx="9.5" ry="5.5"/>
-    </g>
-
-    <!-- ═══ MẮT — hốc chuẩn (78,142)/(122,142), mọi biểu cảm cùng vị trí ═══ -->
+    <!-- ═══ MẮT — khup tại x 70..130, y 140..152 ═══ -->
     <g class="eyes-open">
-      <g class="pupL"><ellipse cx="78" cy="142" rx="10.5" ry="13" fill="#2b0f14"/><circle cx="74" cy="136" r="3.8" fill="#fff"/><circle cx="81.5" cy="147" r="1.7" fill="#fff" opacity=".75"/></g>
-      <g class="pupR"><ellipse cx="122" cy="142" rx="10.5" ry="13" fill="#2b0f14"/><circle cx="118" cy="136" r="3.8" fill="#fff"/><circle cx="125.5" cy="147" r="1.7" fill="#fff" opacity=".75"/></g>
+      <g class="pupL"><ellipse cx="80" cy="146" rx="6" ry="9.5" fill="#2c4f7c"/><circle cx="78" cy="142" r="2.1" fill="#ffffff" opacity=".95"/></g>
+      <g class="pupR"><ellipse cx="120" cy="146" rx="6" ry="9.5" fill="#2c4f7c"/><circle cx="118" cy="142" r="2.1" fill="#ffffff" opacity=".95"/></g>
     </g>
-    <g class="eyes-happy" stroke="#2b0f14" stroke-width="3.6" stroke-linecap="round" fill="none">
-      <path d="M68 146 Q78 133 88 146"/><path d="M112 146 Q122 133 132 146"/>
+    <g class="eyes-closed" stroke="#2c4f7c" stroke-width="2.6" stroke-linecap="round" fill="none">
+      <path d="M73 146 q7 5 14 0"/><path d="M113 146 q7 5 14 0"/>
     </g>
-    <g class="eyes-laugh" stroke="#2b0f14" stroke-width="3.8" stroke-linecap="round" fill="none">
-      <path d="M68 147 Q78 132 88 147 M71 139 l-4 -3"/><path d="M112 147 Q122 132 132 147 M129 139 l4 -3"/>
+    <g class="eyes-happy" stroke="#2c4f7c" stroke-width="2.8" stroke-linecap="round" fill="none">
+      <path d="M73 148 q7 -9 14 0"/><path d="M113 148 q7 -9 14 0"/>
     </g>
-    <g class="eyes-closed" stroke="#2b0f14" stroke-width="3.4" stroke-linecap="round" fill="none">
-      <path d="M68 143 Q78 150 88 143"/><path d="M112 143 Q122 150 132 143"/>
-    </g>
-    <g class="eyes-sad">
-      <ellipse cx="78" cy="146" rx="9.5" ry="10.5" fill="#2b0f14"/>
-      <ellipse cx="122" cy="146" rx="9.5" ry="10.5" fill="#2b0f14"/>
-      <path d="M66 138 Q78 132 89 137 L89 128 L66 128 Z" fill="url(#slimeG)"/>
-      <path d="M111 137 Q122 132 134 138 L134 128 L111 128 Z" fill="url(#slimeG)"/>
-      <circle cx="75" cy="149" r="2.6" fill="#fff" opacity=".9"/><circle cx="119" cy="149" r="2.6" fill="#fff" opacity=".9"/>
-    </g>
-    <g class="brow-sad" stroke="#2b0f14" stroke-width="3" stroke-linecap="round" fill="none">
-      <path d="M67 134 L88 126"/><path d="M133 134 L112 126"/>
-    </g>
-    <g class="eyes-cry" stroke="#2b0f14" stroke-width="3.4" stroke-linecap="round" fill="none">
-      <path d="M68 140 Q78 150 88 140"/><path d="M112 140 Q122 150 132 140"/>
-    </g>
-    <g class="tears" fill="#8fd0f5" stroke="#4a9cc8" stroke-width="1.6">
-      <path d="M70 150 Q66 164 71 170 Q77 165 74 150 Z"/>
-      <path d="M130 150 Q134 164 129 170 Q123 165 126 150 Z"/>
-    </g>
-    <g class="eyes-wide">
-      <ellipse cx="78" cy="141" rx="12" ry="14" fill="#fff" stroke="#2b0f14" stroke-width="2.6"/>
-      <ellipse cx="122" cy="141" rx="12" ry="14" fill="#fff" stroke="#2b0f14" stroke-width="2.6"/>
-      <circle cx="78" cy="142" r="5" fill="#2b0f14"/><circle cx="122" cy="142" r="5" fill="#2b0f14"/>
+    <g class="eyes-laugh" stroke="#2c4f7c" stroke-width="2.8" stroke-linecap="round" fill="none">
+      <path d="M73 148 q7 -9 14 0 M75 141 l-3 -2.5"/><path d="M113 148 q7 -9 14 0 M125 141 l3 -2.5"/>
     </g>
     <g class="eyes-alert">
-      <ellipse cx="78" cy="140" rx="12.5" ry="15" fill="#fff" stroke="#2b0f14" stroke-width="2.8"/>
-      <ellipse cx="122" cy="140" rx="12.5" ry="15" fill="#fff" stroke="#2b0f14" stroke-width="2.8"/>
-      <circle cx="78" cy="141" r="3.4" fill="#2b0f14"/><circle cx="122" cy="141" r="3.4" fill="#2b0f14"/>
+      <circle cx="80" cy="144" r="9.5" fill="#ffffff" stroke="#2c4f7c" stroke-width="2"/>
+      <circle cx="80" cy="144" r="3.6" fill="#2c4f7c"/>
+      <circle cx="120" cy="144" r="9.5" fill="#ffffff" stroke="#2c4f7c" stroke-width="2"/>
+      <circle cx="120" cy="144" r="3.6" fill="#2c4f7c"/>
     </g>
-    <g class="eyes-spiral" stroke="#2b0f14" stroke-width="2.4" fill="none" stroke-linecap="round">
-      <path d="M78 142 m-8 0 a8 8 0 1 1 4 7 a4.5 4.5 0 1 1 4 -6"/>
-      <path d="M122 142 m8 0 a8 8 0 1 0 -4 7 a4.5 4.5 0 1 0 -4 -6"/>
+    <g class="eyes-wide">
+      <ellipse cx="80" cy="144" rx="8.5" ry="10" fill="#ffffff" stroke="#2c4f7c" stroke-width="1.8"/>
+      <circle cx="80" cy="145" r="3" fill="#2c4f7c"/>
+      <ellipse cx="120" cy="144" rx="8.5" ry="10" fill="#ffffff" stroke="#2c4f7c" stroke-width="1.8"/>
+      <circle cx="120" cy="145" r="3" fill="#2c4f7c"/>
+    </g>
+    <g class="eyes-sad">
+      <ellipse cx="80" cy="148" rx="5.5" ry="7" fill="#2c4f7c"/>
+      <ellipse cx="120" cy="148" rx="5.5" ry="7" fill="#2c4f7c"/>
+      <path d="M71 143 Q80 138 89 142 L89 134 L71 134 Z" fill="url(#slimeG)"/>
+      <path d="M111 142 Q120 138 129 143 L129 134 L111 134 Z" fill="url(#slimeG)"/>
+    </g>
+    <g class="brow-sad" stroke="#2c4f7c" stroke-width="2.2" stroke-linecap="round" fill="none">
+      <path d="M71 136 L88 131"/><path d="M129 136 L112 131"/>
+    </g>
+    <g class="eyes-cry" stroke="#2c4f7c" stroke-width="2.4" stroke-linecap="round" fill="none">
+      <path d="M73 144 Q80 150 87 144"/><path d="M113 144 Q120 150 127 144"/>
+    </g>
+    <g class="tears" fill="#8fd0f5" stroke="#4a9cc8" stroke-width="1.2">
+      <path d="M74 150 Q71 160 75 164 Q79 160 77 150 Z"/>
+      <path d="M126 150 Q129 160 125 164 Q121 160 123 150 Z"/>
+    </g>
+    <g class="eyes-spiral" stroke="#2c4f7c" stroke-width="1.8" fill="none" stroke-linecap="round">
+      <path d="M80 145 m-6 0 a6 6 0 1 1 3 5 a3.4 3.4 0 1 1 3 -4.4"/>
+      <path d="M120 145 m6 0 a6 6 0 1 0 -3 5 a3.4 3.4 0 1 0 -3 -4.4"/>
     </g>
     <g class="eyes-uneven">
-      <ellipse cx="78" cy="140" rx="11" ry="13.5" fill="#2b0f14"/><circle cx="74.5" cy="135" r="3.4" fill="#fff"/>
-      <ellipse cx="122" cy="144" rx="8" ry="9.5" fill="#2b0f14"/><circle cx="119" cy="140.5" r="2.6" fill="#fff"/>
+      <ellipse cx="80" cy="145" rx="6" ry="9" fill="#2c4f7c"/><circle cx="78" cy="141" r="1.9" fill="#fff"/>
+      <ellipse cx="120" cy="147" rx="4.6" ry="6" fill="#2c4f7c"/><circle cx="118.5" cy="144.5" r="1.5" fill="#fff"/>
     </g>
     <g class="eyes-up">
-      <g class="pupL"><ellipse cx="79" cy="136" rx="10" ry="11.5" fill="#2b0f14"/><circle cx="75.5" cy="131" r="3.4" fill="#fff"/></g>
-      <g class="pupR"><ellipse cx="123" cy="136" rx="10" ry="11.5" fill="#2b0f14"/><circle cx="119.5" cy="131" r="3.4" fill="#fff"/></g>
-      <path d="M66 148 Q78 152 89 148" stroke="#2b0f14" stroke-width="2" fill="none" opacity=".55"/>
+      <g class="pupL"><ellipse cx="81" cy="141" rx="5.6" ry="8" fill="#2c4f7c"/><circle cx="79" cy="137.5" r="1.9" fill="#fff"/></g>
+      <g class="pupR"><ellipse cx="121" cy="141" rx="5.6" ry="8" fill="#2c4f7c"/><circle cx="119" cy="137.5" r="1.9" fill="#fff"/></g>
     </g>
     <g class="eyes-cool">
-      <rect x="63" y="132" width="30" height="18" rx="8" fill="#1b2026" stroke="#0e1114" stroke-width="2.4"/>
-      <rect x="107" y="132" width="30" height="18" rx="8" fill="#1b2026" stroke="#0e1114" stroke-width="2.4"/>
-      <path d="M93 138 h14" stroke="#0e1114" stroke-width="3" fill="none"/>
-      <path d="M68 136 l9 0" stroke="#7d90a8" stroke-width="2.6" stroke-linecap="round" opacity=".9"/>
-      <path d="M112 136 l9 0" stroke="#7d90a8" stroke-width="2.6" stroke-linecap="round" opacity=".9"/>
+      <rect x="69" y="139" width="22" height="12" rx="5" fill="#1b2536" stroke="#0e1420" stroke-width="1.8"/>
+      <rect x="109" y="139" width="22" height="12" rx="5" fill="#1b2536" stroke="#0e1420" stroke-width="1.8"/>
+      <path d="M91 143 h18" stroke="#0e1420" stroke-width="2.2" fill="none"/>
+      <path d="M72 142 l6 0 M112 142 l6 0" stroke="#7d9cc0" stroke-width="1.8" stroke-linecap="round" opacity=".9"/>
     </g>
     <g class="eyes-wink">
-      <ellipse cx="78" cy="142" rx="10.5" ry="13" fill="#2b0f14"/><circle cx="74" cy="136" r="3.8" fill="#fff"/>
-      <path d="M112 143 Q122 136 132 143" stroke="#2b0f14" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+      <ellipse cx="80" cy="146" rx="6" ry="9.5" fill="#2c4f7c"/><circle cx="78" cy="142" r="2.1" fill="#fff"/>
+      <path d="M113 146 Q120 141 127 146" stroke="#2c4f7c" stroke-width="2.4" fill="none" stroke-linecap="round"/>
     </g>
-    <g class="eyes-love" fill="#ff4d70">
-      <path d="M78 148 C70 140 70 132 76 132 C79 132 78 136 78 136 C78 136 77 132 80 132 C86 132 86 140 78 148 Z"/>
-      <path d="M122 148 C114 140 114 132 120 132 C123 132 122 136 122 136 C122 136 121 132 124 132 C130 132 130 140 122 148 Z"/>
+    <g class="eyes-love" fill="#ff6d95">
+      <path d="M80 152 C73 145 73 139 78 139 C80.5 139 80 142 80 142 C80 142 79.5 139 82 139 C87 139 87 145 80 152 Z"/>
+      <path d="M120 152 C113 145 113 139 118 139 C120.5 139 120 142 120 142 C120 142 119.5 139 122 139 C127 139 127 145 120 152 Z"/>
     </g>
     <g class="eyes-angry">
-      <ellipse cx="78" cy="144" rx="10" ry="11" fill="#2b0f14"/><ellipse cx="122" cy="144" rx="10" ry="11" fill="#2b0f14"/>
-      <path d="M66 130 L90 138" stroke="#2b0f14" stroke-width="4.5" stroke-linecap="round"/>
-      <path d="M134 130 L110 138" stroke="#2b0f14" stroke-width="4.5" stroke-linecap="round"/>
+      <ellipse cx="80" cy="147" rx="5.6" ry="7.5" fill="#2c4f7c"/><ellipse cx="120" cy="147" rx="5.6" ry="7.5" fill="#2c4f7c"/>
+      <path d="M71 137 L90 142" stroke="#2c4f7c" stroke-width="3" stroke-linecap="round"/>
+      <path d="M129 137 L110 142" stroke="#2c4f7c" stroke-width="3" stroke-linecap="round"/>
     </g>
     <g class="eyes-sparkle">
-      <ellipse cx="78" cy="142" rx="10.5" ry="13" fill="#2b0f14"/><ellipse cx="122" cy="142" rx="10.5" ry="13" fill="#2b0f14"/>
-      <path d="M78 134 l2.6 5.4 5.4 2.6 -5.4 2.6 -2.6 5.4 -2.6 -5.4 -5.4 -2.6 5.4 -2.6 Z" fill="#fff"/>
-      <path d="M122 134 l2.6 5.4 5.4 2.6 -5.4 2.6 -2.6 5.4 -2.6 -5.4 -5.4 -2.6 5.4 -2.6 Z" fill="#fff"/>
+      <ellipse cx="80" cy="146" rx="6" ry="9.5" fill="#2c4f7c"/><ellipse cx="120" cy="146" rx="6" ry="9.5" fill="#2c4f7c"/>
+      <path d="M80 140 l1.8 3.6 3.6 1.8 -3.6 1.8 -1.8 3.6 -1.8 -3.6 -3.6 -1.8 3.6 -1.8 Z" fill="#fff"/>
+      <path d="M120 140 l1.8 3.6 3.6 1.8 -3.6 1.8 -1.8 3.6 -1.8 -3.6 -3.6 -1.8 3.6 -1.8 Z" fill="#fff"/>
     </g>
     <g class="eyes-half">
-      <ellipse cx="78" cy="144" rx="10.5" ry="11" fill="#2b0f14"/><ellipse cx="122" cy="144" rx="10.5" ry="11" fill="#2b0f14"/>
-      <path d="M66 138 Q78 133 89 137 L89 126 L66 126 Z" fill="url(#slimeG)"/>
-      <path d="M111 137 Q122 133 134 138 L134 126 L111 126 Z" fill="url(#slimeG)"/>
-      <circle cx="75" cy="147" r="2.6" fill="#fff" opacity=".85"/><circle cx="119" cy="147" r="2.6" fill="#fff" opacity=".85"/>
+      <ellipse cx="80" cy="147" rx="6" ry="7.5" fill="#2c4f7c"/><ellipse cx="120" cy="147" rx="6" ry="7.5" fill="#2c4f7c"/>
+      <path d="M72 143 Q80 139 88 142 L88 134 L72 134 Z" fill="url(#slimeG)"/>
+      <path d="M112 142 Q120 139 128 143 L128 134 L112 134 Z" fill="url(#slimeG)"/>
     </g>
 
-    <!-- ═══ MIỆNG — chuẩn (100,166) ═══ -->
-    <g class="m-omega">
-      <path d="M92 166 Q100 172 108 166" fill="none" stroke="#2b0f14" stroke-width="3.2" stroke-linecap="round"/>
-      <path d="M84 162 Q90 170 97 166" fill="none" stroke="#2b0f14" stroke-width="3.2" stroke-linecap="round"/>
-      <path d="M103 166 Q110 170 116 162" fill="none" stroke="#2b0f14" stroke-width="3.2" stroke-linecap="round"/>
-      <path d="M93 168 Q92 181 100 182.5 Q108 181 107 168 Q100 171.5 93 168 Z" fill="url(#tongueG)" stroke="#2b0f14" stroke-width="2.4" stroke-linejoin="round"/>
-      <path d="M100 172 L100 179" stroke="#d95f57" stroke-width="1.5" stroke-linecap="round" opacity=".65"/>
-    </g>
-    <g class="m-o">
-      <ellipse cx="100" cy="170" rx="7.5" ry="9" fill="#2b0f14"/>
-      <path d="M95 175 Q100 179 105 175 Q100 173 95 175 Z" fill="#f08a80"/>
-    </g>
-    <g class="m-big">
-      <ellipse cx="100" cy="171" rx="10.5" ry="12.5" fill="#2b0f14"/>
-      <path d="M93 178 Q100 183 107 178 Q100 175.5 93 178 Z" fill="#f08a80"/>
-    </g>
-    <g class="m-smile">
-      <path d="M86 165 Q100 178 114 165" fill="none" stroke="#2b0f14" stroke-width="3.4" stroke-linecap="round"/>
-    </g>
-    <g class="m-grin">
-      <path d="M84 163 Q100 180 116 163 Z" fill="#2b0f14"/>
-      <path d="M88 165 L112 165" stroke="#fff" stroke-width="4"/>
-      <path d="M96 172 Q100 176 104 172 Q100 171 96 172 Z" fill="#f08a80"/>
-    </g>
-    <g class="m-laugh">
-      <path d="M84 162 Q100 162 116 162 Q113 182 100 182 Q87 182 84 162 Z" fill="#2b0f14"/>
-      <path d="M92 176 Q100 182 108 176 Q100 173 92 176 Z" fill="#f08a80"/>
-    </g>
-    <g class="m-frown">
-      <path d="M88 172 Q100 163 112 172" fill="none" stroke="#2b0f14" stroke-width="3.4" stroke-linecap="round"/>
-    </g>
-    <g class="m-cry">
-      <path d="M88 166 Q100 160 112 166 Q110 180 100 180 Q90 180 88 166 Z" fill="#2b0f14"/>
-      <path d="M94 175 Q100 179 106 175 Q100 173 94 175 Z" fill="#f08a80"/>
-    </g>
-    <g class="m-wave">
-      <path d="M86 168 Q93 162 100 168 Q107 174 114 168" fill="none" stroke="#2b0f14" stroke-width="3.4" stroke-linecap="round"/>
-    </g>
-    <g class="m-flat">
-      <path d="M90 169 L110 169" stroke="#2b0f14" stroke-width="3.4" stroke-linecap="round"/>
-    </g>
-    <g class="m-smirk">
-      <path d="M88 170 Q100 174 112 164" fill="none" stroke="#2b0f14" stroke-width="3.4" stroke-linecap="round"/>
-    </g>
+    <!-- ═══ MIỆNG — neo tại (100, 166) ═══ -->
+    <path class="m-omega" d="M90 164 Q100 172 110 164" fill="none" stroke="#2c4f7c" stroke-width="2.6" stroke-linecap="round"/>
+    <ellipse class="m-o" cx="100" cy="168" rx="5" ry="6" fill="#2c4f7c"/>
+    <ellipse class="m-big" cx="100" cy="170" rx="9" ry="13" fill="#2c4f7c"/>
+    <path class="m-smile" d="M90 164 Q100 173 110 164" fill="none" stroke="#2c4f7c" stroke-width="2.6" stroke-linecap="round"/>
+    <path class="m-grin" d="M88 162 Q100 178 112 162 Q100 170 88 162 Z" fill="#2c4f7c"/>
+    <path class="m-laugh" d="M88 162 Q100 162 112 162 Q109 178 100 178 Q91 178 88 162 Z" fill="#2c4f7c"/>
+    <path class="m-frown" d="M91 170 Q100 163 109 170" fill="none" stroke="#2c4f7c" stroke-width="2.6" stroke-linecap="round"/>
+    <path class="m-cry" d="M92 165 Q100 160 108 165 Q106 176 100 176 Q94 176 92 165 Z" fill="#2c4f7c"/>
+    <path class="m-wave" d="M90 167 Q95 163 100 167 Q105 171 110 167" fill="none" stroke="#2c4f7c" stroke-width="2.4" stroke-linecap="round"/>
+    <path class="m-flat" d="M92 168 h16" stroke="#2c4f7c" stroke-width="2.4" stroke-linecap="round"/>
+    <path class="m-smirk" d="M91 169 Q100 172 109 163" fill="none" stroke="#2c4f7c" stroke-width="2.6" stroke-linecap="round"/>
 
     <!-- ═══ PHỤ KIỆN BIỂU CẢM ═══ -->
-    <g class="qmark" font-family="Arial Black, sans-serif" font-size="26" font-weight="900" fill="#fff" stroke="#2b0f14" stroke-width="1.6">
-      <text x="20" y="64">?</text>
+    <g class="blush" fill="#ff8fb8" opacity=".3">
+      <circle cx="66" cy="158" r="4.5"/><circle cx="134" cy="158" r="4.5"/>
     </g>
-    <g class="exmark" font-family="Arial Black, sans-serif" font-size="26" font-weight="900" fill="#ffd23e" stroke="#2b0f14" stroke-width="1.6">
-      <text x="22" y="64">!</text>
+    <g class="blush-strong" fill="#ff7d95" opacity=".55">
+      <ellipse cx="65" cy="158" rx="6" ry="3.6"/><ellipse cx="135" cy="158" rx="6" ry="3.6"/>
     </g>
-    <g class="bub">
-      <circle cx="46" cy="66" r="3" fill="#fff" opacity=".9"/>
-      <circle cx="38" cy="56" r="4.6" fill="#fff" opacity=".92"/>
-      <circle cx="27" cy="42" r="7" fill="#fff" opacity=".95"/>
+    <g class="qmark" font-family="Segoe UI" font-size="22" font-weight="800" fill="#eaf5ff" stroke="#2c4f7c" stroke-width="1">
+      <text x="150" y="60">?</text>
     </g>
-    <g class="zzz" font-family="Arial Black, sans-serif" font-weight="900" fill="#4a5a8a">
-      <text x="34" y="70" font-size="13">z</text>
-      <text x="24" y="54" font-size="17">Z</text>
-      <text x="12" y="38" font-size="21">z</text>
+    <g class="exmark" font-family="Segoe UI" font-size="22" font-weight="800" fill="#ffd23e" stroke="#2c4f7c" stroke-width="1">
+      <text x="150" y="60">!</text>
     </g>
     <g class="sweat">
-      <path d="M150 116 Q144 130 150 136 Q157 131 150 116 Z" fill="#8fd0f5" stroke="#4a9cc8" stroke-width="2"/>
+      <path d="M146 120 Q142 131 146 136 Q151 131 148 120 Z" fill="#8fd0f5" stroke="#4a9cc8" stroke-width="1.4"/>
     </g>
-    <g class="sparkles" fill="#ffd23e">
-      <path d="M40 84 l2.2 4.6 4.6 2.2 -4.6 2.2 -2.2 4.6 -2.2 -4.6 -4.6 -2.2 4.6 -2.2 Z"/>
-      <path d="M162 96 l1.8 3.8 3.8 1.8 -3.8 1.8 -1.8 3.8 -1.8 -3.8 -3.8 -1.8 3.8 -1.8 Z"/>
-      <path d="M52 52 l1.5 3.2 3.2 1.5 -3.2 1.5 -1.5 3.2 -1.5 -3.2 -3.2 -1.5 3.2 -1.5 Z"/>
+    <g class="sparkles" fill="#ffe9a8">
+      <path d="M46 88 l1.8 3.8 3.8 1.8 -3.8 1.8 -1.8 3.8 -1.8 -3.8 -3.8 -1.8 3.8 -1.8 Z"/>
+      <path d="M158 76 l1.5 3.2 3.2 1.5 -3.2 1.5 -1.5 3.2 -1.5 -3.2 -3.2 -1.5 3.2 -1.5 Z"/>
     </g>
-    <g class="hearts" fill="#ff4d70">
-      <path d="M46 74 C38 66 38 58 44 58 C47 58 46 62 46 62 C46 62 45 58 48 58 C54 58 54 66 46 74 Z"/>
-      <path d="M156 84 C148 76 148 68 154 68 C157 68 156 72 156 72 C156 72 155 68 158 68 C164 68 164 76 156 84 Z"/>
+    <g class="hearts" fill="#ff6d95">
+      <path d="M50 70 C43 63 43 56 48 56 C50.5 56 50 59.5 50 59.5 C50 59.5 49.5 56 52 56 C57 56 57 63 50 70 Z"/>
+      <path d="M154 80 C147 73 147 66 152 66 C154.5 66 154 69.5 154 69.5 C154 69.5 153.5 66 156 66 C161 66 161 73 154 80 Z"/>
     </g>
-    <g class="notes" fill="#2b0f14">
-      <circle cx="44" cy="96" r="3.4"/><rect x="46.2" y="78" width="2.2" height="17"/>
-      <circle cx="158" cy="104" r="3"/>
-      <path d="M158 104 L158 88 Q165 90 165 95 Q162 93 158 94 Z"/>
+    <g class="notes" fill="#2c4f7c">
+      <circle cx="48" cy="98" r="2.8"/><rect x="49.8" y="84" width="1.8" height="14"/>
+      <circle cx="154" cy="104" r="2.4"/>
+      <path d="M154 104 L154 91 Q160 93 160 97 Q157 95.5 154 96.5 Z"/>
     </g>
-    <g class="steam" stroke="#9aa7bd" stroke-width="3" fill="none" stroke-linecap="round" opacity=".85">
-      <path d="M56 60 Q50 52 56 44 Q62 36 56 28"/>
-      <path d="M144 60 Q150 52 144 44 Q138 36 144 28"/>
+    <g class="steam" stroke="#bfe4ff" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".9">
+      <path d="M60 56 Q55 49 60 42 Q65 35 60 28"/>
+      <path d="M140 56 Q145 49 140 42 Q135 35 140 28"/>
     </g>
-    <g class="sigh" fill="#fff" opacity=".8">
-      <circle cx="126" cy="184" r="3"/><circle cx="134" cy="180" r="4.6"/><circle cx="144" cy="175" r="6"/>
+    <g class="sigh" fill="#ffffff" opacity=".75">
+      <circle cx="124" cy="182" r="2.4"/><circle cx="131" cy="178" r="3.6"/><circle cx="140" cy="174" r="4.8"/>
     </g>
     <g class="flash">
-      <rect x="0" y="0" width="200" height="240" fill="#fff" opacity=".85"/>
+      <rect x="0" y="0" width="200" height="240" fill="#eaf5ff" opacity=".85"/>
     </g>
   </g>
 </svg>
@@ -708,12 +685,13 @@
   // ═══ MÁY BIỂU CẢM 25 TRẠNG THÁI (bảng NIOH_EMOTIONS — nguồn duy nhất) ═══
   const EMO = (window.NIOH_EMOTIONS || []).reduce((a, e) => (a[e.id] = e, a), {});
   (function buildEmoCSS() {   // sinh rules bật/tắt nhóm SVG từ bảng — thêm state là tự có
-    const DUR = { march:'.9s', shiver:'.18s', tremble:'.18s', nodding:'.7s', shaking:'.7s', doze:'4s', rock:'.5s', tilt:'2.4s', lean:'1.8s', sway:'1.4s', pop:'.8s', boing:'1.1s', hop:'1.3s', droop:'3s' };
+    const DUR = { march:'.9s', shiver:'.18s', tremble:'.18s', nodding:'1.1s', shaking:'.9s', doze:'4s', rock:'.5s', tilt:'2.4s', lean:'1.8s', sway:'1.4s', pop:'.7s', boing:'1.1s', hop:'1.3s', droop:'3s', spinT:'1.4s', rise:'2.6s' };
+    const EASE = { boing:'cubic-bezier(.34,1.4,.64,1)', hop:'cubic-bezier(.3,-.2,.5,1)', pop:'cubic-bezier(.2,1.5,.4,1)', nodding:'cubic-bezier(.3,1.2,.5,1)', shaking:'cubic-bezier(.3,1,.5,1)', spinT:'cubic-bezier(.7,0,.3,1)', shiver:'linear', tremble:'linear', blink:'steps(1,end)' };
     let css = '';
     for (const id in EMO) {
       const e = EMO[id];
       const on = [...(e.eyes||[]), ...(e.mouth||[]), ...(e.extras||[])];
-      if (e.anim) css += `#char[data-emo="${id}"] .slime-body { animation:${e.anim} ${DUR[id]||'2.2s'} ease-in-out infinite; }\n`;
+      if (e.anim) css += `#char[data-emo="${id}"] .slime-body { animation:${e.anim} ${DUR[e.anim]||'2.2s'} ${EASE[e.anim]||'ease-in-out'} infinite; }\n`;
       if (on.length) css += `#char[data-emo="${id}"] .${on.join(', #char[data-emo="'+id+'"] .')} { display:block; }\n`;
       const hide = [];
       if (!(e.eyes||[]).includes('eyes-open')) hide.push('eyes-open');
@@ -724,11 +702,20 @@
     document.head.appendChild(st);
   })();
   const _LEGACY = { talking:'talk', thinking:'think', sleepy:'sleep', error:'sad', fidget:'march', idle_fidget:'march', look_cursor:'look' };
-  let emoReturnTimer = null;
+  // GUARD (hsm_transition_guard): state có thời lượng khóa — không cho state khác chen giữa, trừ state khẩn
+  const _LOCK = { transform: 1400 };            // ms cấm ngắt
+  const _PREEMPT = { transform: [] };          // ai được ngắt transform (không ai cả)
+  let emoReturnTimer = null, _emoSince = 0;
   function setAnim(state, ms) {
     state = _LEGACY[state] || state;
     if (!state) state = 'idle';
     if (!EMO[state]) return;
+    const cur = char.dataset.emo;
+    if (cur && _LOCK[cur] && Date.now() - (_emoSince||0) < _LOCK[cur] && !(state !== cur && (_PREEMPT[cur]||[]).includes(state))) {
+      if (ms) clearTimeout(emoReturnTimer), emoReturnTimer = setTimeout(() => setAnim(currentBaseEmo(), 0), ms);
+      return;                                 // bị guard chặn — giữ state đang chạy tới hết khung
+    }
+    _emoSince = Date.now();
     clearTimeout(emoReturnTimer);
     char.dataset.emo = state;
     if (state !== 'talk') { stopLipsync(); char.classList.remove('lipsync'); }

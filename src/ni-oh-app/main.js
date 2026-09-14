@@ -336,7 +336,10 @@ function soulPrompt() {
     return fs.readFileSync(SOUL_FILE, 'utf8').slice(0, 2500);
   } catch (e) { return ''; }
 }
+// SOUL LÀ CỦA SẾP — Ni-Oh KHÔNG tự ghi vào soul.md.
+// Soul định hình VĂN PHONG (đọc TRƯỚC khi sinh câu nói), không phải kho câu thoại mẫu. soulGrow = no-op.
 function soulGrow(note) {
+  return;
   try {
     if (!fs.existsSync(SOUL_FILE)) fs.writeFileSync(SOUL_FILE, '# Linh hồn Ni-Oh\n\n', 'utf8');
     let t = fs.readFileSync(SOUL_FILE, 'utf8');
@@ -813,7 +816,7 @@ ipcMain.handle('ask-question', async (_, question) => {
   if (r.success) { const seA = stripEmotion(r.answer); if (seA.emo) { fireEmo(seA.emo, 5200); } r.answer = seA.text || r.answer; }
 
   // ── Bước 3: đúc kết trả lời vào KB vĩnh viễn (không cần thêm request) ──
-  if (r.success && r.provider === 'antigravity' && !isScreenBound(question)) {
+  if (false && r.success && r.provider === 'antigravity' && !isScreenBound(question)) { // Chat KHÔNG đóng chai câu mẫu — luật Sếp 2026-09
     const q = String(question);
     // CHỈ distill vào topic thật đã khớp KB — không bịa topic từ tên cửa sổ (rác)
     const topicGuess = (kb && kb.score >= 5) ? kb.topic : 'chat';
