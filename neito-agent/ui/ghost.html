@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  html, body {
+    margin: 0; padding: 0; width: 80px; height: 80px;
+    background: transparent !important; overflow: hidden;
+    user-select: none; pointer-events: none !important;
+  }
+  .ghost-container {
+    width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; position: relative;
+  }
+  .ghost-orb {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #7dd3fc, #0284c7);
+    box-shadow: 0 0 24px rgba(56, 189, 248, 0.95), inset 0 0 10px #ffffff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; animation: ghostPulse 1s ease-in-out infinite alternate;
+  }
+  .ghost-ring {
+    position: absolute; width: 68px; height: 68px; border-radius: 50%;
+    border: 2px dashed rgba(56, 189, 248, 0.85);
+    animation: ringSpin 2.5s linear infinite;
+  }
+  @keyframes ghostPulse {
+    0% { transform: scale(0.9); }
+    100% { transform: scale(1.12); }
+  }
+  @keyframes ringSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
+</head>
+<body>
+<div class="ghost-container">
+  <div class="ghost-ring"></div>
+  <div class="ghost-orb">✨</div>
+</div>
+</body>
+</html>

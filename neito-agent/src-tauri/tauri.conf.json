@@ -1,0 +1,69 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "neito-agent",
+  "version": "0.1.0",
+  "identifier": "com.neito.neito-agent",
+  "build": {
+    "beforeDevCommand": "",
+    "devUrl": null,
+    "beforeBuildCommand": "",
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Neito Agent",
+        "url": "index.html",
+        "width": 340,
+        "height": 460,
+        "transparent": true,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "resizable": false,
+        "shadow": false,
+        "skipTaskbar": true,
+        "visible": true
+      },
+      {
+        "label": "dashboard",
+        "title": "Neito Agent - Tactical Dashboard",
+        "url": "dashboard.html",
+        "width": 1000,
+        "height": 720,
+        "decorations": false,
+        "resizable": true,
+        "visible": false,
+        "center": true
+      },
+      {
+        "label": "ghost",
+        "title": "Ghost Pointer",
+        "url": "ghost.html",
+        "width": 80,
+        "height": 80,
+        "transparent": true,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "resizable": false,
+        "visible": false,
+        "skipTaskbar": true
+      }
+    ],
+    "security": {
+      "csp": null
+    },
+    "withGlobalTauri": true
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

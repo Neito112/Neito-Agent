@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neito Agent - Tactical Companion Dashboard</title>
+<style>
+  :root {
+    --bg: #090b10;
+    --bg-surface: rgba(18, 24, 38, 0.7);
+    --bg-card: rgba(22, 30, 49, 0.55);
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(56, 189, 248, 0.35);
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent: #38bdf8;
+    --accent-glow: rgba(56, 189, 248, 0.25);
+    --accent-2: #00f2fe;
+    --ok: #10b981;
+    --warn: #f59e0b;
+    --err: #ef4444;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #090b10 !important; color: var(--text) !important;
+    font-family: var(--font); overflow: hidden; user-select: none;
+    font-size: 13px; line-height: 1.5;
+  }
+
+  /* Toàn bộ app layout */
+  #dashboard-root {
+    display: flex; flex-direction: column; width: 100vw; height: 100vh;
+    background: radial-gradient(circle at 10% 10%, rgba(56, 189, 248, 0.06), transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(0, 242, 254, 0.05), transparent 40%),
+                #090b10;
+    border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+  }
+
+  /* ─── TOPBAR KÉO THẢ VÀ WINDOW CONTROLS ─── */
+  .topbar {
+    height: 48px; min-height: 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px; border-bottom: 1px solid var(--border);
+    background: rgba(13, 17, 23, 0.85); backdrop-filter: blur(16px);
+    -webkit-app-region: drag; cursor: move;
+  }
+  .topbar-brand {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .brand-logo {
+    width: 26px; height: 26px; border-radius: 8px;
+    background: linear-gradient(135deg, #0284c7, #0ea5e9);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+  }
+  .brand-title { font-weight: 700; font-size: 14px; letter-spacing: 0.3px; }
+  .brand-tag {
+    font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 999px;
+    background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3);
+    color: var(--accent);
+  }
+
+  .topbar-status {
+    display: flex; align-items: center; gap: 14px; -webkit-app-region: no-drag;
+  }
+  .status-pill {
+    display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted);
+  }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--ok); box-shadow: 0 0 8px var(--ok);
+  }
+
+  .win-controls {
+    display: flex; align-items: center; gap: 6px; -webkit-app-region: no-drag;
+  }
+  .wc-btn {
+    width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.03); color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; cursor: pointer; transition: all 0.15s;
+  }
+  .wc-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+  .wc-btn.close:hover { background: rgba(239, 68, 68, 0.25); color: var(--err); border-color: var(--err); }
+
+  /* ─── APP BODY: SIDEBAR + CONTENT ─── */
+  .app-body {
+    display: flex; flex: 1; min-height: 0;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 210px; min-width: 210px; background: rgba(13, 17, 23, 0.7);
+    border-right: 1px solid var(--border); padding: 14px 10px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .nav-btn {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    border-radius: var(--radius-sm); border: none; background: transparent;
+    color: var(--text-muted); font-size: 12.5px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s; text-align: left; position: relative;
+  }
+  .nav-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.04); }
+  .nav-btn.active {
+    color: #fff; background: rgba(56, 189, 248, 0.14); font-weight: 600;
+  }
+  .nav-btn.active::before {
+    content: ''; position: absolute; left: 0; top: 20%; height: 60%; width: 3px;
+    background: var(--accent); border-radius: 2px; box-shadow: 0 0 8px var(--accent);
+  }
+
+  .sidebar-footer {
+    margin-top: auto; padding: 12px 10px; border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--text-muted);
+  }
+
+  /* Content area */
+  .content-view {
+    flex: 1; overflow-y: auto; padding: 24px 28px;
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .panel-header { margin-bottom: 20px; }
+  .panel-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .panel-desc { color: var(--text-muted); font-size: 12px; }
+
+  /* Cards */
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 18px; margin-bottom: 18px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px);
+  }
+  .card-title { font-size: 13.5px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+
+  /* Lưới nhân vật */
+  .chars-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px;
+  }
+  .char-item {
+    background: rgba(15, 23, 42, 0.6); border: 1.5px solid var(--border); border-radius: 12px;
+    padding: 12px 10px; display: flex; flex-direction: column; align-items: center;
+    cursor: pointer; transition: all 0.18s; position: relative;
+  }
+  .char-item:hover {
+    border-color: var(--accent); transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.25);
+  }
+  .char-item.selected {
+    border-color: var(--accent); background: rgba(56, 189, 248, 0.12);
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.3);
+  }
+  .char-thumb { width: 64px; height: 64px; object-fit: contain; margin-bottom: 8px; }
+  .char-name { font-size: 12px; font-weight: 600; text-align: center; }
+  .active-badge {
+    position: absolute; top: 6px; right: 6px;
+    background: var(--accent); color: #000; font-size: 9px; font-weight: 700;
+    padding: 1px 6px; border-radius: 10px;
+  }
+
+  /* Form controls */
+  .btn {
+    padding: 7px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.06); color: #fff; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.25); }
+  .btn-primary {
+    background: linear-gradient(135deg, #0284c7, #0ea5e9); border: none;
+    box-shadow: 0 2px 10px rgba(14, 165, 233, 0.4);
+  }
+  .btn-primary:hover { filter: brightness(1.12); transform: translateY(-1px); }
+  .btn-danger {
+    background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: var(--err);
+  }
+  .btn-danger:hover { background: rgba(239, 68, 68, 0.25); border-color: var(--err); }
+
+  .input, .textarea {
+    width: 100%; background: rgba(9, 11, 16, 0.8); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: #fff; font-size: 12px; padding: 8px 12px;
+    outline: none; font-family: inherit; transition: border-color 0.15s;
+  }
+  .input:focus, .textarea:focus { border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+  .textarea { font-family: Consolas, monospace; resize: vertical; line-height: 1.45; }
+
+  /* Bảng log & danh sách ký ức */
+  .table-wrap {
+    width: 100%; max-height: 380px; overflow-y: auto; border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  table { width: 100%; border-collapse: collapse; text-align: left; }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 11.5px; }
+  th { background: rgba(13, 17, 23, 0.9); color: var(--text-muted); font-weight: 600; position: sticky; top: 0; }
+  tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+  /* Toast notification */
+  #toast {
+    position: fixed; bottom: 20px; right: 20px;
+    padding: 10px 16px; border-radius: 8px; background: rgba(15, 23, 42, 0.95);
+    border: 1px solid var(--accent); color: #fff; font-size: 12px; font-weight: 500;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.8), 0 0 12px var(--accent-glow);
+    opacity: 0; transform: translateY(10px); transition: all 0.2s; pointer-events: none; z-index: 9999;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+<div id="dashboard-root">
+  <!-- Topbar kéo thả -->
+  <div class="topbar" data-tauri-drag-region>
+    <div class="topbar-brand">
+      <div class="brand-logo">✨</div>
+      <span class="brand-title">Neito Agent</span>
+      <span class="brand-tag">Tactical Companion v0.1</span>
+    </div>
+
+    <div class="topbar-status">
+      <div class="status-pill"><div class="status-dot"></div> Brain :4242 Online</div>
+      <div class="status-pill">🧠 Phidata</div>
+      <div class="status-pill">🛠️ Smolagents</div>
+      <div class="status-pill">💾 Mem0</div>
+    </div>
+
+    <div class="win-controls">
+      <button class="wc-btn" id="btn-min" title="Thu nhỏ">_</button>
+      <button class="wc-btn" id="btn-max" title="Phóng to">□</button>
+      <button class="wc-btn close" id="btn-close" title="Đóng">✕</button>
+    </div>
+  </div>
+
+  <!-- App Body -->
+  <div class="app-body">
+    <!-- Sidebar navigation -->
+    <div class="sidebar">
+      <button class="nav-btn active" data-tab="tab-chars">🎭 Nhân vật & Linh hồn</button>
+      <button class="nav-btn" data-tab="tab-protocols">📚 Giao thức tác chiến</button>
+      <button class="nav-btn" data-tab="tab-memory">🧠 Trí nhớ & Não bộ</button>
+      <button class="nav-btn" data-tab="tab-vision">👁️ Thị giác YOLO</button>
+      <button class="nav-btn" data-tab="tab-voice">🎙️ Giọng nói AI</button>
+      <button class="nav-btn" data-tab="tab-logs">📜 Lịch sử tác chiến</button>
+      <button class="nav-btn" data-tab="tab-settings">⚙️ Cài đặt hệ thống</button>
+
+      <div class="sidebar-footer">
+        <div>Neito Agent Portable</div>
+        <div style="color: #64748b; margin-top: 2px;">Tác chiến AI Đồng hành</div>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="content-view">
+
+      <!-- ══ TAB 1: NHÂN VẬT & LINH HỒN ══ -->
+      <div id="tab-chars" class="tab-panel active">
+        <div class="panel-header">
+          <div class="panel-title">🎭 Kho Nhân Vật & Chỉnh Sửa Linh Hồn</div>
+          <div class="panel-desc">Chọn nhân vật đại diện hiển thị trên màn hình và điều chỉnh tính cách qua soul.md</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Danh sách nhân vật khả dụng</span>
+            <button class="btn btn-sm" onclick="loadCharacters()">↻ Làm mới</button>
+          </div>
+          <div id="chars-grid" class="chars-grid"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>✏️ Chỉnh sửa Linh hồn (soul.md) - <span id="soul-char-title">default</span></span>
+            <button class="btn btn-primary" onclick="saveSoul()">💾 Lưu Linh Hồn</button>
+          </div>
+          <p class="panel-desc" style="margin-bottom: 8px;">Định hình phong cách giao tiếp, thói quen xưng hô và kỹ năng chuyên biệt cho nhân vật.</p>
+          <textarea id="soul-editor" class="textarea" rows="10"></textarea>
+        </div>
+      </div>
+
+      <!-- ══ TAB PROTOCOLS: GIAO THỨC TÁC CHIẾN (1 ACTIVE, 2 QUEUED) ══ -->
+      <div id="tab-protocols" class="tab-panel">
+        <div class="panel-header">
+          <div class="panel-title">📚 Giao Thức Tác Chiến (Protocols)</div>
+          <div class="panel-desc">Mỗi ứng dụng / game sở hữu bộ tri thức và chiến thuật chuyên sâu riêng biệt (Cơ chế chuẩn: 1 Active, 2 Queued)</div>
+        </div>
+
+        <!-- Active Protocol Banner -->
+        <div class="card" style="border-color: rgba(56, 189, 248, 0.55); background: rgba(56, 189, 248, 0.08);">
+          <div class="card-title">
+            <span style="color: var(--accent); display: flex; align-items: center; gap: 8px;">
+              <span>⚡ GIAO THỨC ĐANG KÍCH HOẠT:</span>
+              <strong id="active-proto-name" style="color: #fff; font-size: 15px;">Đang tải...</strong>
+            </span>
+            <span class="active-badge" style="position: static;">ACTIVE</span>
+          </div>
+          <p id="active-proto-desc" style="color: #cbd5e1; font-size: 12px; margin-bottom: 10px;">...</p>
+
+          <div style="background: rgba(0,0,0,0.35); border-radius: 8px; padding: 10px 14px; font-size: 11.5px; color: #94a3b8; margin-bottom: 10px;">
+            <div style="margin-bottom: 6px;"><strong>👁️ Nhãn nhận diện YOLO-World:</strong></div>
+            <div id="active-proto-classes" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;"></div>
+            <div><strong>📢 Meta chiến thuật:</strong> <span id="active-proto-meta">...</span></div>
+          </div>
+
+          <!-- Tình huống đã có câu hỗ trợ mẫu của Quân sư -->
+          <div style="font-size: 12px; font-weight: 600; color: #f1f5f9; margin-bottom: 6px;">⚔️ Tình huống & Câu thoại Quân sư đã biên soạn:</div>
+          <div id="active-proto-situations" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+
+        <!-- Phidata Tự Học Cho YOLO-World -->
+        <div class="card" style="border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.04);">
+          <div class="card-title">
+            <span style="color: #10b981;">🧠 Phidata Tự Học & Huấn Luyện Cho YOLO-World</span>
+          </div>
+          <p class="panel-desc" style="margin-bottom: 10px;">Nhập tên Game hoặc App bất kỳ: Bộ não Phidata LLM sẽ tự động tra cứu bách khoa toàn thư, phân loại nhãn nhận diện và nạp thẳng cho YOLO-World.</p>
+          <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+            <input id="proto-learn-input" class="input" placeholder="Nhập tên Game/App (vd: Dota 2, AutoCAD, CS:GO, Premiere Pro)..." style="flex: 1;">
+            <button class="btn btn-primary" id="btn-proto-learn" onclick="phidataLearnTopic()">🚀 Phidata Tự Học Ngay</button>
+          </div>
+          <div id="proto-learn-status" style="display: none; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 10px; font-size: 11.5px; color: #cbd5e1;"></div>
+        </div>
+
+        <!-- Thử nghiệm Vòng lặp phản xạ Active Learning -->
+        <div class="card">
+          <div class="card-title"><span>⚡ Mô phỏng Tình Huống Lạ (YOLO -> Phidata Tra Cứu -> YOLO Dataset)</span></div>
+          <p class="panel-desc" style="margin-bottom: 8px;">Khi YOLO bắt gặp tình huống chưa từng có trên màn hình: gửi tín hiệu để Phidata tự hiểu, tra cứu câu hỗ trợ mẫu và nhét vào dataset của YOLO-World.</p>
+          <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+            <input id="sit-test-input" class="input" placeholder="Mô tả tình huống lạ trên màn hình (vd: Baron bị đối phương cướp, Spike còn 3s)..." style="flex: 1;">
+            <button class="btn btn-primary" onclick="testUnknownSituation()">Gửi Tín Hiệu Cho Phidata</button>
+          </div>
+          <div id="sit-test-result" style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; min-height: 36px; font-size: 12px; color: #cbd5e1;">Chưa có tín hiệu mô phỏng.</div>
+        </div>
+
+        <!-- Protocols List -->
+        <div class="card">
+          <div class="card-title">
+            <span>Danh mục toàn bộ Giao thức (Cơ chế: 1 Active, 2 Queued)</span>
+            <button class="btn btn-sm" onclick="loadProtocols()">↻ Tải lại</button>
+          </div>
+          <div id="protocols-grid" style="display: flex; flex-direction: column; gap: 12px;"></div>
+        </div>
+      </div>
+
+      <!-- ══ TAB 2: TRÍ NHỚ & NÃO BỘ ══ -->
+      <div id="tab-memory" class="tab-panel">
+        <div class="panel-header">
+          <div class="panel-title">🧠 Trí Nhớ Vĩnh Cửu & Trắc Nghiệm Não Bộ</div>
+          <div class="panel-desc">Quản lý cơ sở dữ liệu ký ức lâu dài (Mem0 SQLite) và tương tác thử nghiệm với Phidata</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>＋ Thêm ký ức mới</span></div>
+          <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+            <input id="mem-key" class="input" style="flex: 1;" placeholder="Chủ đề / Khóa (vd: Sở thích của Sếp)">
+            <input id="mem-val" class="input" style="flex: 2;" placeholder="Nội dung ghi nhớ (vd: Thích code Python và giao diện Dark)">
+            <button class="btn btn-primary" onclick="addNewMemory()">💾 Ghi nhớ</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Danh sách ký ức đã lưu (<span id="mem-count">0</span>)</span>
+            <button class="btn btn-sm" onclick="loadMemories()">↻ Tải lại</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Khóa</th><th>Nội dung</th><th>Thao tác</th></tr></thead>
+              <tbody id="memories-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>💬 Thử nghiệm phản xạ Brain</span></div>
+          <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+            <input id="test-ask-input" class="input" placeholder="Nhập câu hỏi test trực tiếp với Neito Brain..." style="flex: 1;">
+            <button class="btn btn-primary" onclick="testAsk()">Gửi</button>
+          </div>
+          <div id="test-ask-result" style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 10px; min-height: 40px; font-size: 12px; color: #cbd5e1;">Chưa có phản hồi.</div>
+        </div>
+      </div>
+
+      <!-- ══ TAB 3: THỊ GIÁC YOLO ══ -->
+      <div id="tab-vision" class="tab-panel">
+        <div class="panel-header">
+          <div class="panel-title">👁️ Mắt Quan Sát & Thị Giác YOLO</div>
+          <div class="panel-desc">Cấu hình tính năng quét màn hình thời gian thực để hỗ trợ Sếp làm việc</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>Trạng thái Mắt YOLO</span></div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0;">
+            <div>
+              <strong>Chế độ Screen Watch</strong>
+              <div class="panel-desc">Tự động quan sát cửa sổ ứng dụng đang mở (VSCode, CAD, Trình duyệt)</div>
+            </div>
+            <button class="btn btn-primary" id="btn-toggle-yolo" onclick="toggleYolo()">Bật Quan Sát</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>Thông số quét</span></div>
+          <div style="margin-bottom: 12px;">
+            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tần suất quét (FPS: <span id="yolo-fps-val">2</span> FPS)</label>
+            <input type="range" min="1" max="10" value="2" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('yolo-fps-val').innerText = this.value">
+          </div>
+          <div>
+            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Độ tin cậy nhận diện (Confidence: <span id="yolo-conf-val">75</span>%)</label>
+            <input type="range" min="40" max="95" value="75" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('yolo-conf-val').innerText = this.value">
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TAB 4: GIỌNG NÓI AI ══ -->
+      <div id="tab-voice" class="tab-panel">
+        <div class="panel-header">
+          <div class="panel-title">🎙️ Giọng Nói & Đọc Lời Thoại</div>
+          <div class="panel-desc">Cấu hình Text-to-Speech (TTS) và trải nghiệm âm thanh sinh động từ Pet</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>Cài đặt âm sắc</span></div>
+          <div style="margin-bottom: 14px;">
+            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Âm lượng (<span id="voice-vol-val">100</span>%)</label>
+            <input type="range" min="0" max="100" value="100" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('voice-vol-val').innerText = this.value">
+          </div>
+          <div style="margin-bottom: 14px;">
+            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tốc độ nói (<span id="voice-rate-val">1.0</span>x)</label>
+            <input type="range" min="0.5" max="2.0" step="0.1" value="1.0" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('voice-rate-val').innerText = this.value">
+          </div>
+          <button class="btn btn-primary" onclick="testVoiceSpeak()">▶ Nghe Thử Giọng Nói</button>
+        </div>
+      </div>
+
+      <!-- ══ TAB 5: LỊCH SỬ TÁC CHIẾN ══ -->
+      <div id="tab-logs" class="tab-panel">
+        <div class="panel-header">
+          <div class="panel-title">📜 Lịch Sử Tác Chiến Của Smolagents</div>
+          <div class="panel-desc">Nhật ký thực thi lệnh hệ thống, thao tác file và duyệt thông tin của CodeAgent</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Danh sách hành động gần nhất</span>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-sm" onclick="loadActionLogs()">↻ Làm mới</button>
+              <button class="btn btn-danger btn-sm" onclick="clearLogs()">🗑️ Xóa logs</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Thời gian</th><th>Công cụ</th><th>Tham số</th><th>Kết quả</th></tr></thead>
+              <tbody id="logs-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TAB 6: CÀI ĐẶT HỆ THỐNG ══ -->
+      <div id="tab-settings" class="tab-panel">
+        <div class="panel-header">
+          <div class="panel-title">⚙️ Cài Đặt Hệ Thống & Kiểm Tra Kết Nối</div>
+          <div class="panel-desc">Thông số vận hành của Neito Agent Desktop Companion</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>Máy chủ Brain Server</span></div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+            <div><strong>Địa chỉ:</strong> <code>http://127.0.0.1:4242</code></div>
+            <div><strong>Khung tác chiến:</strong> Phidata + Smolagents</div>
+            <div><strong>Cơ sở bộ nhớ:</strong> Mem0 SQLite Persistent</div>
+            <div><strong>Tauri Version:</strong> v2.0 Frameless Desktop</div>
+          </div>
+          <div style="margin-top: 14px;">
+            <button class="btn btn-primary" onclick="pingServer()">⚡ Kiểm tra Ping Server</button>
+            <span id="ping-status" style="margin-left: 10px; font-size: 12px; color: var(--ok);"></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const BACKEND = 'http://127.0.0.1:4242';
+let currentChar = 'default';
+
+// 1. CHUYỂN TAB NAVIGATION
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const tabId = btn.dataset.tab;
+    const panel = document.getElementById(tabId);
+    if (panel) panel.classList.add('active');
+
+    if (tabId === 'tab-chars') loadCharacters();
+    else if (tabId === 'tab-protocols') loadProtocols();
+    else if (tabId === 'tab-memory') loadMemories();
+    else if (tabId === 'tab-logs') loadActionLogs();
+  });
+});
+
+// 2. WINDOW CONTROLS VỚI TAURI IPC
+document.getElementById('btn-min').onclick = () => {
+  if (window.__TAURI__ && window.__TAURI__.core) window.__TAURI__.core.invoke('minimize_window');
+};
+document.getElementById('btn-max').onclick = () => {
+  if (window.__TAURI__ && window.__TAURI__.core) window.__TAURI__.core.invoke('maximize_window');
+};
+document.getElementById('btn-close').onclick = () => {
+  if (window.__TAURI__ && window.__TAURI__.core) window.__TAURI__.core.invoke('close_window');
+};
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// 3. TAB NHÂN VẬT & LINH HỒN
+async function loadCharacters() {
+  try {
+    const res = await fetch(BACKEND + '/api/characters');
+    if (!res.ok) return;
+    const data = await res.json();
+    currentChar = data.current || 'panda';
+    const grid = document.getElementById('chars-grid');
+    grid.innerHTML = '';
+
+    const CHAR_LABELS = {
+      
+      panda: 'Gấu Panda',
+      cat: 'Mèo Con',
+      clippy: 'Kẹp Giấy',
+      dog: 'Cún Cưng',
+      duck: 'Vịt Vàng',
+      fox: 'Cáo Lửa',
+      rocky: 'Hòn Đá',
+      totoro: 'Totoro'
+    };
+
+    (data.characters || []).forEach(c => {
+      const isSel = (c.name === currentChar);
+      const item = document.createElement('div');
+      item.className = 'char-item' + (isSel ? ' selected' : '');
+      item.innerHTML = `
+        ${isSel ? '<span class="active-badge">Đang dùng</span>' : ''}
+        <img class="char-thumb" src="${c.path}" alt="${c.name}" onerror="this.src='assets/characters/panda/default.gif'">
+        <span class="char-name">${CHAR_LABELS[c.name] || c.name}</span>
+      `;
+      item.onclick = () => selectCharacter(c.name);
+      grid.appendChild(item);
+    });
+
+    loadSoul(currentChar);
+  } catch(e) {
+    showToast('Không thể tải danh sách nhân vật từ Brain.');
+  }
+}
+
+async function selectCharacter(name) {
+  try {
+    const res = await fetch(BACKEND + '/api/character', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ character: name })
+    });
+    if (res.ok) {
+      currentChar = name;
+      showToast(`Đã chuyển nhân vật sang: ${name}!`);
+      loadCharacters();
+    }
+  } catch(e) {
+    showToast('Lỗi kết nối máy chủ khi chọn nhân vật.');
+  }
+}
+
+async function loadSoul(name) {
+  document.getElementById('soul-char-title').textContent = name;
+  try {
+    const res = await fetch(BACKEND + `/api/soul?char=${encodeURIComponent(name)}`);
+    if (res.ok) {
+      const data = await res.json();
+      document.getElementById('soul-editor').value = data.soul || '';
+    }
+  } catch(e) {}
+}
+
+async function saveSoul() {
+  const content = document.getElementById('soul-editor').value;
+  try {
+    const res = await fetch(BACKEND + '/api/soul', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ character: currentChar, content })
+    });
+    if (res.ok) {
+      showToast('Đã lưu linh hồn nhân vật thành công!');
+    }
+  } catch(e) {
+    showToast('Lỗi lưu linh hồn.');
+  }
+}
+
+// 4. TAB TRÍ NHỚ (MEMORIES)
+async function loadMemories() {
+  try {
+    const res = await fetch(BACKEND + '/api/memories');
+    if (!res.ok) return;
+    const data = await res.json();
+    const list = data.memories || [];
+    document.getElementById('mem-count').textContent = list.length;
+    const tbody = document.getElementById('memories-body');
+    tbody.innerHTML = '';
+
+    if (list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8;">Chưa có mục ký ức nào.</td></tr>';
+      return;
+    }
+
+    list.forEach(m => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="color:#94a3b8;">${m.id}</td>
+        <td style="font-weight:600; color:var(--accent);">${escapeHtml(m.key)}</td>
+        <td>${escapeHtml(m.value)}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteMem(${m.id})">Xóa</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch(e) {
+    showToast('Lỗi tải danh sách ký ức.');
+  }
+}
+
+async function addNewMemory() {
+  const key = document.getElementById('mem-key').value.trim();
+  const val = document.getElementById('mem-val').value.trim();
+  if (!val) { showToast('Vui lòng nhập nội dung ghi nhớ!'); return; }
+
+  try {
+    const res = await fetch(BACKEND + '/api/memories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value: val })
+    });
+    if (res.ok) {
+      document.getElementById('mem-key').value = '';
+      document.getElementById('mem-val').value = '';
+      showToast('Đã thêm ký ức mới vào Mem0!');
+      loadMemories();
+    }
+  } catch(e) {
+    showToast('Lỗi kết nối khi lưu ký ức.');
+  }
+}
+
+async function deleteMem(id) {
+  if (!confirm('Sếp có chắc muốn xóa mục ký ức này?')) return;
+  try {
+    const res = await fetch(BACKEND + '/api/memories/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
+    if (res.ok) {
+      showToast('Đã xóa ký ức!');
+      loadMemories();
+    }
+  } catch(e) {
+    showToast('Lỗi khi xóa ký ức.');
+  }
+}
+
+async function testAsk() {
+  const q = document.getElementById('test-ask-input').value.trim();
+  if (!q) return;
+  const resDiv = document.getElementById('test-ask-result');
+  resDiv.textContent = 'Đang gửi truy vấn tới Brain...';
+
+  try {
+    const res = await fetch(BACKEND + '/api/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      resDiv.innerHTML = `<strong>Phản hồi:</strong> ${escapeHtml(data.answer || data.reply || '')} <br><small style="color:var(--accent);">Cảm xúc: ${data.emotion || 'idle'}</small>`;
+    }
+  } catch(e) {
+    resDiv.textContent = 'Lỗi kết nối Brain.';
+  }
+}
+
+// 5. TAB THỊ GIÁC YOLO
+let yoloState = false;
+async function toggleYolo() {
+  yoloState = !yoloState;
+  const btn = document.getElementById('btn-toggle-yolo');
+  btn.textContent = yoloState ? 'Tắt Quan Sát' : 'Bật Quan Sát';
+  btn.className = yoloState ? 'btn btn-danger' : 'btn btn-primary';
+  try {
+    await fetch(BACKEND + '/api/yolo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: yoloState })
+    });
+  } catch(e) {}
+  showToast(yoloState ? 'Đã bật Mắt quan sát YOLO!' : 'Đã tắt Mắt quan sát YOLO.');
+}
+
+// 6. TAB GIỌNG NÓI AI
+function testVoiceSpeak() {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance("Dạ em chào Sếp! Em là Neito Tactical Companion, luôn sẵn sàng đồng hành cùng Sếp!");
+    u.lang = 'vi-VN';
+    u.rate = parseFloat(document.getElementById('voice-rate-val').innerText) || 1.0;
+    u.volume = (parseFloat(document.getElementById('voice-vol-val').innerText) || 100) / 100;
+    window.speechSynthesis.speak(u);
+    showToast('Đang phát giọng nói mẫu...');
+  } else {
+    showToast('Trình duyệt không hỗ trợ Web Speech API.');
+  }
+}
+
+// 7. TAB LOGS SMOLAGENTS
+async function loadActionLogs() {
+  try {
+    const res = await fetch(BACKEND + '/api/logs');
+    if (!res.ok) return;
+    const data = await res.json();
+    const logs = data.logs || [];
+    const tbody = document.getElementById('logs-body');
+    tbody.innerHTML = '';
+
+    if (logs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8;">Chưa có hoạt động nào được ghi nhận.</td></tr>';
+      return;
+    }
+
+    logs.forEach(l => {
+      const tr = document.createElement('tr');
+      const timeStr = new Date((l.timestamp || 0) * 1000).toLocaleTimeString();
+      tr.innerHTML = `
+        <td style="color:#94a3b8; white-space:nowrap;">${timeStr}</td>
+        <td><span style="background:rgba(56,189,248,0.15); color:var(--accent); padding:2px 6px; border-radius:4px; font-weight:600;">${escapeHtml(l.tool)}</span></td>
+        <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(l.args)}</td>
+        <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#cbd5e1;">${escapeHtml(l.result)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch(e) {
+    showToast('Lỗi tải nhật ký logs.');
+  }
+}
+
+async function clearLogs() {
+  try {
+    const res = await fetch(BACKEND + '/api/logs/clear', { method: 'POST' });
+    if (res.ok) {
+      showToast('Đã dọn sạch lịch sử logs!');
+      loadActionLogs();
+    }
+  } catch(e) {
+    showToast('Lỗi khi xóa logs.');
+  }
+}
+
+// 8. TAB SETTINGS & PING
+async function pingServer() {
+  const start = Date.now();
+  try {
+    const res = await fetch(BACKEND + '/api/status');
+    if (res.ok) {
+      const ping = Date.now() - start;
+      document.getElementById('ping-status').textContent = `✓ Kết nối tốt (${ping} ms)`;
+      showToast(`Ping thành công: ${ping} ms`);
+    }
+  } catch(e) {
+    document.getElementById('ping-status').textContent = '✗ Không thể kết nối tới server :4242';
+    document.getElementById('ping-status').style.color = 'var(--err)';
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+async function loadYoloState() {
+  try {
+    const res = await fetch(BACKEND + '/api/yolo');
+    if (res.ok) {
+      const data = await res.json();
+      yoloState = !!data.active;
+      const btn = document.getElementById('btn-toggle-yolo');
+      if (btn) {
+        btn.textContent = yoloState ? 'Tắt Quan Sát' : 'Bật Quan Sát';
+        btn.className = yoloState ? 'btn btn-danger' : 'btn btn-primary';
+      }
+    }
+  } catch(e) {}
+}
+
+// Tự động nạp khi khởi động
+
+// ─── QUẢN LÝ GIAO THỨC TÁC CHIẾN (PROTOCOLS & YOLO-WORLD) ───
+async function loadProtocols() {
+  try {
+    const res = await fetch(BACKEND + '/api/protocols');
+    if (!res.ok) return;
+    const data = await res.json();
+    const active = data.active;
+    const list = data.protocols || [];
+
+    if (active) {
+      document.getElementById('active-proto-name').textContent = active.name + ' (' + (active.appName || '') + ')';
+      document.getElementById('active-proto-desc').textContent = active.description || '';
+      document.getElementById('active-proto-meta').textContent = active.meta || 'Đang cập nhật';
+
+      // Render YOLO-World classes
+      const clsEl = document.getElementById('active-proto-classes');
+      clsEl.innerHTML = (active.yolo_classes || []).map(c => `
+        <span style="background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.35); color: var(--accent); font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 4px;">
+          🏷️ ${c}
+        </span>
+      `).join('') || '<span style="color: #64748b; font-size: 11px;">Chưa có nhãn</span>';
+
+      // Render situations with military advisor advice
+      const sitEl = document.getElementById('active-proto-situations');
+      sitEl.innerHTML = (active.situations || []).map(s => `
+        <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+          <div style="color: #38bdf8; font-weight: 600; margin-bottom: 2px;">⚡ Khi thấy: ${s.trigger} <span style="color: #64748b; font-size: 9.5px; float: right;">🗂️ ${s.dataset_count || 1} mẫu</span></div>
+          <div style="color: #e2e8f0; font-style: italic;">"📢 ${s.advice}"</div>
+        </div>
+      `).join('') || '<div style="color: #64748b; font-size: 11px;">Chưa có tình huống nào</div>';
+    }
+
+    const grid = document.getElementById('protocols-grid');
+    grid.innerHTML = '';
+
+    list.forEach(p => {
+      const isActive = p.status === 'active';
+      const isQueued = p.status === 'queued';
+      const item = document.createElement('div');
+      item.style.cssText = `
+        background: rgba(15, 23, 42, 0.6);
+        border: 1.5px solid ${isActive ? '#10b981' : isQueued ? '#f59e0b' : 'var(--border)'};
+        border-radius: 10px; padding: 14px 16px;
+        display: flex; align-items: center; justify-content: space-between; gap: 14px;
+        box-shadow: ${isActive ? '0 0 14px rgba(16, 185, 129, 0.25)' : 'none'};
+      `;
+
+      let badgeHtml = '';
+      if (isActive) {
+        badgeHtml = '<span style="background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid #10b981; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;">ACTIVE</span>';
+      } else if (isQueued) {
+        badgeHtml = `<span style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid #f59e0b; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;">QUEUE #${p.queuePosition || 1}</span>`;
+      } else {
+        badgeHtml = '<span style="background: rgba(255,255,255,0.06); color: #94a3b8; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px;">INACTIVE</span>';
+      }
+
+      item.innerHTML = `
+        <div style="flex: 1;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+            <strong style="font-size: 13.5px; color: #fff;">${p.name}</strong>
+            <span style="font-size: 11px; color: var(--text-muted);">(${p.appName || p.id})</span>
+            ${badgeHtml}
+          </div>
+          <div style="font-size: 11.5px; color: #94a3b8; line-height: 1.4; margin-bottom: 6px;">${p.description}</div>
+          <div style="display: flex; gap: 16px; font-size: 10.5px; color: #64748b;">
+            <span>🏷️ Nhãn YOLO: <strong>${(p.yolo_classes || []).length}</strong></span>
+            <span>⚡ Tình huống: <strong>${(p.situations || []).length}</strong></span>
+            <span>🗂️ Dataset: <strong>${p.datasetSize || 0}</strong> mẫu</span>
+            <span>🕒 Cập nhật: ${p.lastUpdated || 'Vừa xong'}</span>
+          </div>
+        </div>
+        <div>
+          ${!isActive ? `<button class="btn btn-sm btn-primary" onclick="activateProtocol('${p.id}')">▶ Kích hoạt</button>` : `<button class="btn btn-sm" disabled style="opacity: 0.6;">✓ Đang dùng</button>`}
+        </div>
+      `;
+      grid.appendChild(item);
+    });
+  } catch(e) {
+    showToast('Lỗi khi tải danh sách Giao thức tác chiến.');
+  }
+}
+
+// ─── PHIDATA TỰ HỌC GIAO THỨC MỚI THEO YÊU CẦU ───
+async function phidataLearnTopic() {
+  const inp = document.getElementById('proto-learn-input');
+  const btn = document.getElementById('btn-proto-learn');
+  const st = document.getElementById('proto-learn-status');
+  const topic = inp.value.trim();
+
+  if (!topic) {
+    showToast('Vui lòng nhập tên Game hoặc Ứng dụng.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Phidata đang tra cứu...';
+  st.style.display = 'block';
+  st.innerHTML = `<div>🔍 Phidata đang tra cứu bách khoa toàn thư cho <strong>${topic}</strong>...</div>
+                  <div style="color:#38bdf8;margin-top:4px;">Đang trích xuất: Phím tắt, cơ chế cốt lõi, meta và các nhãn nhận diện cho YOLO-World...</div>`;
+
+  try {
+    const res = await fetch(BACKEND + '/api/protocol/learn', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const p = data.protocol;
+      st.innerHTML = `
+        <div style="color: #10b981; font-weight: 600; margin-bottom: 4px;">✓ Phidata đã hoàn tất nghiên cứu & đúc kết Giao thức: ${p.name}!</div>
+        <div>• Nhãn YOLO-World: ${(p.yolo_classes || []).join(', ')}</div>
+        <div>• Tình huống khởi tạo: ${(p.situations || []).length} tình huống có sẵn câu hỗ trợ mẫu.</div>
+        <div style="color: #f59e0b; margin-top: 4px;">Giao thức đã được đưa vào Hàng đợi Queue #2 sẵn sàng kích hoạt.</div>
+      `;
+      inp.value = '';
+      showToast(`Phidata đã tự học xong giao thức: ${p.name}!`);
+      loadProtocols();
+    } else {
+      throw new Error('Server error');
+    }
+  } catch(e) {
+    st.innerHTML = `<span style="color:var(--err);">Lỗi khi Phidata tự học: ${e.message}</span>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🚀 Phidata Tự Học Ngay';
+  }
+}
+
+// ─── MÔ PHỎNG TÌNH HUỐNG LẠ ĐỂ PHIDATA TỰ TRA CỨU & NẠP DATASET ───
+async function testUnknownSituation() {
+  const inp = document.getElementById('sit-test-input');
+  const resEl = document.getElementById('sit-test-result');
+  const sit = inp.value.trim();
+
+  if (!sit) {
+    showToast('Vui lòng nhập mô tả tình huống.');
+    return;
+  }
+
+  resEl.textContent = `⏳ Đang gửi tín hiệu phát hiện tình huống lạ sang Phidata...`;
+
+  try {
+    const res = await fetch(BACKEND + '/api/protocol/situation/resolve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ situation: sit })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const r = data.result;
+      resEl.innerHTML = `
+        <div style="color: #38bdf8; font-weight: 600; margin-bottom: 2px;">🧠 Phidata đã phân tích & tra cứu xong!</div>
+        <div style="color: #10b981; margin-bottom: 4px;">📢 Câu hỗ trợ mẫu của Quân sư: <em>"${r.advice}"</em></div>
+        <div style="color: #94a3b8; font-size: 11px;">✓ Đã tạo mẫu dữ liệu trong <code>datasets/${r.situation.id}/</code> và nạp cho YOLO-World học.</div>
+      `;
+      inp.value = '';
+      showToast('Phidata đã đúc kết và nạp dataset cho YOLO-World!');
+      loadProtocols();
+    }
+  } catch(e) {
+    resEl.textContent = 'Lỗi kết nối khi gửi tín hiệu cho Phidata.';
+  }
+}
+
+async function activateProtocol(id) {
+  try {
+    const res = await fetch(BACKEND + '/api/protocol/activate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      showToast(data.message || 'Đã kích hoạt giao thức!');
+      loadProtocols();
+    }
+  } catch(e) {
+    showToast('Lỗi kết nối khi kích hoạt giao thức.');
+  }
+}
+
+async function createProtocol() {
+  const name = document.getElementById('proto-new-name').value.trim();
+  const app = document.getElementById('proto-new-app').value.trim();
+  const desc = document.getElementById('proto-new-desc').value.trim();
+
+  if (!name) {
+    showToast('Vui lòng nhập tên Giao thức.');
+    return;
+  }
+
+  try {
+    const res = await fetch(BACKEND + '/api/protocol/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, appName: app, description: desc })
+    });
+    if (res.ok) {
+      showToast(`Đã tạo thành công giao thức: ${name}!`);
+      document.getElementById('proto-new-name').value = '';
+      document.getElementById('proto-new-app').value = '';
+      document.getElementById('proto-new-desc').value = '';
+      loadProtocols();
+    }
+  } catch(e) {
+    showToast('Lỗi khi tạo giao thức mới.');
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  loadCharacters();
+  loadProtocols();
+  loadYoloState();
+  pingServer();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+export const Badge = (props: any) => <span className="bg-gray-200 px-2 py-1 rounded-full text-xs" {...props} />;

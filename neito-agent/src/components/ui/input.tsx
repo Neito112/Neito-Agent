@@ -1,0 +1,1 @@
+export const Input = (props: any) => <input className="border p-2 rounded" {...props} />;

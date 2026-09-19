@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Neito Agent Overlay</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%; background: transparent !important;
+    overflow: hidden; user-select: none; -webkit-user-select: none;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+
+  #overlay-viewport {
+    position: relative; width: 100vw; height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Khung thu phóng (Zoom Stage) - Hỗ trợ scale lăn chuột neo theo con trỏ */
+  #zoom-stage {
+    position: absolute; top: 0; left: 0;
+    width: 340px; height: 460px;
+    transform-origin: 0 0;
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     LỚP 4: BÓNG THOẠI (SPEECH BUBBLE)
+     Luôn cố định trên đỉnh đầu nhân vật (đỉnh đầu ~270px -> đáy bóng ở 278px)
+     ══════════════════════════════════════════════════════════════════ */
+  .bubble {
+    position: absolute; bottom: 278px; left: 16px; right: 16px;
+    max-height: 130px; overflow-y: auto;
+    background: rgba(15, 23, 42, 0.96);
+    border: 1.5px solid #38bdf8; border-radius: 14px;
+    padding: 10px 14px; color: #f0f9ff; font-size: 11.5px; line-height: 1.45;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75), 0 0 16px rgba(56, 189, 248, 0.35);
+    opacity: 0; transform: translateY(-8px) scale(0.95); pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+    z-index: 80; word-break: break-word;
+  }
+  .bubble.show {
+    opacity: 1; transform: translateY(0) scale(1); pointer-events: auto;
+  }
+  .bubble::after {
+    content: ''; position: absolute; top: 100%; left: 50%; margin-left: -7px;
+    border: 7px solid transparent; border-top-color: #38bdf8;
+  }
+  .bubble::-webkit-scrollbar { width: 4px; }
+  .bubble::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.5); border-radius: 2px; }
+
+  /* ══════════════════════════════════════════════════════════════════
+     LỚP 2: NHÂN VẬT & MINI ICON
+     Luôn cách 2 nút tròn 1 khoảng cố định (2 nút tròn ở 68px -> đáy pet ở 110px)
+     Đệm background: rgba(0,0,0,0.005) để WebView2 không bao giờ bỏ qua hit-test!
+     ══════════════════════════════════════════════════════════════════ */
+  .zone-char {
+    position: absolute; bottom: 110px; left: 50%; transform: translateX(-50%);
+    width: 140px; height: 160px;
+    display: flex; align-items: flex-end; justify-content: center;
+    cursor: grab; -webkit-user-drag: none; user-drag: none; user-select: none;
+    background: rgba(0, 0, 0, 0.005);
+    border-radius: 20px;
+    z-index: 30;
+  }
+  .zone-char:active { cursor: grabbing !important; }
+
+  .char-wrapper {
+    width: 120px; height: 144px; position: relative;
+    display: flex; align-items: flex-end; justify-content: center;
+    transform-origin: 50% 100%; transition: transform 0.25s ease;
+    pointer-events: auto; -webkit-user-drag: none;
+  }
+  .char-wrapper img {
+    max-width: 100%; max-height: 100%; object-fit: contain;
+    display: block; pointer-events: auto; -webkit-user-drag: none;
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,0.6));
+    cursor: grab;
+  }
+  .char-wrapper img:active { cursor: grabbing; }
+
+  /* Mini Icon Badge khi thu gọn: Luôn nằm TRÊN 2 nút tròn (bottom: 110px) */
+  .icon-badge {
+    position: absolute; bottom: 110px; left: 50%; transform: translateX(-50%);
+    width: 50px; height: 50px; border-radius: 50%;
+    background: radial-gradient(circle, #0284c7, #0f172a);
+    border: 2px solid #38bdf8; box-shadow: 0 0 16px #38bdf8, 0 6px 16px rgba(0,0,0,0.6);
+    display: none; align-items: center; justify-content: center;
+    cursor: grab; z-index: 35;
+    animation: iconPulse 2s infinite alternate;
+  }
+  .icon-badge:active { cursor: grabbing; }
+  .icon-badge img { width: 34px; height: 34px; object-fit: contain; pointer-events: none; -webkit-user-drag: none; }
+  .icon-badge.show { display: flex; }
+  @keyframes iconPulse {
+    from { transform: translateX(-50%) scale(1); box-shadow: 0 0 10px #38bdf8; }
+    to { transform: translateX(-50%) scale(1.08); box-shadow: 0 0 20px #38bdf8; }
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     LỚP 1: 2 NÚT TRÒN (FLOATING BAR)
+     LUÔN LUÔN CỐ ĐỊNH Ở ĐÁY (BOTTOM 68PX) - KHÔNG BAO GIỜ BỊ DỊCH CHUYỂN
+     ══════════════════════════════════════════════════════════════════ */
+  .floating-bar {
+    position: absolute; bottom: 68px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    z-index: 100; pointer-events: auto;
+  }
+
+  .round-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(17, 24, 39, 0.95); border: 1.5px solid rgba(255, 255, 255, 0.25);
+    color: #f1f5f9; font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+    transition: transform 0.15s, background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+    pointer-events: auto;
+  }
+  .round-btn:hover {
+    transform: translateY(-2px) scale(1.1); border-color: #38bdf8; color: #38bdf8; background: rgba(30, 41, 59, 0.98);
+    box-shadow: 0 6px 18px rgba(56, 189, 248, 0.4);
+  }
+  .round-btn.active {
+    background: #0284c7; border-color: #38bdf8; color: #fff;
+    box-shadow: 0 0 14px #38bdf8;
+  }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #10b981; box-shadow: 0 0 8px #10b981;
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+  .status-dot.thinking {
+    background: #f59e0b; box-shadow: 0 0 12px #f59e0b; animation: pulseDot 0.8s infinite alternate;
+  }
+  @keyframes pulseDot { from { opacity: 0.4; } to { opacity: 1; } }
+
+  /* ══════════════════════════════════════════════════════════════════
+     LỚP 3: Ô NHẬP CHAT (CHAT PANEL)
+     XỔ XUỐNG DƯỚI 2 NÚT TRÒN (BOTTOM 10PX) - KHÔNG ĐẨY BỐ CỤC LÊN TRÊN
+     ══════════════════════════════════════════════════════════════════ */
+  .chat-panel {
+    position: absolute; bottom: 10px; left: 16px; right: 16px; height: 50px;
+    background: rgba(17, 24, 39, 0.97); backdrop-filter: blur(16px);
+    border: 1px solid rgba(56, 189, 248, 0.55); border-radius: 12px;
+    padding: 6px 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.8), 0 0 12px rgba(56,189,248,0.25);
+    display: none; flex-direction: column; justify-content: space-between;
+    opacity: 0; pointer-events: none; transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 90;
+  }
+  .chat-panel.open {
+    display: flex; opacity: 1; pointer-events: auto; transform: translateY(0);
+  }
+  .chat-input {
+    width: 100%; height: 22px; max-height: 22px;
+    background: transparent; border: none;
+    color: #fff; font-size: 11.5px; padding: 0 4px;
+    outline: none; resize: none; font-family: inherit; line-height: 22px;
+  }
+  .chat-actions { display: flex; justify-content: space-between; align-items: center; }
+  .chat-hint { font-size: 9px; color: #94a3b8; }
+  .chat-send-btn {
+    padding: 2px 8px; border-radius: 4px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #0284c7, #0ea5e9);
+    color: #fff; font-size: 10px; font-weight: 600;
+    display: flex; align-items: center; gap: 4px;
+    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.4);
+    transition: transform 0.12s, filter 0.15s;
+  }
+  .chat-send-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+  /* ══════════════════════════════════════════════════════════════════
+     LỚP 5: VÒNG CUNG CHIẾN THUẬT (RADIAL ARC MENU)
+     KHI ĐÓNG: DISPLAY: NONE - KHÔNG CHẮN CLICK CỦA CÁC THÀNH PHẦN KHÁC
+     CÁCH XA NHÂN VẬT (X: 235 - 290px) & DÃN ĐỀU CÁC NÚT (~60px)
+     ══════════════════════════════════════════════════════════════════ */
+  .arc-menu-container {
+    position: absolute; inset: 0; display: none; pointer-events: none !important; z-index: 70;
+    opacity: 0; transition: opacity 0.2s ease;
+  }
+  .arc-menu-container.open {
+    display: block; opacity: 1;
+  }
+
+  .arc-curve-svg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none !important; overflow: visible;
+  }
+  .arc-path {
+    fill: none; stroke: url(#arcGlowGrad);
+    stroke-width: 2.5; stroke-dasharray: 6 4; stroke-linecap: round;
+    filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.7));
+    animation: dashMarch 20s linear infinite;
+    pointer-events: none !important;
+  }
+  @keyframes dashMarch { from { stroke-dashoffset: 200; } to { stroke-dashoffset: 0; } }
+
+  .arc-btn {
+    position: absolute; width: 36px; height: 36px; margin-left: -18px; margin-top: -18px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.95); border: 2px solid rgba(56, 189, 248, 0.65);
+    color: #fff; font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7), 0 0 10px rgba(56, 189, 248, 0.35);
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    user-select: none; -webkit-user-drag: none;
+    pointer-events: auto !important;
+  }
+  .arc-btn:hover {
+    transform: scale(1.22);
+    border-color: #38bdf8; background: #0284c7;
+    box-shadow: 0 0 16px #38bdf8, 0 6px 18px rgba(0,0,0,0.8);
+  }
+  .arc-btn.active {
+    background: #0284c7; border-color: #38bdf8;
+    box-shadow: 0 0 16px #38bdf8;
+  }
+  .arc-btn.green-active {
+    background: #059669 !important; border-color: #10b981 !important;
+    box-shadow: 0 0 16px #10b981 !important;
+  }
+
+  /* Tooltip hiển thị khi hover vào nút trên vòng cung */
+  .arc-btn::after {
+    content: attr(data-title);
+    position: absolute; left: 42px; top: 50%; transform: translateY(-50%);
+    background: rgba(15, 23, 42, 0.95); border: 1px solid #38bdf8;
+    border-radius: 6px; padding: 3px 8px; color: #f0f9ff;
+    font-size: 10px; white-space: nowrap; pointer-events: none;
+    opacity: 0; transition: opacity 0.15s; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+  .arc-btn:hover::after { opacity: 1; }
+
+  /* Keyframe Animations for Pet */
+  @keyframes petBreathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02, 0.98); } }
+  @keyframes petHop { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+  @keyframes petBounce { 0%,100% { transform: scale(1); } 40% { transform: scale(1.08, 0.92); } 70% { transform: scale(0.96, 1.04); } }
+  @keyframes petSad { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02, 0.95) translateY(4px); } }
+</style>
+</head>
+<body>
+<div id="overlay-viewport">
+  <div id="zoom-stage">
+
+    <!-- LỚP 4: BÓNG THOẠI -->
+    <div id="bubble" class="bubble"></div>
+
+    <!-- LỚP 2: NHÂN VẬT (NATIVE WINDOW DRAG) -->
+    <div id="zone-char" class="zone-char" data-tauri-drag-region>
+      <div id="char-wrapper" class="char-wrapper" data-tauri-drag-region>
+        <img id="char-img" src="assets/characters/panda/default.gif" alt="Pet" data-tauri-drag-region />
+      </div>
+    </div>
+
+    <!-- MINI ICON BADGE (KHI THU GỌN - NẰM TRÊN 2 NÚT TRÒN) -->
+    <div id="icon-badge" class="icon-badge" title="Bấm để mở lại Pet" data-tauri-drag-region>
+      <img id="badge-img" src="assets/characters/panda/default.gif" alt="Icon" data-tauri-drag-region />
+    </div>
+
+    <!-- LỚP 1: 2 NÚT TRÒN CỐ ĐỊNH -->
+    <div id="floating-bar" class="floating-bar">
+      <button id="btn-toggle-chat" class="round-btn" title="Trò chuyện">💬</button>
+      <div id="status-dot" class="status-dot" title="Trạng thái Neito Agent"></div>
+      <button id="btn-toggle-menu" class="round-btn" title="Menu chiến thuật">⚙️</button>
+    </div>
+
+    <!-- LỚP 3: Ô NHẬP CHAT XỔ XUỐNG DƯỚI -->
+    <div id="chat-panel" class="chat-panel">
+      <textarea id="chat-input" class="chat-input" placeholder="Hỏi Neito điều gì đó... (Enter để gửi)" rows="1"></textarea>
+      <div class="chat-actions">
+        <span class="chat-hint">Shift+Enter xuống dòng</span>
+        <button id="btn-send-chat" class="chat-send-btn">
+          <span>Gửi</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- LỚP 5: VÒNG CUNG CHIẾN THUẬT (DÃN ĐỀU CÁCH XA NHÂN VẬT) -->
+    <div id="arc-menu" class="arc-menu-container">
+      <svg class="arc-curve-svg" viewBox="0 0 340 460">
+        <defs>
+          <linearGradient id="arcGlowGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.3"/>
+            <stop offset="50%" stop-color="#00f2fe" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.4"/>
+          </linearGradient>
+        </defs>
+        <path class="arc-path" d="M 205 385 C 235 375, 310 280, 290 235 C 275 190, 245 130, 220 105" />
+      </svg>
+
+      <!-- 5 Nút dãn đều ~60px, cách xa thân Pet (X: 235-290px) -->
+      <button id="btn-arc-yolo" class="arc-btn" style="left: 235px; top: 355px;" data-title="Bật/tắt Mắt YOLO">👁️</button>
+      <button id="btn-arc-mic" class="arc-btn" style="left: 272px; top: 300px;" data-title="Bật/tắt Micro">🎙️</button>
+      <button id="btn-arc-voice" class="arc-btn" style="left: 288px; top: 235px;" data-title="Bật/tắt Tiếng nói">🔇</button>
+      <button id="btn-arc-icon-mode" class="arc-btn" style="left: 272px; top: 170px;" data-title="Thu nhỏ thành Icon">🙈</button>
+      <button id="btn-arc-dashboard" class="arc-btn" style="left: 235px; top: 115px;" data-title="Mở Dashboard">📊</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function() {
+  const BACKEND = 'http://127.0.0.1:4242';
+  const zoomStage = document.getElementById('zoom-stage');
+  const bubble = document.getElementById('bubble');
+  const zoneChar = document.getElementById('zone-char');
+  const charWrapper = document.getElementById('char-wrapper');
+  const charImg = document.getElementById('char-img');
+  const iconBadge = document.getElementById('icon-badge');
+  const badgeImg = document.getElementById('badge-img');
+  const btnToggleChat = document.getElementById('btn-toggle-chat');
+  const btnToggleMenu = document.getElementById('btn-toggle-menu');
+  const statusDot = document.getElementById('status-dot');
+  const chatPanel = document.getElementById('chat-panel');
+  const chatInput = document.getElementById('chat-input');
+  const btnSendChat = document.getElementById('btn-send-chat');
+  const arcMenu = document.getElementById('arc-menu');
+  const btnArcYolo = document.getElementById('btn-arc-yolo');
+  const btnArcMic = document.getElementById('btn-arc-mic');
+  const btnArcVoice = document.getElementById('btn-arc-voice');
+  const btnArcIconMode = document.getElementById('btn-arc-icon-mode');
+  const btnArcDashboard = document.getElementById('btn-arc-dashboard');
+
+  let curChar = 'panda';
+  let curProtocol = null;
+  let isIconMode = false;
+  let bubbleTimer = null;
+  let yoloActive = false;
+  let micActive = false;
+  let voiceActive = false;
+  let lastAdvisorEventId = null;
+
+  // ══════════════════════════════════════════════════════════════════
+  // 1. KÉO THẢ NATIVE AN TOÀN TUYỆT ĐỐI (KHÔNG BAO GIỜ BAY MẤT CỬA SỔ)
+  // ══════════════════════════════════════════════════════════════════
+  let mouseDownPos = { x: 0, y: 0 };
+
+  function handleDragStart(e) {
+    if (e.button !== 0) return;
+    if (e.target.closest('button') || e.target.closest('textarea') || e.target.closest('input')) return;
+    mouseDownPos = { x: e.screenX, y: e.screenY };
+
+    // Kích hoạt native OS window drag (chuẩn của Tauri, Windows tự quản lý mượt mà)
+    if (window.__TAURI__ && window.__TAURI__.core) {
+      window.__TAURI__.core.invoke('start_drag').catch(() => {});
+    }
+  }
+
+  zoneChar.addEventListener('mousedown', handleDragStart);
+  iconBadge.addEventListener('mousedown', handleDragStart);
+
+  // Click vào icon badge khi không di chuyển để khôi phục
+  iconBadge.addEventListener('click', (e) => {
+    if (Math.abs(e.screenX - mouseDownPos.x) < 5 && Math.abs(e.screenY - mouseDownPos.y) < 5) {
+      toggleIconMode();
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════════════
+  // 2. THU PHÓNG (ZOOM SCALE) BẰNG CON LĂN CHUỘT NEO THEO CON TRỎ
+  // ══════════════════════════════════════════════════════════════════
+  let scale = 1.0;
+  let transX = 0;
+  let transY = 0;
+
+  window.addEventListener('wheel', (e) => {
+    if (e.target.closest('#bubble') || e.target.closest('#chat-panel')) {
+      return;
+    }
+    e.preventDefault();
+
+    const mouseX = e.clientX;
+    const mouseY = e.clientY;
+    const zoomFactor = e.deltaY < 0 ? 1.06 : 0.94;
+    const newScale = Math.min(Math.max(scale * zoomFactor, 0.65), 1.65);
+    if (newScale === scale) return;
+
+    transX = mouseX - (mouseX - transX) * (newScale / scale);
+    transY = mouseY - (mouseY - transY) * (newScale / scale);
+    scale = newScale;
+
+    zoomStage.style.transform = `translate(${transX}px, ${transY}px) scale(${scale})`;
+  }, { passive: false });
+
+  window.addEventListener('dblclick', (e) => {
+    if (e.target.closest('button') || e.target.closest('textarea')) return;
+    scale = 1.0;
+    transX = 0;
+    transY = 0;
+    zoomStage.style.transform = 'translate(0px, 0px) scale(1)';
+  });
+
+  // ══════════════════════════════════════════════════════════════════
+  // 3. ĐỒNG BỘ NHÂN VẬT & GIAO THỨC TÁC CHIẾN TỪ BRAIN
+  // ══════════════════════════════════════════════════════════════════
+  const CHAR_NAMES = {
+    panda: 'Gấu Trúc Panda',
+    cat: 'Mèo Con Cute',
+    clippy: 'Kẹp Giấy Clippy',
+    dog: 'Cún Cưng',
+    duck: 'Vịt Vàng',
+    fox: 'Cáo Lửa',
+    rocky: 'Hòn Đá Rocky',
+    totoro: 'Thần Rừng Totoro'
+  };
+
+  async function syncStatus() {
+    try {
+      const res = await fetch(BACKEND + '/api/status');
+      if (res.ok) {
+        const data = await res.json();
+        // Đồng bộ nhân vật
+        if (data.current_character && data.current_character !== curChar) {
+          await setCharacter(data.current_character, true);
+        }
+        // Đồng bộ giao thức tác chiến
+        if (data.active_protocol && (!curProtocol || curProtocol.id !== data.active_protocol.id)) {
+          const oldName = curProtocol ? curProtocol.name : null;
+          curProtocol = data.active_protocol;
+          if (oldName) {
+            setAnim('bounce', 1500);
+            showBubble(`⚔️ Đã kích hoạt Giao thức: ${curProtocol.name}!`);
+          }
+        }
+        // Đồng bộ mắt YOLO
+        if (typeof data.yolo_active === 'boolean' && data.yolo_active !== yoloActive) {
+          yoloActive = data.yolo_active;
+          btnArcYolo.classList.toggle('active', yoloActive);
+        }
+      }
+    } catch(e) {}
+  }
+
+  // Lắng nghe Quân sư YOLO-World khi đang chơi game / bật mắt quan sát
+  async function pollAdvisor() {
+    if (!yoloActive) return;
+    try {
+      const res = await fetch(BACKEND + '/api/advisor/latest');
+      if (res.ok) {
+        const data = await res.json();
+        const evt = data.event;
+        if (evt && evt.event_id && evt.event_id !== lastAdvisorEventId) {
+          lastAdvisorEventId = evt.event_id;
+          if (evt.type === 'known_situation') {
+            setAnim('alert', 4000);
+            showBubble(`[${evt.protocol_name.toUpperCase()}] ⚔️ ${evt.advice}`);
+          } else if (evt.type === 'new_learned_situation') {
+            setAnim('bounce', 5000);
+            showBubble(`[TỰ HỌC PHIDATA] 🧠 Đã tra cứu tình huống: ${evt.trigger}\n➡ "${evt.advice}" (Đã nạp dataset cho YOLO-World)`);
+          }
+        }
+      }
+    } catch(e) {}
+  }
+
+  async function setCharacter(name, notify) {
+    if (!name || name === 'default') name = 'panda';
+    curChar = name;
+    const ext = (name === 'cat') ? 'default.svg' : 'default.gif';
+    const p = `assets/characters/${name}/${ext}`;
+    charImg.src = p;
+    badgeImg.src = p;
+
+    if (notify) {
+      setAnim('hop', 1200);
+      showBubble(`Em đã đổi sang nhân vật: ${CHAR_NAMES[name] || name} rồi nhé! ✨`);
+    }
+  }
+
+  charImg.onerror = () => {
+    charImg.src = 'assets/characters/panda/default.gif';
+  };
+
+  function setAnim(animName, ms) {
+    charWrapper.style.animation = 'none';
+    if (!animName || animName === 'idle') {
+      charWrapper.style.animation = 'petBreathe 3s ease-in-out infinite';
+      return;
+    }
+    const animMap = {
+      'hop': 'petHop 0.8s ease-in-out infinite',
+      'bounce': 'petBounce 1s ease-in-out infinite',
+      'happy': 'petHop 0.8s ease-in-out infinite',
+      'sad': 'petSad 2s ease-in-out infinite',
+      'alert': 'petBounce 0.6s ease-in-out infinite',
+      'curious': 'petBreathe 1.5s ease-in-out infinite'
+    };
+    charWrapper.style.animation = animMap[animName] || 'petBreathe 3s ease-in-out infinite';
+    if (ms) {
+      setTimeout(() => {
+        charWrapper.style.animation = 'petBreathe 3s ease-in-out infinite';
+      }, ms);
+    }
+  }
+
+  function speakVoice(text) {
+    if (!voiceActive || !('speechSynthesis' in window) || !text) return;
+    try {
+      window.speechSynthesis.cancel();
+      const clean = text.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim();
+      if (!clean) return;
+      const u = new SpeechSynthesisUtterance(clean);
+      u.lang = 'vi-VN';
+      u.rate = 1.05;
+      window.speechSynthesis.speak(u);
+    } catch(e) {}
+  }
+
+  function showBubble(text) {
+    if (!text) return;
+    bubble.textContent = text;
+    bubble.classList.add('show');
+    speakVoice(text);
+    clearTimeout(bubbleTimer);
+    bubbleTimer = setTimeout(() => {
+      bubble.classList.remove('show');
+    }, Math.max(5000, text.length * 80));
+  }
+  bubble.addEventListener('click', () => bubble.classList.remove('show'));
+
+  // ══════════════════════════════════════════════════════════════════
+  // 4. BẬT/TẮT CHAT (XỔ XUỐNG DƯỚI 2 NÚT TRÒN)
+  // ══════════════════════════════════════════════════════════════════
+  btnToggleChat.addEventListener('click', (e) => {
+    e.stopPropagation();
+    arcMenu.classList.remove('open');
+    btnToggleMenu.classList.remove('active');
+    const open = chatPanel.classList.toggle('open');
+    btnToggleChat.classList.toggle('active', open);
+    if (open) {
+      setTimeout(() => chatInput.focus(), 50);
+    }
+  });
+
+  function closeChat() {
+    chatPanel.classList.remove('open');
+    btnToggleChat.classList.remove('active');
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // 5. BẬT/TẮT VÒNG CUNG
+  // ══════════════════════════════════════════════════════════════════
+  btnToggleMenu.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeChat();
+    const open = arcMenu.classList.toggle('open');
+    btnToggleMenu.classList.toggle('active', open);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#chat-panel') && !e.target.closest('#btn-toggle-chat')) {
+      closeChat();
+    }
+    if (!e.target.closest('.arc-btn') && !e.target.closest('#btn-toggle-menu')) {
+      arcMenu.classList.remove('open');
+      btnToggleMenu.classList.remove('active');
+    }
+  });
+
+  // 5 Nút trên vòng cung
+  btnArcYolo.addEventListener('click', (e) => {
+    e.stopPropagation();
+    yoloActive = !yoloActive;
+    btnArcYolo.classList.toggle('active', yoloActive);
+    fetch(BACKEND + '/api/yolo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: yoloActive })
+    }).catch(() => {});
+    if (yoloActive) {
+      const pName = curProtocol ? curProtocol.name : 'Chiến thuật chung';
+      showBubble(`👁️ Mắt YOLO đã bật! Quân sư đang soi màn hình cho [${pName}].`);
+      setAnim('alert', 4000);
+    } else {
+      showBubble('👁️ Đã tắt mắt quan sát YOLO.');
+      setAnim('idle', 2000);
+    }
+  });
+
+  btnArcMic.addEventListener('click', (e) => {
+    e.stopPropagation();
+    micActive = !micActive;
+    btnArcMic.classList.toggle('green-active', micActive);
+    if (micActive) {
+      showBubble('🎙️ Micro đã bật! Em đang lắng nghe giọng nói của Sếp...');
+      setAnim('curious', 4000);
+    } else {
+      showBubble('🎙️ Micro đã tắt.');
+      setAnim('idle', 2000);
+    }
+  });
+
+  btnArcVoice.addEventListener('click', (e) => {
+    e.stopPropagation();
+    voiceActive = !voiceActive;
+    if (voiceActive) {
+      btnArcVoice.textContent = '🔊';
+      btnArcVoice.classList.add('active');
+      showBubble('🔊 Đã bật giọng nói của Pet! Em sẽ trò chuyện bằng âm thanh với Sếp.');
+      setAnim('happy', 3000);
+    } else {
+      btnArcVoice.textContent = '🔇';
+      btnArcVoice.classList.remove('active');
+      showBubble('🔇 Đã tắt tiếng. Em sẽ giao tiếp qua bóng thoại nhé!');
+      setAnim('idle', 2000);
+    }
+  });
+
+  function toggleIconMode() {
+    isIconMode = !isIconMode;
+    if (isIconMode) {
+      zoneChar.style.display = 'none';
+      bubble.classList.remove('show');
+      closeChat();
+      arcMenu.classList.remove('open');
+      btnToggleMenu.classList.remove('active');
+      iconBadge.classList.add('show');
+      btnArcIconMode.setAttribute('data-title', 'Phóng to nhân vật');
+      showBubble('Em thu gọn thành Icon mini đây! Bấm vào Icon để em bung to lại nhé! ✨');
+    } else {
+      zoneChar.style.display = 'flex';
+      iconBadge.classList.remove('show');
+      btnArcIconMode.setAttribute('data-title', 'Thu nhỏ thành Icon');
+      setAnim('bounce', 2000);
+      showBubble('Em đã trở lại kích thước bình thường rồi đây ạ! 💖');
+    }
+  }
+
+  btnArcIconMode.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleIconMode();
+  });
+
+  btnArcDashboard.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (window.__TAURI__ && window.__TAURI__.core) {
+      window.__TAURI__.core.invoke('open_dashboard');
+    }
+    arcMenu.classList.remove('open');
+    btnToggleMenu.classList.remove('active');
+    showBubble('📊 Đang mở Tactical Dashboard cho Sếp...');
+    setAnim('happy', 3000);
+  });
+
+  // ══════════════════════════════════════════════════════════════════
+  // 6. GỬI CÂU HỎI LÊN BRAIN
+  // ══════════════════════════════════════════════════════════════════
+  async function sendQuestion() {
+    const q = chatInput.value.trim();
+    if (!q) return;
+
+    chatInput.value = '';
+    closeChat();
+    showBubble(`"${q}"... Đợi em xíu nhé! ⏳`);
+    statusDot.className = 'status-dot thinking';
+    setAnim('curious');
+
+    try {
+      const res = await fetch(BACKEND + '/api/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: q, character: curChar })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        statusDot.className = 'status-dot';
+        const reply = data.answer || data.reply || 'Dạ em đã nhận được rồi ạ!';
+        showBubble(reply);
+        if (data.emotion) setAnim(data.emotion, 5000);
+        if (data.guide_point && window.__TAURI__ && window.__TAURI__.core) {
+          window.__TAURI__.core.invoke('trigger_ghost_pointer', {
+            targetX: Number(data.guide_point.x),
+            targetY: Number(data.guide_point.y)
+          });
+        }
+      } else {
+        throw new Error('Server error');
+      }
+    } catch(e) {
+      statusDot.className = 'status-dot';
+      showBubble('Ôi Sếp ơi, hình như máy chủ Brain chưa phản hồi kịp! Sếp kiểm tra giúp em nhé!');
+      setAnim('sad', 4000);
+    }
+  }
+
+  btnSendChat.addEventListener('click', sendQuestion);
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendQuestion();
+    }
+  });
+
+  // Khởi chạy
+  setCharacter('panda', false);
+  setAnim('idle');
+  syncStatus();
+  setInterval(syncStatus, 2000);
+  setInterval(pollAdvisor, 2500);
+  setTimeout(() => {
+    showBubble('Em chào Sếp! Neito Tactical Companion đã sẵn sàng tác chiến! ✨');
+  }, 1000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+# AI Brain & Autonomous Hands
+phidata>=2.7.10
+smolagents>=1.26.0
+mem0ai>=2.1.0
+duckduckgo-search>=8.0.0
+ddgs>=9.0.0
+python-dotenv>=1.0.0
+requests>=2.32.0
+
+# Computer Vision & Screen Capture
+mss>=10.0.0
+Pillow>=10.0.0

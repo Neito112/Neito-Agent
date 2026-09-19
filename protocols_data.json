@@ -1,0 +1,241 @@
+[
+  {
+    "id": "lol",
+    "name": "Liên Minh Huyền Thoại",
+    "appName": "League of Legends",
+    "status": "active",
+    "queuePosition": 0,
+    "description": "Cố vấn chiến thuật LMHT: Quản lý đợt lính (freeze/slow push), kiểm soát bản đồ, cắm mắt, theo dõi Rừng gank, tranh chấp Rồng/Baron và phân tích giao tranh tổng.",
+    "datasetSize": 1251,
+    "lastUpdated": "Vừa đúc kết tình huống mới",
+    "system_prompt": "Bạn là CỐ VẤN CHIẾN THUẬT & HỆ THỐNG PHÂN TÍCH LIÊN MINH HUYỀN THOẠI (League of Legends Master Protocol - LOL).\nBạn nắm vững toàn bộ tri thức chiến thuật, meta và cơ chế game LMHT:\n1. CHIẾN THUẬT & GIAO TRANH: Quản lý lính (Freeze/Slow push/Fast push), kiểm soát tầm nhìn Sứ Giả/Baron/Rồng, đọc hướng rừng đối phương.\n2. META & TRANG BỊ: Khắc chế tướng, bảng ngọc tối ưu, lên đồ thích ứng (vết thương sâu, xuyên giáp).\n3. NGUYÊN TẮC: Ngắn gọn, sắc bén, dứt khoát, mang tính chỉ huy tác chiến (1-2 câu).",
+    "meta": "Bản cập nhật LMHT mới nhất: Tối ưu hóa Sâu Hư Không, cân bằng Sát Thủ và Xạ Thủ.",
+    "vision_prompt": "Quan sát minimap, thời gian hồi phép bổ trợ, thanh máu rồng/baron và vị trí tướng địch.",
+    "yolo_classes": [
+      "baron_nashor",
+      "dragon_spawn",
+      "enemy_jungler_gank",
+      "turret_dive",
+      "minion_freeze",
+      "low_hp_warning"
+    ],
+    "situations": [
+      {
+        "id": "dragon_spawn",
+        "trigger": "Dragon spawning within 30s",
+        "advice": "Rồng sắp xuất hiện trong 30 giây! Sếp hãy cắm mắt cửa hang và gom team kiểm soát sông ngay ạ!",
+        "dataset_count": 340
+      },
+      {
+        "id": "baron_nashor",
+        "trigger": "Baron low hp or contested",
+        "advice": "Baron đang bị tấn công! Rừng giữ Trừng Phạt cẩn thận, Sếp ép góc tướng cấu rỉa đối phương nhé!",
+        "dataset_count": 290
+      },
+      {
+        "id": "enemy_jungler_gank",
+        "trigger": "Enemy jungler spotted near river bush",
+        "advice": "Cảnh báo Gank! Rừng địch vừa lướt qua bụi cỏ bờ sông, Sếp lùi nhẹ về sát trụ an toàn nha!",
+        "dataset_count": 410
+      },
+      {
+        "id": "low_hp_warning",
+        "trigger": "Player HP below 25% under pressure",
+        "advice": "Máu Sếp đang dưới 25%! Địch có thể băng trụ, Sếp biến về hồi phục ngay lập tức!",
+        "dataset_count": 210
+      },
+      {
+        "id": "baron_stolen",
+        "trigger": "Baron vừa bị đối phương trừng phạt cướp mất",
+        "advice": "Rút lui ngay! Không được giao tranh, lùi sâu thủ trụ và dọn lính câu hết bùa Baron.",
+        "dataset_count": 1,
+        "learned_at": "2026-09-19 10:02:10"
+      }
+    ],
+    "unlearned_situations": []
+  },
+  {
+    "id": "valorant",
+    "name": "Valorant (Van Di)",
+    "appName": "VALORANT",
+    "status": "queued",
+    "queuePosition": 1,
+    "description": "Cố vấn chiến thuật FPS: Quản lý kinh tế Eco/Force/Full buy, kỹ năng đặc vụ Duelist/Initiator/Controller/Sentinel, đọc vị trí đặt Spike và góc kê tâm.",
+    "datasetSize": 890,
+    "lastUpdated": "Vừa kích hoạt",
+    "system_prompt": "Bạn là CỐ VẤN CHIẾN THUẬT VALORANT (Đọc là Van Di / Valorant Master Protocol).\nChuyên gia phân tích FPS chiến thuật đỉnh cao:\n1. QUẢN LÝ KINH TẾ: Save round (Eco), Semi-buy (Force buy), Full buy. Dự đoán vũ khí đối phương.\n2. CHIẾN THUẬT ĐẶC VỤ: Entry frag, quét góc (Recon), chắn tầm nhìn (Smoke), khóa site (Flank watch).\n3. NGUYÊN TẮC: Cực kỳ ngắn gọn, phản xạ nhanh (1 câu dưới 12 từ), chuẩn thuật ngữ FPS (Site A, Site B, Main, Heaven, Flank, Retake, Spike, Eco).",
+    "meta": "Bản cập nhật Valorant mới nhất: Điều chỉnh cân bằng Đặc vụ Controller và bản đồ thi đấu.",
+    "vision_prompt": "Phát hiện vị trí đặt Spike, số lượng đặc vụ địch còn sống, lượng tiền round sau.",
+    "yolo_classes": [
+      "spike_planted",
+      "enemy_operator_scoped",
+      "flank_detected",
+      "economy_eco_round",
+      "retake_site_a"
+    ],
+    "situations": [
+      {
+        "id": "spike_planted",
+        "trigger": "Spike planted sound or hud alert",
+        "advice": "Spike đã kích hoạt! Team địch đang setup góc thủ, Sếp dùng smoke cắt góc Heaven trước khi Retake!",
+        "dataset_count": 310
+      },
+      {
+        "id": "enemy_operator_scoped",
+        "trigger": "Enemy holding sniper lane",
+        "advice": "Góc dài có Operator kê sẵn! Sếp đừng dry-peek, dùng flash hoặc smoke ép đối phương đổi góc!",
+        "dataset_count": 280
+      },
+      {
+        "id": "economy_eco_round",
+        "trigger": "Low team credits next round",
+        "advice": "Round này Eco giữ tiền Sếp ơi! Mua súng lục bắn giữ mạng để round sau full Vandal!",
+        "dataset_count": 300
+      }
+    ],
+    "unlearned_situations": []
+  },
+  {
+    "id": "genshin",
+    "name": "Genshin Impact",
+    "appName": "Genshin Impact",
+    "status": "inactive",
+    "queuePosition": 0,
+    "description": "Bách khoa toàn thư Teyvat: Hỗ trợ giải đố puzzle 7 quốc gia, cơ chế Pneuma/Ousia, phản ứng nguyên tố Hyperbloom/Vape/Melt, bí cảnh và rương ẩn.",
+    "datasetSize": 1420,
+    "lastUpdated": "10 phút trước",
+    "system_prompt": "Bạn là CỐ VẤN CHIẾN THUẬT Genshin Impact (Teyvat Encyclopedia Protocol).\nNắm giữ tri thức 7 quốc gia Teyvat, cơ chế giải đố (Fontaine Pneuma/Ousia, Saurian Natlan), meta build phản ứng nguyên tố (Hyperbloom, Vape, Melt, Aggravate).\nNGUYÊN TẮC: Luôn trả lời CHÍNH XÁC, NGẮN GỌN theo thuật ngữ chuẩn tiếng Việt của Genshin.",
+    "meta": "Meta Teyvat mới nhất: Tối ưu đội hình xoay quanh phản ứng Thảo và cơ chế bơi lặn Fontaine.",
+    "vision_prompt": "Nhận diện rương báu, câu đố môi trường, cơ chế kích hoạt nguyên tố trên màn hình.",
+    "yolo_classes": [
+      "puzzle_pneuma_ousia",
+      "luxurious_chest",
+      "elemental_monument",
+      "saurian_interaction"
+    ],
+    "situations": [
+      {
+        "id": "puzzle_pneuma_ousia",
+        "trigger": "Fontaine energy puzzle detected",
+        "advice": "Cơ chế Pneuma/Ousia kìa Sếp! Trụ đang màu vàng Pneuma, Sếp đánh đòn Ousia màu xanh tím vào để cân bằng nhé!",
+        "dataset_count": 480
+      },
+      {
+        "id": "luxurious_chest",
+        "trigger": "Hidden chest nearby",
+        "advice": "Phía sau tảng đá có Rương Siêu Cấp kìa Sếp! Đi vòng qua khe núi là nhặt được nguyên thạch ạ!",
+        "dataset_count": 520
+      }
+    ],
+    "unlearned_situations": []
+  },
+  {
+    "id": "coding",
+    "name": "Lập Trình & Tự Động Hóa",
+    "appName": "VSCode / Terminal",
+    "status": "inactive",
+    "queuePosition": 0,
+    "description": "Cố vấn phát triển phần mềm: Phân tích cú pháp, debug stack trace, đề xuất kiến trúc, tối ưu mã nguồn và phối hợp cùng Smolagents CodeAgent.",
+    "datasetSize": 2100,
+    "lastUpdated": "1 giờ trước",
+    "system_prompt": "Bạn là CỐ VẤN KỸ THUẬT PHẦN MỀM & LẬP TRÌNH (Dev & CodeAgent Protocol).\nChuyên gia về Python, Rust, TypeScript, Git, Terminal và Tự động hóa hệ thống.\nKhi gặp bài toán phức tạp, bạn phân tích nguyên nhân cốt lõi và hướng dẫn thực thi chuẩn chỉ.",
+    "meta": "Kiến trúc hệ thống: Phidata kết nối Smolagents CodeAgent thực thi subprocess an toàn.",
+    "vision_prompt": "Đọc thông báo lỗi trong terminal, phát hiện syntax error và stack trace trên màn hình.",
+    "yolo_classes": [
+      "syntax_error_red",
+      "terminal_stacktrace",
+      "git_merge_conflict",
+      "build_failed"
+    ],
+    "situations": [
+      {
+        "id": "terminal_stacktrace",
+        "trigger": "Traceback detected in terminal",
+        "advice": "Terminal vừa báo lỗi ngoại lệ! Lỗi bắt nguồn từ file vừa sửa, Sếp kiểm tra lại biến truyền vào nhé!",
+        "dataset_count": 920
+      }
+    ],
+    "unlearned_situations": []
+  },
+  {
+    "id": "office",
+    "name": "Văn Phòng & Excel",
+    "appName": "Microsoft Excel / Docs",
+    "status": "inactive",
+    "queuePosition": 0,
+    "description": "Chuyên gia Office: Soạn thảo công thức Excel phức tạp (XLOOKUP, INDEX/MATCH, LAMBDA), viết macro VBA và tối ưu hóa bảng biểu báo cáo.",
+    "datasetSize": 650,
+    "lastUpdated": "3 giờ trước",
+    "system_prompt": "Bạn là CHUYÊN GIA VĂN PHÒNG & BẢNG TÍNH EXCEL (Office Master Protocol).\nChuyên môn sâu về công thức Excel nâng cao, Macro VBA, tự động hóa xử lý văn bản và báo cáo tài chính.",
+    "meta": "Hàm Excel hiện đại: Tối ưu các công thức mảng động Dynamic Arrays.",
+    "vision_prompt": "Phát hiện bảng tính, ô lỗi công thức #N/A, #VALUE! hoặc vùng dữ liệu chưa chuẩn hóa.",
+    "yolo_classes": [
+      "excel_formula_error",
+      "vba_macro_editor",
+      "table_unformatted"
+    ],
+    "situations": [
+      {
+        "id": "excel_formula_error",
+        "trigger": "Cell displaying #N/A or #VALUE!",
+        "advice": "Ô tính đang bị lỗi #N/A kìa Sếp! Sếp bọc thêm hàm IFERROR hoặc kiểm tra lại khoảng dò của XLOOKUP nha!",
+        "dataset_count": 310
+      }
+    ],
+    "unlearned_situations": []
+  },
+  {
+    "id": "dota_2",
+    "name": "Dota 2",
+    "appName": "Dota 2",
+    "status": "queued",
+    "queuePosition": 2,
+    "description": "Hệ thống AI cố vấn chiến thuật thời gian thực cho Dota 2, phân tích bản đồ thu nhỏ (Minimap), kiểm soát tài nguyên, đọc giao tranh và đưa ra chỉ lệnh macro/micro chuẩn xác.",
+    "datasetSize": 150,
+    "lastUpdated": "Phidata vừa huấn luyện",
+    "system_prompt": "Bạn là Cố vấn Chiến thuật Thượng cấp Dota 2. Nhiệm vụ của bạn là liên tục theo dõi Minimap, thanh trạng thái HP/Mana, cooldown kỹ năng quan trọng, Roshan/Tormentor timer và biến động đội hình đối phương. Luôn phản hồi tức thì, ngắn gọn, dứt khoát và gọi người dùng là 'Sếp'. Ưu tiên cảnh báo nguy hiểm sinh tồn, kiểm soát tầm nhìn và timing mục tiêu lớn.",
+    "meta": "Phiên bản cập nhật mới nhất (Kỷ nguyên New Frontiers, hệ thống Innate Abilities, Facets, Tormentor, Lotus Pools và Twin Gates).",
+    "vision_prompt": "Theo dõi góc dưới bên trái để đọc Minimap (phát hiện hero địch miss, vòng tròn TP, ping cảnh báo); góc trên cùng để quan sát icon hero, thanh máu tổng quan, tình trạng Buyback và đồng hồ trận đấu; góc dưới trung tâm để kiểm tra HP/Mana cá nhân, thanh cooldown chiêu cuối/BKB/trang bị kích hoạt; khu vực trung tâm màn hình để nhận diện animation gank, hiệu ứng khống chế (stun/silence) và combat tổng.",
+    "yolo_classes": [
+      "enemy_hero",
+      "ally_hero",
+      "minimap_enemy_icon",
+      "low_hp_alert",
+      "ward_vision_area",
+      "tp_scroll_animation"
+    ],
+    "situations": [
+      {
+        "id": "gank_incoming_warning",
+        "trigger": "Phát hiện từ 2 hero địch trở lên biến mất khỏi minimap (miss) hoặc có hiệu ứng dịch chuyển (TP) ở trụ/creep sau lưng vị trí của Sếp",
+        "advice": "Sếp lùi sâu về trụ ngay! Địch đang miss, khả năng cao tổ chức gank lane mình!",
+        "dataset_count": 50
+      },
+      {
+        "id": "power_rune_lotus_timing",
+        "trigger": "Đồng hồ trận đấu chạm các mốc phút chẵn (2:00, 4:00, 6:00...) hoặc Lotus Pool sắp đầy hoa ở phút thứ 3:00",
+        "advice": "Sếp đẩy nhanh đợt lính rồi ra kiểm soát Power Rune và nhặt hoa hồi phục ngay!",
+        "dataset_count": 50
+      },
+      {
+        "id": "critical_hp_bkb_trigger",
+        "trigger": "Thanh máu của Sếp tụt dưới 35% khi đang trong vùng combat và đối phương bắt đầu dồn hiệu ứng khống chế",
+        "advice": "Bật BKB hoặc bấm Wand giật máu ngay Sếp ơi! Tìm góc khuất cây để lướt ra ngoài!",
+        "dataset_count": 50
+      },
+      {
+        "id": "roshan_tormentor_objective",
+        "trigger": "Đồng hồ chạm mốc 20:00 (Tormentor xuất hiện) hoặc toàn bộ hero địch biến mất khỏi bản đồ quanh khu vực Roshan Pit",
+        "advice": "Địch có dấu hiệu ăn Roshan lén, hoặc Tormentor đã ra! Sếp cùng team cắm mắt check hang ngay!",
+        "dataset_count": 50
+      },
+      {
+        "id": "highground_defense_buyback",
+        "trigger": "Đội hình địch tập hợp 5 người đẩy trụ Tier 3 / Barracks và trụ đồng minh chịu sát thương lớn",
+        "advice": "Thủ chặt High Ground Sếp ơi! Giữ vị trí sau trụ, kiểm tra tiền Buyback trước khi mở combat!",
+        "dataset_count": 50
+      }
+    ],
+    "unlearned_situations": []
+  }
+]

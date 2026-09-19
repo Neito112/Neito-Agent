@@ -1,0 +1,20 @@
+{
+ "wake/0": "2b8722fa-a9fc3c0d",
+ "wake/1": "2b8722fa-7186e6a5",
+ "wake/2": "2b8722fa-fb5a516d",
+ "wake/3": "234238fc49eb",
+ "thinking/0": "2b8722fa-4514375f",
+ "thinking/1": "2b8722fa-0449e054",
+ "thinking/2": "2b8722fa-85ac56fe",
+ "thinking/3": "172b4226bfb1",
+ "done/0": "2b8722fa-025ebc94",
+ "done/1": "2b8722fa-03543a57",
+ "done/2": "2b8722fa-1c019d06",
+ "done/3": "79cb8339d40e",
+ "sleep/0": "2b8722fa-f6dbd277",
+ "sleep/1": "2b8722fa-fc49f110",
+ "sleep/2": "2b8722fa-a95003fd",
+ "error/0": "2b8722fa-9f1ccb3d",
+ "error/1": "2b8722fa-270fa288",
+ "error/2": "2b8722fa-eeb4b6a0"
+}
