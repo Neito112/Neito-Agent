@@ -72,30 +72,22 @@ def _proc_name(pid: int) -> str:
 
 def get_active_window_info() -> Tuple[str, str, int]:
     """
-    Lấy thông tin cửa sổ tiền cảnh On-Top thực sự.
+    Lấy thông tin cửa sổ tiền cảnh On-Top thực sự từ Windows API.
     Trả về (window_title, process_name, hwnd).
-    Bỏ qua cửa sổ cloaked hoặc cửa sổ hệ thống.
     """
     try:
         hwnd = user32.GetForegroundWindow()
-        if not hwnd or not user32.IsWindowVisible(hwnd) or _is_cloaked(hwnd):
+        if not hwnd:
             return "", "", 0
 
         length = user32.GetWindowTextLengthW(hwnd)
-        if length <= 0:
-            return "", "", 0
-
-        buff = ctypes.create_unicode_buffer(length + 1)
-        user32.GetWindowTextW(hwnd, buff, length + 1)
-        title = buff.value.strip()
+        buf = ctypes.create_unicode_buffer(length + 1)
+        user32.GetWindowTextW(hwnd, buf, length + 1)
+        title = (buf.value or "").strip()
 
         pid = wintypes.DWORD()
         user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
-        proc = _proc_name(pid.value)
-
-        # Lọc bỏ các tiến trình hệ thống
-        if proc.lower() in IGNORED_PROCESSES:
-            return "", "", 0
+        proc = _proc_name(pid.value) if pid.value else ""
 
         return title, proc, int(hwnd)
     except Exception:
@@ -170,11 +162,23 @@ def foreground_watcher_loop(on_protocol_switch: Optional[Callable] = None):
 
             # Debounce: Cửa sổ ổn định 2 nhịp liên tiếp (~0.8s)
             if stable_count == 2 and proc:
+                proc_lower = proc.lower()
                 matched_proto = match_protocol_by_window(proc, title)
+                active = get_active_protocol()
+                
+                # Nếu không khớp hoặc là tiến trình hệ thống:
+                if not matched_proto or proc_lower in IGNORED_PROCESSES:
+                    # Nếu giao thức active hiện tại là game mà game không còn chạy -> Trả êm về 'general'
+                    if active and active.get('id') not in ('general', None):
+                        from protocols_manager import is_protocol_app_running
+                        if not is_protocol_app_running(active):
+                            activate_protocol('general')
+                            print(f"[Foreground-Watcher] Game [{active.get('name')}] không chạy -> Chuyển êm về Trợ Lý Đa Năng", flush=True)
+                            CURRENT_FOREGROUND["matched_protocol"] = "Trợ Lý Đa Năng"
                 
                 CURRENT_FOREGROUND["title"] = title
                 CURRENT_FOREGROUND["process_name"] = proc
-                CURRENT_FOREGROUND["matched_protocol"] = matched_proto.get("name") if matched_proto else None
+                CURRENT_FOREGROUND["matched_protocol"] = matched_proto.get("name") if matched_proto else CURRENT_FOREGROUND.get("matched_protocol")
                 CURRENT_FOREGROUND["last_change_time"] = time.time()
 
                 if AUTO_SWITCH_ENABLED:
@@ -193,21 +197,22 @@ def foreground_watcher_loop(on_protocol_switch: Optional[Callable] = None):
                                     "protocol_name": matched_proto["name"],
                                     "timestamp": time.time()
                                 }
-                                # Đẩy phát ngôn vào Speech Queue
-                                enqueue_speech(
-                                    f"⚔️ Phát hiện Sếp đang mở [{matched_proto.get('appName', proc)}]! Em tự động chuyển sang Giao thức: {matched_proto['name']}!",
-                                    emotion="hop",
-                                    source="focus_switch"
-                                )
+                                # CHỈ CẤT TIẾNG CHÀO khi chuyển sang GAME hoặc CÔNG VIỆC CHUYÊN BIỆT (KHÔNG la hét khi về desktop/general)
+                                if matched_proto.get("id") != "general":
+                                    enqueue_speech(
+                                        f"⚔️ Phát hiện Sếp đang mở [{matched_proto.get('appName', proc)}]! Em tự động chuyển sang Giao thức: {matched_proto['name']}!",
+                                        emotion="hop",
+                                        source="focus_switch"
+                                    )
                                 if on_protocol_switch:
                                     try:
                                         on_protocol_switch(matched_proto)
                                     except Exception:
                                         pass
                     else:
-                        # Ứng dụng lạ chưa có trong danh mục giao thức -> Tự động SPAWN PROTOCOL
+                        # Ứng dụng lạ chưa có trong danh mục giao thức -> Tự động SPAWN PROTOCOL (chỉ với app thật, có title rõ ràng)
                         now = time.time()
-                        if now - last_spawn_time > 15.0 and len(title) > 2:
+                        if now - last_spawn_time > 20.0 and len(title) > 3 and proc_lower not in IGNORED_PROCESSES:
                             last_spawn_time = now
                             print(f"[Foreground-Watcher] >> APP LẠ ON-TOP: {proc} ('{title}') -> Tự động kích hoạt SPAWN PROTOCOL!", flush=True)
                             new_proto = spawn_and_activate_protocol(proc, title)

@@ -16,6 +16,7 @@ import random
 from typing import Optional, Dict
 from protocols_manager import (
     get_active_protocol,
+    is_protocol_app_running,
     phidata_resolve_unknown_situation
 )
 from vision import get_vision_engine
@@ -23,7 +24,7 @@ from speech_manager import enqueue_speech
 
 ADVISOR_RUNNING = False
 LATEST_EVENT = None
-LAST_TRIGGER_TIME = 0
+LAST_TRIGGER_TIME = time.time() + 30.0  # Khoảng đệm an toàn khi khởi động: Không nói gì trong 30s đầu
 CURRENT_ACTIVE_PROTOCOL_ID = None
 
 def advisor_loop():
@@ -31,7 +32,7 @@ def advisor_loop():
     print("[YOLO-World-Advisor] Khởi chạy vòng lặp Quân sư tác chiến thường trực (Always-On)...", flush=True)
 
     vision_engine = get_vision_engine()
-    next_cooldown = random.randint(20, 50)
+    next_cooldown = random.randint(35, 75)
 
     while ADVISOR_RUNNING:
         try:
@@ -44,10 +45,21 @@ def advisor_loop():
                     vision_engine.set_active_classes(classes)
 
                 now = time.time()
-                # Định kỳ kiểm tra tình huống chiến thuật (cooldown ngẫu nhiên 20-50s theo watcherRules của app gốc)
+                # KIỂM SOÁT NGHIÊM NGẶT: Nếu là giao thức game chuyên biệt, CHỈ phát ngôn nếu Game đang THỰC SỰ CHẠY!
+                proto_id = proto.get("id", "")
+                if proto_id != "general":
+                    if not is_protocol_app_running(proto):
+                        # Ứng dụng/Game không mở trên máy -> TUYỆT ĐỐI KHÔNG lải nhải chiến thuật game!
+                        time.sleep(2.5)
+                        continue
+
+                # Định kỳ kiểm tra tình huống chiến thuật (chỉ khi đủ điều kiện thời gian)
                 if now - LAST_TRIGGER_TIME > next_cooldown:
                     situations = proto.get("situations", [])
-                    if situations and random.random() < 0.75:
+                    # Với chế độ General, giảm tỉ lệ thoại để tránh làm phiền Sếp làm việc
+                    speak_prob = 0.35 if proto_id == "general" else 0.70
+                    
+                    if situations and random.random() < speak_prob:
                         sit = random.choice(situations)
                         source_tag = "📺 CẨM NANG VIDEO" if sit.get("source") == "video_online_research" else "⚔️ QUÂN SƯ"
                         LATEST_EVENT = {
@@ -62,7 +74,7 @@ def advisor_loop():
                             "timestamp": now
                         }
                         LAST_TRIGGER_TIME = now
-                        next_cooldown = random.randint(25, 60)
+                        next_cooldown = random.randint(45, 90) if proto_id != "general" else random.randint(90, 180)
                         
                         advice_text = sit.get("advice")
                         print(f"[YOLO-World-Advisor] [{source_tag}] ({proto.get('name')}): {advice_text}", flush=True)
@@ -70,7 +82,7 @@ def advisor_loop():
                         # Tự động đẩy vào Speech Queue để Pet phát ngôn và hiển thị bóng thoại
                         enqueue_speech(
                             f"[{proto.get('name').upper()}] {source_tag}: {advice_text}",
-                            emotion="alert",
+                            emotion="alert" if proto_id != "general" else "happy",
                             source="advisor"
                         )
         except Exception as e:

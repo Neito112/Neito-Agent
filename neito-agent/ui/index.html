@@ -428,7 +428,8 @@
         if (data.active_protocol && (!curProtocol || curProtocol.id !== data.active_protocol.id)) {
           const oldName = curProtocol ? curProtocol.name : null;
           curProtocol = data.active_protocol;
-          if (oldName) {
+          // Chỉ phát thông báo khi chuyển sang Game hoặc Công việc cụ thể, không la làng khi về Desktop/General
+          if (oldName && curProtocol.id !== 'general') {
             setAnim('hop', 2000);
             const appLabel = curProtocol.appName || curProtocol.name;
             showBubble(`⚔️ Phát hiện Sếp đang mở [${appLabel}]! Em tự động chuyển sang Giao thức: ${curProtocol.name}!`);
@@ -443,9 +444,8 @@
     } catch(e) {}
   }
 
-  // Lắng nghe Quân sư YOLO-World khi đang chơi game / bật mắt quan sát
+  // Lắng nghe Quân sư YOLO-World khi đang chơi game (Đồng bộ hoạt ảnh, phát ngôn do pollSpeech đảm nhiệm)
   async function pollAdvisor() {
-    // Always-On: advisor luôn hoạt động bất kể nút 👁️
     try {
       const res = await fetch(BACKEND + '/api/advisor/latest');
       if (res.ok) {
@@ -455,11 +455,8 @@
           lastAdvisorEventId = evt.event_id;
           if (evt.type === 'known_situation') {
             setAnim('alert', 4000);
-            const sourceTag = evt.source === 'video_online_research' ? '📺 CẨM NANG VIDEO' : '⚔️ QUÂN SƯ';
-            showBubble(`[${evt.protocol_name.toUpperCase()}] ${sourceTag}: ${evt.advice}`);
           } else if (evt.type === 'new_learned_situation') {
             setAnim('bounce', 5000);
-            showBubble(`[TỰ HỌC PHIDATA] 🧠 Đã tra cứu tình huống: ${evt.trigger}\n➡ "${evt.advice}" (Đã nạp dataset cho YOLO-World)`);
           }
         }
       }

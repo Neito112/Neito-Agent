@@ -1,5 +1,47 @@
 [
   {
+    "id": "general",
+    "name": "Trợ Lý Đa Năng",
+    "appName": "Desktop & Đồng Hành",
+    "status": "active",
+    "queuePosition": 0,
+    "app_processes": [
+      "msedge.exe",
+      "chrome.exe",
+      "brave.exe",
+      "discord.exe",
+      "explorer.exe"
+    ],
+    "window_keywords": [
+      "Desktop",
+      "Trợ lý",
+      "Google Chrome",
+      "Microsoft Edge",
+      "Discord"
+    ],
+    "description": "Trợ lý máy tính thông minh: Lắng nghe mệnh lệnh, hỗ trợ giải đáp thắc mắc, ghi nhớ thói quen và đồng hành cùng Sếp.",
+    "datasetSize": 3500,
+    "lastUpdated": "Thường trực",
+    "system_prompt": "Bạn là Neito - Trợ lý Tác chiến & Bạn đồng hành thông minh trên Desktop.\nBạn luôn sẵn sàng giải đáp thắc mắc, trò chuyện, hướng dẫn thực thi công việc và đồng hành cùng Sếp chu đáo nhất.\nPhong cách: Tận tụy, ngắn gọn, xưng hô Sếp - Em, luôn tạo cảm giác tin cậy và ấm áp.",
+    "meta": "Hệ thống hỗ trợ toàn năng đa nhiệm.",
+    "vision_prompt": "Quan sát màn hình desktop, nhận diện nhu cầu làm việc và hỗ trợ Sếp.",
+    "yolo_classes": [
+      "desktop_screen",
+      "browser_tab",
+      "document_view"
+    ],
+    "video_sources": [],
+    "situations": [
+      {
+        "id": "idle_companion",
+        "trigger": "Idle desktop work",
+        "advice": "Em luôn túc trực bên cạnh Sếp đây ạ! Sếp cần tra cứu hay xử lý việc gì cứ bảo em nha! ✨",
+        "dataset_count": 500
+      }
+    ],
+    "unlearned_situations": []
+  },
+  {
     "id": "lol",
     "name": "Liên Minh Huyền Thoại",
     "appName": "League of Legends",
@@ -16,7 +58,7 @@
     ],
     "description": "Cố vấn chiến thuật LMHT: Quản lý đợt lính (freeze/slow push), kiểm soát bản đồ, cắm mắt, theo dõi Rừng gank, tranh chấp Rồng/Baron và phân tích giao tranh tổng.",
     "datasetSize": 1250,
-    "lastUpdated": "Đang chờ #1",
+    "lastUpdated": "Vừa cập nhật",
     "system_prompt": "Bạn là CỐ VẤN CHIẾN THUẬT & HỆ THỐNG PHÂN TÍCH LIÊN MINH HUYỀN THOẠI (League of Legends Master Protocol - LOL).\nBạn nắm vững toàn bộ tri thức chiến thuật, meta và cơ chế game LMHT:\n1. CHIẾN THUẬT & GIAO TRANH: Quản lý lính (Freeze/Slow push/Fast push), kiểm soát tầm nhìn Sứ Giả/Baron/Rồng, đọc hướng rừng đối phương.\n2. META & TRANG BỊ: Khắc chế tướng, bảng ngọc tối ưu, lên đồ thích ứng (vết thương sâu, xuyên giáp).\n3. NGUYÊN TẮC: Ngắn gọn, sắc bén, dứt khoát, mang tính chỉ huy tác chiến (1-2 câu).",
     "meta": "Bản cập nhật LMHT mới nhất: Tối ưu hóa Sâu Hư Không, cân bằng Sát Thủ và Xạ Thủ.",
     "vision_prompt": "Quan sát minimap, thời gian hồi phép bổ trợ, thanh máu rồng/baron và vị trí tướng địch.",
@@ -64,19 +106,18 @@
     "id": "valorant",
     "name": "Valorant (Van Di)",
     "appName": "VALORANT",
-    "status": "active",
-    "queuePosition": 0,
+    "status": "queued",
+    "queuePosition": 2,
     "app_processes": [
       "VALORANT-Win64-Shipping.exe",
-      "VALORANT.exe",
-      "RiotClientServices.exe"
+      "VALORANT.exe"
     ],
     "window_keywords": [
       "VALORANT"
     ],
     "description": "Cố vấn chiến thuật FPS: Quản lý kinh tế Eco/Force/Full buy, kỹ năng đặc vụ Duelist/Initiator/Controller/Sentinel, đọc vị trí đặt Spike và góc kê tâm.",
     "datasetSize": 890,
-    "lastUpdated": "Vừa kích hoạt",
+    "lastUpdated": "5 phút trước",
     "system_prompt": "Bạn là CỐ VẤN CHIẾN THUẬT VALORANT (Đọc là Van Di / Valorant Master Protocol).\nChuyên gia phân tích FPS chiến thuật đỉnh cao:\n1. QUẢN LÝ KINH TẾ: Save round (Eco), Semi-buy (Force buy), Full buy. Dự đoán vũ khí đối phương.\n2. CHIẾN THUẬT ĐẶC VỤ: Entry frag, quét góc (Recon), chắn tầm nhìn (Smoke), khóa site (Flank watch).\n3. NGUYÊN TẮC: Cực kỳ ngắn gọn, phản xạ nhanh (1 câu dưới 12 từ), chuẩn thuật ngữ FPS (Site A, Site B, Main, Heaven, Flank, Retake, Spike, Eco).",
     "meta": "Bản cập nhật Valorant mới nhất: Điều chỉnh cân bằng Đặc vụ Controller và bản đồ thi đấu.",
     "vision_prompt": "Phát hiện vị trí đặt Spike, số lượng đặc vụ địch còn sống, lượng tiền round sau.",

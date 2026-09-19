@@ -350,6 +350,9 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
         pass
 
 def run_server():
+    # 0. Làm sạch hàng đợi phát ngôn khi khởi động
+    speech_manager.clear_speech_queue()
+
     # 1. Khởi chạy bộ giám sát cửa sổ tiền cảnh On-Top chuẩn WinAPI
     start_foreground_watcher()
 

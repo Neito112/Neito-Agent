@@ -4,18 +4,103 @@ import json
 import time
 import subprocess
 import re
+import ctypes
+from ctypes import wintypes
 from typing import Optional, Dict, List, Tuple
 
 PROTOCOLS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'protocols_data.json')
 DATASETS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datasets')
 
+TH32CS_SNAPPROCESS = 0x00000002
+
+class PROCESSENTRY32(ctypes.Structure):
+    _fields_ = [
+        ("dwSize", wintypes.DWORD),
+        ("cntUsage", wintypes.DWORD),
+        ("th32ProcessID", wintypes.DWORD),
+        ("th32DefaultHeapID", ctypes.c_void_p),
+        ("th32ModuleID", wintypes.DWORD),
+        ("cntThreads", wintypes.DWORD),
+        ("th32ParentProcessID", wintypes.DWORD),
+        ("pcPriClassBase", wintypes.LONG),
+        ("dwFlags", wintypes.DWORD),
+        ("szExeFile", ctypes.c_char * 260)
+    ]
+
+def get_running_process_names() -> set:
+    """Quét cực nhanh (~2ms) danh sách các tiến trình thực sự đang chạy trên Windows."""
+    names = set()
+    try:
+        kernel32 = ctypes.windll.kernel32
+        hSnapshot = kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
+        if not hSnapshot or hSnapshot == -1:
+            return names
+        entry = PROCESSENTRY32()
+        entry.dwSize = ctypes.sizeof(PROCESSENTRY32)
+        if kernel32.Process32First(hSnapshot, ctypes.byref(entry)):
+            while True:
+                name = entry.szExeFile.decode('cp1252', errors='ignore').lower()
+                names.add(name)
+                if not kernel32.Process32Next(hSnapshot, ctypes.byref(entry)):
+                    break
+        kernel32.CloseHandle(hSnapshot)
+    except Exception:
+        pass
+    return names
+
+def is_protocol_app_running(proto: dict) -> bool:
+    """Kiểm tra xem app/game của giao thức có đang thực sự chạy trên máy hay không."""
+    if not proto:
+        return False
+    pid = proto.get("id")
+    if pid == "general":
+        return True
+    
+    app_procs = [p.lower() for p in proto.get("app_processes", [])]
+    if not app_procs:
+        return True
+    
+    running = get_running_process_names()
+    for ap in app_procs:
+        if ap in running:
+            return True
+    return False
+
 DEFAULT_PROTOCOLS = [
+    {
+        "id": "general",
+        "name": "Trợ Lý Đa Năng",
+        "appName": "Desktop & Đồng Hành",
+        "status": "active",
+        "queuePosition": 0,
+        "app_processes": ["msedge.exe", "chrome.exe", "brave.exe", "discord.exe", "explorer.exe"],
+        "window_keywords": ["Desktop", "Trợ lý", "Google Chrome", "Microsoft Edge", "Discord"],
+        "description": "Trợ lý máy tính thông minh: Lắng nghe mệnh lệnh, hỗ trợ giải đáp thắc mắc, ghi nhớ thói quen và đồng hành cùng Sếp.",
+        "datasetSize": 3500,
+        "lastUpdated": "Thường trực",
+        "system_prompt": """Bạn là Neito - Trợ lý Tác chiến & Bạn đồng hành thông minh trên Desktop.
+Bạn luôn sẵn sàng giải đáp thắc mắc, trò chuyện, hướng dẫn thực thi công việc và đồng hành cùng Sếp chu đáo nhất.
+Phong cách: Tận tụy, ngắn gọn, xưng hô Sếp - Em, luôn tạo cảm giác tin cậy và ấm áp.""",
+        "meta": "Hệ thống hỗ trợ toàn năng đa nhiệm.",
+        "vision_prompt": "Quan sát màn hình desktop, nhận diện nhu cầu làm việc và hỗ trợ Sếp.",
+        "yolo_classes": ["desktop_screen", "browser_tab", "document_view"],
+        "video_sources": [],
+        "situations": [
+            {
+                "id": "idle_companion",
+                "trigger": "Idle desktop work",
+                "advice": "Em luôn túc trực bên cạnh Sếp đây ạ! Sếp cần tra cứu hay xử lý việc gì cứ bảo em nha! ✨",
+                "dataset_count": 500
+            }
+        ],
+        "unlearned_situations": []
+    },
     {
         "id": "lol",
         "name": "Liên Minh Huyền Thoại",
         "appName": "League of Legends",
-        "status": "active",
-        "queuePosition": 0,
+        "status": "queued",
+        "queuePosition": 1,
         "app_processes": ["LeagueClientUx.exe", "LeagueClient.exe", "League of Legends.exe"],
         "window_keywords": ["League of Legends", "Liên Minh Huyền Thoại"],
         "description": "Cố vấn chiến thuật LMHT: Quản lý đợt lính (freeze/slow push), kiểm soát bản đồ, cắm mắt, theo dõi Rừng gank, tranh chấp Rồng/Baron và phân tích giao tranh tổng.",
@@ -66,8 +151,8 @@ Bạn nắm vững toàn bộ tri thức chiến thuật, meta và cơ chế gam
         "name": "Valorant (Van Di)",
         "appName": "VALORANT",
         "status": "queued",
-        "queuePosition": 1,
-        "app_processes": ["VALORANT-Win64-Shipping.exe", "VALORANT.exe", "RiotClientServices.exe"],
+        "queuePosition": 2,
+        "app_processes": ["VALORANT-Win64-Shipping.exe", "VALORANT.exe"],
         "window_keywords": ["VALORANT"],
         "description": "Cố vấn chiến thuật FPS: Quản lý kinh tế Eco/Force/Full buy, kỹ năng đặc vụ Duelist/Initiator/Controller/Sentinel, đọc vị trí đặt Spike và góc kê tâm.",
         "datasetSize": 890,
@@ -293,7 +378,6 @@ PROCESS_APP_MAP = {
     'league of legends.exe': 'lol',
     'valorant-win64-shipping.exe': 'valorant',
     'valorant.exe': 'valorant',
-    'riotclientservices.exe': 'valorant',
     'genshinimpact.exe': 'genshin',
     'yuanshen.exe': 'genshin',
     'cs2.exe': 'cs2',
@@ -303,9 +387,15 @@ PROCESS_APP_MAP = {
     'blender.exe': 'Blender 3D',
     'photoshop.exe': 'Adobe Photoshop',
     'premiere.exe': 'Adobe Premiere',
-    'code.exe': 'vscode',
-    'excel.exe': 'excel',
+    'code.exe': 'coding',
+    'cursor.exe': 'coding',
+    'excel.exe': 'office',
     'dota2.exe': 'dota_2',
+    'msedge.exe': 'general',
+    'chrome.exe': 'general',
+    'brave.exe': 'general',
+    'discord.exe': 'general',
+    'explorer.exe': 'general',
 }
 
 def match_protocol_by_window(proc_name: str, window_title: str) -> Optional[dict]:
