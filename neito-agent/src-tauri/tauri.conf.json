@@ -4,10 +4,10 @@
   "version": "0.1.0",
   "identifier": "com.neito.neito-agent",
   "build": {
-    "beforeDevCommand": "npm run build:ui",
-    "devUrl": null,
-    "beforeBuildCommand": "npm run build:ui",
-    "frontendDist": "../ui"
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
   },
   "app": {
     "windows": [
@@ -54,7 +54,9 @@
         "skipTaskbar": true
       }
     ],
-    "security": { "csp": null },
+    "security": {
+      "csp": null
+    },
     "withGlobalTauri": true
   },
   "bundle": {

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import "./index.css";
+import "./App.css";
 
 type ServerState = "checking" | "online" | "offline";
 
@@ -7,25 +7,27 @@ const BACKEND = "http://127.0.0.1:4242";
 
 function App() {
   const [isOpen, setIsOpen] = useState(false);
-  const [speech, setSpeech] = useState("Đang khởi động Neito Agent...");
+  const [speech, setSpeech] = useState("Khởi động Neito Agent...");
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [serverState, setServerState] = useState<ServerState>("checking");
   const inputRef = useRef<HTMLInputElement>(null);
-  const speechTimer = useRef<number | undefined>(undefined);
+  const speechTimer = useRef<number | null>(null);
 
   const showSpeech = useCallback((text: string) => {
     setSpeech(text);
     setIsSpeaking(true);
-    window.clearTimeout(speechTimer.current);
+    if (speechTimer.current) window.clearTimeout(speechTimer.current);
     speechTimer.current = window.setTimeout(() => setIsSpeaking(false), 7000);
   }, []);
 
   const checkServer = useCallback(async () => {
     try {
-      const response = await fetch(`${BACKEND}/api/status`, { signal: AbortSignal.timeout(2500) });
-      if (!response.ok) throw new Error("Backend returned an error");
+      const response = await fetch(`${BACKEND}/api/status`, {
+        signal: AbortSignal.timeout(2500),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       setServerState("online");
       return true;
     } catch {
@@ -36,11 +38,16 @@ function App() {
 
   useEffect(() => {
     void checkServer().then((online) => {
-      showSpeech(online
-        ? "Sếp ơi, Neito Agent đã sẵn sàng!"
-        : "Chưa kết nối được Brain Server. Hãy chạy start_app.bat.");
+      showSpeech(
+        online
+          ? "Sếp ơi, Neito Agent đã sẵn sàng!"
+          : "Chưa kết nối được Brain Server. Hãy chạy start_app.bat trước khi dùng."
+      );
     });
-    return () => window.clearTimeout(speechTimer.current);
+
+    return () => {
+      if (speechTimer.current) window.clearTimeout(speechTimer.current);
+    };
   }, [checkServer, showSpeech]);
 
   useEffect(() => {
@@ -53,28 +60,34 @@ function App() {
 
     setIsSending(true);
     setInputValue("");
-    showSpeech("🤖 Đang phân tích yêu cầu...");
+    showSpeech("🤖 Đang phân tích chiến lược...");
 
     try {
       const response = await fetch(`${BACKEND}/api/ask`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ prompt: question, question }),
         signal: AbortSignal.timeout(60000),
       });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json() as { answer?: string; reply?: string };
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = (await response.json()) as { answer?: string; reply?: string; message?: string };
+      const reply = data.answer ?? data.reply ?? data.message ?? "Neito đã ghi nhận yêu cầu của Sếp.";
       setServerState("online");
-      showSpeech(data.answer || data.reply || "Neito đã nhận yêu cầu của Sếp.");
+      showSpeech(reply);
     } catch {
       setServerState("offline");
-      showSpeech("Không kết nối được Brain Server. Kiểm tra logs/brain.log rồi thử lại.");
+      showSpeech("Không thể kết nối tới Brain Server. Kiểm tra logs/brain.log hoặc chạy lại app.");
     } finally {
       setIsSending(false);
     }
   };
 
-  const stateLabel = serverState === "online" ? "Online" : serverState === "offline" ? "Offline" : "Checking";
+  const stateLabel =
+    serverState === "online" ? "Online" : serverState === "offline" ? "Offline" : "Checking";
 
   return (
     <main className="companion-widget" data-tauri-drag-region>
@@ -103,14 +116,19 @@ function App() {
             if (event.key === "Escape") setIsOpen(false);
           }}
         />
-        <button className="action-btn" disabled={isSending || !inputValue.trim()} onClick={() => void sendCommand()}>
+        <button
+          type="button"
+          className="action-btn"
+          disabled={isSending || !inputValue.trim()}
+          onClick={() => void sendCommand()}
+        >
           {isSending ? "..." : "Gửi"}
         </button>
       </section>
 
       <button
-        className="avatar-sphere"
         type="button"
+        className="avatar-sphere"
         aria-label="Mở thanh lệnh Neito Agent"
         aria-expanded={isOpen}
         onClick={() => setIsOpen((open) => !open)}
