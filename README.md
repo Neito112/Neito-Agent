@@ -11,6 +11,67 @@ Neito Agent là ứng dụng **desktop companion chạy ưu tiên trên Windows*
 
 > Đây là dự án đang phát triển, chưa phải bộ cài độc lập. Lần chạy đầu tiên cần chuẩn bị các runtime bên dưới.
 
+## Luồng vận hành hệ thống
+
+Dưới đây là dạng sơ đồ bảng mô tả luồng chạy của Neito Agent từ khi khởi động đến khi trả lời / thực thi tác vụ:
+
+| Bước | Thành phần | Hành động | Kết quả |
+| --- | --- | --- | --- |
+| 1 | `start_app.bat` | Khởi động launcher Windows, tạo `venv`, cài đặt dependency Python/Node/Cargo nếu cần | Môi trường chạy được chuẩn bị sẵn |
+| 2 | `brain.py` | Mở Brain Server local trên `127.0.0.1:4242` | Hệ thống AI có sẵn API nhận yêu cầu |
+| 3 | `foreground_watcher.py` | Theo dõi cửa sổ đang active trên Windows qua Win32 | Biết người dùng đang làm việc với app/games nào |
+| 4 | `protocols_manager.py` | Khớp nền tảng hiện tại với protocol phù hợp | Agent biết đang ở trạng thái chiến thuật nào |
+| 5 | `neito_brain.py` | Tiếp nhận query, truy vấn bộ nhớ, chọn provider LLM, xác định intent | Tạo một kế hoạch xử lý logic |
+| 6 | `providers_manager.py` | Chuyển tiếp câu hỏi tới AGY / Ollama / OpenRouter / Gemini / custom endpoint | Có câu trả lời hoặc quyết định kỹ thuật |
+| 7 | `smolagents_hand.py` | Thực thi lệnh, đọc file, chạy Python, truy cập web nếu cần | Tác vụ hệ thống được thực hiện |
+| 8 | `memory.py` | Ghi câu hỏi, phản hồi, trải nghiệm, sở thích của người dùng | Hệ thống học và nhớ dần |
+| 9 | `vision.py` + `yolo_world_advisor.py` | Chụp cảnh và phân tích tình huống thị giác nếu có mô hình | Phát hiện cảnh báo / gợi ý chiến thuật |
+| 10 | `speech_manager.py` | Đưa câu trả lời, cảnh báo, SMS/voice queue vào bộ phát lời | Người dùng nghe hoặc thấy bubble phản hồi |
+| 11 | `neito-agent/src-tauri` | Hiển thị overlay, dashboard, tray, ghost pointer | Giao diện desktop tương tác trực tiếp với người dùng |
+
+### Luồng hỏi đáp theo kiểu “request → xử lý → phản hồi”
+
+| Giai đoạn | Mô tả |
+| --- | --- |
+| 1. Người dùng nhập lệnh | Chạy từ overlay, dashboard hoặc shell tương tác |
+| 2. Frontend gửi API | React/Tauri gọi `POST /api/ask` tới `brain.py` |
+| 3. Backend phân tích | `neito_brain.py` đọc bộ nhớ + context + protocol hiện tại |
+| 4. Chọn mô hình / provider | `providers_manager.py` lựa chọn backend LLM phù hợp |
+| 5. Thực thi nếu cần | Smolagents chạy tác vụ, mở file, chạy lệnh, kiếm thông tin |
+| 6. Tạo phản hồi | Trả về lời khuyên / hành động / câu trả lời theo định dạng phù hợp |
+| 7. Hiển thị UI | Speech bubble, dashboard, system tray, TTS, ghost pointer cập nhật dịp cần |
+
+### Luồng tự động nhận diện ứng dụng
+
+| Bước | Thành phần | Hoạt động |
+| --- | --- | --- |
+| 1 | `foreground_watcher.py` | Lấy tên tiến trình / tiêu đề cửa sổ đang active |
+| 2 | `protocols_manager.py` | So sánh với danh sách game / app đã biết |
+| 3 | `protocols_data.json` | Lấy protocol và mục tiêu tương ứng |
+| 4 | `yolo_world_advisor.py` | Theo dõi cảnh màn hình, xác định tình huống bất thường |
+| 5 | `speech_manager.py` | Gửi cảnh báo hoặc phản hồi tức thời cho overlay |
+
+### Sơ đồ tổng quan
+
+```text
+Người dùng / overlay / dashboard
+          ↓
+Tauri UI (React + Rust)
+          ↓
+HTTP API localhost:4242 (brain.py)
+          ↓
+neito_brain.py
+  ├─ đọc memory
+  ├─ xác định protocol hiện tại
+  ├─ chọn provider LLM
+  ├─ gọi Smolagents nếu cần
+  └─ ra quyết định / phản hồi
+          ↓
+Speech + Dashboard + TTS + Ghost pointer
+          ↓
+Bộ nhớ + phân tích thị giác / tình huống
+```
+
 ## Hệ điều hành hỗ trợ
 
 - Windows 10/11 64-bit.
@@ -98,120 +159,3 @@ Hoặc tải ZIP từ GitHub rồi giải nén vào thư mục bạn có quyền
 Từ thư mục gốc của dự án, nhấp đúp:
 
 ```text
-start_app.bat
-```
-
-Hoặc chạy từ CMD:
-
-```cmd
-start_app.bat
-```
-
-Launcher sẽ tự động:
-
-1. Tạo môi trường Python cục bộ tại `venv`.
-2. Cài các package trong `requirements.txt`.
-3. Cài package frontend tại `neito-agent/node_modules` bằng `npm install`.
-4. Kiểm tra Python, Node.js/npm và Cargo.
-5. Khởi động Brain Server tại `http://127.0.0.1:4242`.
-6. Chờ backend sẵn sàng rồi mở Tauri UI.
-
-Các package của dự án được cài trong thư mục dự án, không cài vào Python global. Launcher **không tự cài Python, Node.js, Rust hoặc C++ Build Tools**; các runtime này phải được cài trước theo hướng dẫn trên.
-
-## Cấu hình LLM
-
-Mặc định, dự án có thể sử dụng **AGY CLI** theo `model_config.json`. Nếu máy chưa có AGY CLI, hãy mở Dashboard và chọn provider khác, ví dụ:
-
-- **Ollama**: cần cài Ollama và tải model local.
-- **Gemini/OpenRouter/Nous**: cần API key hợp lệ.
-- **Custom**: cần một endpoint OpenAI-compatible đang chạy.
-
-Không commit API key vào Git. Nên lưu secret bằng biến môi trường hoặc cấu hình local chưa được theo dõi bởi Git.
-
-## Chạy thủ công
-
-### Backend
-
-```cmd
-python -m venv venv
-call venv\Scripts\activate.bat
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-python -u brain.py
-```
-
-### Frontend/Tauri
-
-Mở một cửa sổ CMD khác:
-
-```cmd
-cd neito-agent
-npm install
-npm run tauri:dev
-```
-
-Nếu chỉ muốn chạy giao diện web:
-
-```cmd
-cd neito-agent
-npm run dev
-```
-
-## Thư mục runtime tạo ra khi chạy
-
-```text
-venv/                 Môi trường Python cục bộ
-neito-agent/node_modules/  Package Node.js cục bộ
-logs/                 Log của Brain Server
-pet_memories.db      Cơ sở dữ liệu ký ức SQLite
-*.pt                 Model YOLO tải về nếu bật Vision
-```
-
-Không xóa `venv` hoặc `node_modules` nếu chưa muốn cài lại. Có thể xóa chúng để làm sạch môi trường rồi chạy lại `start_app.bat`.
-
-## Xử lý lỗi thường gặp
-
-### Cửa sổ không mở
-
-1. Kiểm tra `logs\brain.log`.
-2. Chạy `python --version`, `node --version`, `cargo --version`.
-3. Đảm bảo đã cài Desktop development with C++.
-4. Đảm bảo WebView2 Runtime đã cài.
-5. Chạy `start_app.bat` từ CMD để đọc thông báo lỗi.
-
-### Brain Server không phản hồi
-
-Kiểm tra cổng `4242` có bị chương trình khác sử dụng không. Đóng phiên Neito cũ rồi chạy lại launcher.
-
-### Lỗi cài package Python hoặc Node.js
-
-- Kiểm tra kết nối Internet.
-- Không dùng VPN/proxy chặn PyPI hoặc npm.
-- Thử xóa `venv` hoặc `neito-agent\node_modules`, sau đó chạy lại launcher.
-
-## Cấu trúc chính
-
-```text
-Neito-Agent/
-├── brain.py                 Brain Server local
-├── neito_brain.py           Bộ điều phối LLM
-├── providers_manager.py     Quản lý provider/model
-├── smolagents_hand.py       Công cụ thực thi tác vụ
-├── memory.py                SQLite memory
-├── vision.py                Vision engine
-├── requirements.txt         Python dependencies
-├── start_app.bat            Launcher Windows tự cài package
-├── neito-agent/
-│   ├── src/                 React overlay
-│   ├── ui/                  Dashboard và các UI legacy/local assets
-│   └── src-tauri/           Tauri/Rust desktop shell
-└── tests/                   Một số smoke/unit tests
-```
-
-## Trạng thái dự án
-
-Dự án đang phát triển. Các tính năng AI, Vision, Tauri overlay và dashboard có thể yêu cầu cấu hình riêng tùy máy. Launcher giúp tự động hóa cài đặt package, nhưng không thay thế việc cài các runtime hệ thống hoặc cấu hình provider/API key.
-
-## Giấy phép
-
-MIT License. Xem [LICENSE](LICENSE).
