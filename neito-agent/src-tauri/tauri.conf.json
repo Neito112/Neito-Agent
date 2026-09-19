@@ -1,12 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "neito-agent",
+  "productName": "Neito Agent",
   "version": "0.1.0",
   "identifier": "com.neito.neito-agent",
   "build": {
-    "beforeDevCommand": "",
+    "beforeDevCommand": "npm run build:ui",
     "devUrl": null,
-    "beforeBuildCommand": "",
+    "beforeBuildCommand": "npm run build:ui",
     "frontendDist": "../ui"
   },
   "app": {
@@ -17,6 +17,8 @@
         "url": "index.html",
         "width": 340,
         "height": 460,
+        "minWidth": 280,
+        "minHeight": 220,
         "transparent": true,
         "decorations": false,
         "alwaysOnTop": true,
@@ -31,6 +33,8 @@
         "url": "dashboard.html",
         "width": 1000,
         "height": 720,
+        "minWidth": 760,
+        "minHeight": 520,
         "decorations": false,
         "resizable": true,
         "visible": false,
@@ -50,9 +54,7 @@
         "skipTaskbar": true
       }
     ],
-    "security": {
-      "csp": null
-    },
+    "security": { "csp": null },
     "withGlobalTauri": true
   },
   "bundle": {
