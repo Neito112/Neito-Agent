@@ -43,6 +43,19 @@ def get_character_list():
             if os.path.isdir(cdir):
                 thumb = None
                 kind = 'image'
+                is_live2d = False
+                model3_path = None
+                
+                # Kiểm tra Live2D model3.json
+                for fname in os.listdir(cdir):
+                    if fname.endswith('.model3.json') or fname == 'model3.json':
+                        is_live2d = True
+                        model3_path = f'assets/characters/{name}/{fname}'
+                        break
+
+                is_sprite_vtuber = os.path.exists(os.path.join(cdir, 'idle.svg')) or os.path.exists(os.path.join(cdir, 'talk.svg'))
+                is_vtuber = is_live2d or is_sprite_vtuber
+
                 for ext in ['.svg', '.gif', '.png', '.webp', '.jpg']:
                     candidate = os.path.join(cdir, 'default' + ext)
                     if os.path.exists(candidate):
@@ -64,6 +77,9 @@ def get_character_list():
                     'name': name,
                     'path': thumb if thumb else f'assets/characters/{name}',
                     'kind': kind,
+                    'is_vtuber': is_vtuber,
+                    'is_live2d': is_live2d,
+                    'model3_path': model3_path,
                     'is_default': (name == 'panda'),
                     'soul': soul_preview
                 })
@@ -150,7 +166,13 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
             # Tự động đẩy phản hồi vào Speech Queue để Pet phát ngôn
             answer_text = result.get('answer') or result.get('reply') or ''
             if answer_text:
-                enqueue_speech(answer_text, emotion=result.get('emotion', 'happy'), source='chat', force=True)
+                enqueue_speech(
+                    answer_text,
+                    emotion=result.get('emotion', 'happy'),
+                    source='chat',
+                    force=True,
+                    attention_point=result.get('guide_point')
+                )
 
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
@@ -162,12 +184,27 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
             text = data.get('text', '')
             emotion = data.get('emotion', 'happy')
             force = data.get('force', True)
-            evt = enqueue_speech(text, emotion=emotion, source='api', force=force)
+            attn_point = data.get('attention_point')
+            evt = enqueue_speech(text, emotion=emotion, source='api', force=force, attention_point=attn_point)
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(json.dumps({'success': bool(evt), 'event': evt}, ensure_ascii=False).encode('utf-8'))
+
+        elif self.path == '/api/pet/glide':
+            x = float(data.get('x', 960))
+            y = float(data.get('y', 540))
+            text = data.get('text', 'Sếp ơi chú ý vị trí này nhé! ✨')
+            dur = int(data.get('duration_ms', 650))
+            ret = int(data.get('return_after_ms', 3500))
+            attn_point = {'x': x, 'y': y, 'duration_ms': dur, 'return_after_ms': ret}
+            evt = enqueue_speech(text, emotion='alert', source='locomotion', force=True, attention_point=attn_point)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True, 'event': evt, 'attention_point': attn_point}, ensure_ascii=False).encode('utf-8'))
 
         elif self.path == '/api/yolo':
             YOLO_ACTIVE = data.get('active', not YOLO_ACTIVE)

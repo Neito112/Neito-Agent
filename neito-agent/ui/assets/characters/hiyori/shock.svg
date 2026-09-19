@@ -1,0 +1,73 @@
+<svg width="220" height="240" viewBox="0 0 220 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skinGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff5eb"/>
+      <stop offset="100%" stop-color="#fed7aa"/>
+    </linearGradient>
+    <linearGradient id="hairGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Shivering Trembling Shock Animation -->
+  <g id="vtuber-shock-body">
+    <animateTransform attributeName="transform" type="translate" values="-2,0; 2,0; -1,1; 1,-1; 0,0" dur="0.12s" repeatCount="indefinite"/>
+
+    <!-- Hair Back Twin Tails -->
+    <path d="M45 105 C18 130 12 180 32 210 C48 185 54 145 60 115 Z" fill="url(#hairGrad)" opacity="0.95"/>
+    <path d="M175 105 C202 130 208 180 188 210 C172 185 166 145 160 115 Z" fill="url(#hairGrad)" opacity="0.95"/>
+
+    <!-- Collar -->
+    <path d="M100 160 L120 160 L125 185 L95 185 Z" fill="url(#skinGrad)"/>
+    <path d="M85 180 L135 180 L145 235 L75 235 Z" fill="#0f172a"/>
+    <path d="M98 180 L110 195 L122 180 L110 215 Z" fill="#ef4444"/>
+    <circle cx="110" cy="188" r="4" fill="#fbbf24"/>
+
+    <!-- Head / Face -->
+    <path d="M60 90 C60 50 160 50 160 90 C160 135 140 168 110 168 C80 168 60 135 60 90 Z" fill="url(#skinGrad)"/>
+
+    <!-- Pale Shock Forehead Lines -->
+    <path d="M85 62 L85 82 M95 60 L95 85 M105 58 L105 85 M115 58 L115 85 M125 60 L125 85 M135 62 L135 82" stroke="#3b82f6" stroke-width="2" opacity="0.55"/>
+
+    <!-- WIDE SHOCKED EYES (Tiny dilated pupils) -->
+    <g id="shock-eyes">
+      <ellipse cx="85" cy="110" rx="14" ry="16" fill="#ffffff" stroke="#0f172a" stroke-width="2.5"/>
+      <circle cx="85" cy="110" r="4.5" fill="#0284c7">
+        <animate attributeName="r" values="3.5;5;3.5" dur="0.25s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="85" cy="110" r="2.5" fill="#0f172a"/>
+
+      <ellipse cx="135" cy="110" rx="14" ry="16" fill="#ffffff" stroke="#0f172a" stroke-width="2.5"/>
+      <circle cx="135" cy="110" r="4.5" fill="#0284c7">
+        <animate attributeName="r" values="3.5;5;3.5" dur="0.25s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="135" cy="110" r="2.5" fill="#0f172a"/>
+    </g>
+
+    <!-- Slanted Worried Eyebrows -->
+    <path d="M72 88 Q82 95 94 98" stroke="#be123c" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <path d="M148 88 Q138 95 126 98" stroke="#be123c" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+
+    <!-- Gasping Open Mouth (O) -->
+    <ellipse cx="110" cy="145" rx="6" ry="9" fill="#0f172a" stroke="#be123c" stroke-width="1.8"/>
+
+    <!-- Giant Anime Sweat Drop (Dripping Animation) -->
+    <path d="M158 85 C158 85 168 98 168 106 C168 112 163 116 158 116 C153 116 148 112 148 106 C148 98 158 85 158 85 Z" fill="#38bdf8" opacity="0.9">
+      <animateTransform attributeName="transform" type="translate" values="0,0; 0,10; 0,22" dur="0.9s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.9;0.9;0" dur="0.9s" repeatCount="indefinite"/>
+    </path>
+
+    <!-- Bangs & Front Hair -->
+    <path d="M52 82 C55 35 165 35 168 82 C168 95 158 105 152 95 C146 85 142 80 135 88 C128 95 125 105 120 90 C115 80 105 80 100 90 C95 105 92 95 85 88 C78 80 74 85 68 95 C62 105 52 95 52 82 Z" fill="url(#hairGrad)"/>
+    <path d="M50 82 C45 110 50 140 55 155 C57 140 56 110 58 85 Z" fill="url(#hairGrad)"/>
+    <path d="M170 82 C175 110 170 140 165 155 C163 140 164 110 162 85 Z" fill="url(#hairGrad)"/>
+
+    <!-- Ribbons -->
+    <circle cx="58" cy="98" r="8" fill="#ef4444"/>
+    <circle cx="162" cy="98" r="8" fill="#ef4444"/>
+
+    <!-- Stiff Upright Ahoge -->
+    <path d="M110 42 Q105 15 110 10 Q118 20 114 42 Z" fill="#e11d48"/>
+  </g>
+</svg>

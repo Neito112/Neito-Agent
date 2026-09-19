@@ -138,6 +138,52 @@ fn trigger_ghost_pointer(app: tauri::AppHandle, target_x: f64, target_y: f64) {
     });
 }
 
+#[tauri::command]
+fn glide_pet_to(app: tauri::AppHandle, target_x: f64, target_y: f64, duration_ms: Option<u64>, return_after_ms: Option<u64>) {
+    std::thread::spawn(move || {
+        if let Some(main_win) = app.get_webview_window("main") {
+            let (start_x, start_y) = if let Ok(pos) = main_win.outer_position() {
+                let scale = main_win.scale_factor().unwrap_or(1.0);
+                (pos.x as f64 / scale, pos.y as f64 / scale)
+            } else {
+                return;
+            };
+
+            let dur = duration_ms.unwrap_or(600);
+            let steps = (dur / 16).max(10) as usize;
+            
+            // Bay den vi tri chu y (offset -120px de khong che khuat diem can xem)
+            let dest_x = (target_x - 120.0).max(0.0);
+            let dest_y = (target_y - 120.0).max(0.0);
+
+            for i in 1..=steps {
+                let t = i as f64 / steps as f64;
+                let ease = 1.0 - (1.0 - t).powi(3);
+                let cur_x = start_x + (dest_x - start_x) * ease;
+                let cur_y = start_y + (dest_y - start_y) * ease;
+                let _ = main_win.set_position(tauri::Position::Logical(tauri::LogicalPosition::new(cur_x, cur_y)));
+                std::thread::sleep(std::time::Duration::from_millis(16));
+            }
+
+            // Dung tai vi tri chu y de huong dan
+            let hold_ms = return_after_ms.unwrap_or(3500);
+            if hold_ms > 0 {
+                std::thread::sleep(std::time::Duration::from_millis(hold_ms));
+
+                // Luot tro ve vi tri ban dau
+                for i in 1..=steps {
+                    let t = i as f64 / steps as f64;
+                    let ease = 1.0 - (1.0 - t).powi(3);
+                    let cur_x = dest_x + (start_x - dest_x) * ease;
+                    let cur_y = dest_y + (start_y - dest_y) * ease;
+                    let _ = main_win.set_position(tauri::Position::Logical(tauri::LogicalPosition::new(cur_x, cur_y)));
+                    std::thread::sleep(std::time::Duration::from_millis(16));
+                }
+            }
+        }
+    });
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -219,7 +265,8 @@ pub fn run() {
             start_drag,
             trigger_ghost_pointer,
             move_window_by,
-            reset_pet_position
+            reset_pet_position,
+            glide_pet_to
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

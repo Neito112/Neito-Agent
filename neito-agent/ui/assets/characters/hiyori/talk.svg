@@ -1,0 +1,108 @@
+<svg width="220" height="240" viewBox="0 0 220 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skinGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff5eb"/>
+      <stop offset="100%" stop-color="#fed7aa"/>
+    </linearGradient>
+    <linearGradient id="hairGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </linearGradient>
+    <linearGradient id="eyeGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Group Body with Talking Bobbing Animation -->
+  <g id="vtuber-talk-body">
+    <animateTransform attributeName="transform" type="translate" values="0,0; 0,-5; 0,-1; 0,-4; 0,0" dur="0.8s" repeatCount="indefinite" ease="ease-in-out"/>
+
+    <!-- Hair Back Twin Tails with lively sway -->
+    <path d="M45 105 C20 130 15 180 35 210 C50 185 55 145 60 115 Z" fill="url(#hairGrad)" opacity="0.95">
+      <animateTransform attributeName="transform" type="rotate" values="0 60 115; 4 60 115; 0 60 115" dur="0.8s" repeatCount="indefinite"/>
+    </path>
+    <path d="M175 105 C200 130 205 180 185 210 C170 185 165 145 160 115 Z" fill="url(#hairGrad)" opacity="0.95">
+      <animateTransform attributeName="transform" type="rotate" values="0 160 115; -4 160 115; 0 160 115" dur="0.8s" repeatCount="indefinite"/>
+    </path>
+
+    <!-- Collar -->
+    <path d="M100 160 L120 160 L125 185 L95 185 Z" fill="url(#skinGrad)"/>
+    <path d="M85 180 L135 180 L145 235 L75 235 Z" fill="#0f172a"/>
+    <path d="M98 180 L110 195 L122 180 L110 215 Z" fill="#38bdf8"/>
+    <circle cx="110" cy="188" r="4" fill="#fbbf24"/>
+
+    <!-- Head / Face -->
+    <path d="M60 90 C60 50 160 50 160 90 C160 135 140 168 110 168 C80 168 60 135 60 90 Z" fill="url(#skinGrad)"/>
+
+    <!-- Excited Blush Cheeks -->
+    <ellipse cx="78" cy="125" rx="10" ry="6" fill="#f43f5e" opacity="0.55"/>
+    <ellipse cx="142" cy="125" rx="10" ry="6" fill="#f43f5e" opacity="0.55"/>
+
+    <!-- Wide Awake Talking Eyes -->
+    <g id="eyes-talk">
+      <g>
+        <ellipse cx="85" cy="108" rx="11" ry="14.5" fill="#0f172a"/>
+        <ellipse cx="85" cy="110" rx="9.5" ry="12" fill="url(#eyeGrad)"/>
+        <circle cx="82" cy="104" r="4.5" fill="#ffffff"/>
+        <circle cx="88" cy="114" r="2.5" fill="#ffffff"/>
+        <path d="M72 102 Q85 94 98 100" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+      </g>
+      <g>
+        <ellipse cx="135" cy="108" rx="11" ry="14.5" fill="#0f172a"/>
+        <ellipse cx="135" cy="110" rx="9.5" ry="12" fill="url(#eyeGrad)"/>
+        <circle cx="132" cy="104" r="4.5" fill="#ffffff"/>
+        <circle cx="138" cy="114" r="2.5" fill="#ffffff"/>
+        <path d="M122 100 Q135 94 148 102" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+      </g>
+    </g>
+
+    <!-- Eyebrows (Expressive) -->
+    <path d="M76 92 Q85 88 94 93" stroke="#be123c" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+    <path d="M126 93 Q135 88 144 92" stroke="#be123c" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+
+    <!-- Nose -->
+    <circle cx="110" cy="127" r="1.5" fill="#ea580c" opacity="0.6"/>
+
+    <!-- TALKING MOUTH (Mouth Opening & Closing Animation) -->
+    <g id="talking-mouth">
+      <!-- Mouth Cavity -->
+      <ellipse cx="110" cy="144" rx="7" ry="6" fill="#881337">
+        <animate attributeName="ry" values="2;7;3;8;2" dur="0.32s" repeatCount="indefinite"/>
+        <animate attributeName="rx" values="6;8;5;9;6" dur="0.32s" repeatCount="indefinite"/>
+      </ellipse>
+      <!-- Tongue inside -->
+      <ellipse cx="110" cy="147" rx="4.5" ry="3.5" fill="#fb7185">
+        <animate attributeName="ry" values="1;3.5;1.5;4;1" dur="0.32s" repeatCount="indefinite"/>
+      </ellipse>
+      <!-- Top Lip Line -->
+      <path d="M102 140 Q110 144 118 140" stroke="#be123c" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+    </g>
+
+    <!-- Bangs & Front Hair -->
+    <path d="M52 82 C55 35 165 35 168 82 C168 95 158 105 152 95 C146 85 142 80 135 88 C128 95 125 105 120 90 C115 80 105 80 100 90 C95 105 92 95 85 88 C78 80 74 85 68 95 C62 105 52 95 52 82 Z" fill="url(#hairGrad)"/>
+    <path d="M50 82 C45 110 50 140 55 155 C57 140 56 110 58 85 Z" fill="url(#hairGrad)"/>
+    <path d="M170 82 C175 110 170 140 165 155 C163 140 164 110 162 85 Z" fill="url(#hairGrad)"/>
+
+    <!-- Ribbons -->
+    <circle cx="58" cy="98" r="8" fill="#38bdf8"/>
+    <circle cx="162" cy="98" r="8" fill="#38bdf8"/>
+
+    <!-- Ahoge Lively Sway -->
+    <path d="M110 42 Q115 20 132 18 Q120 26 114 42 Z" fill="#e11d48">
+      <animateTransform attributeName="transform" type="rotate" values="0 110 42; 10 110 42; -8 110 42; 0 110 42" dur="0.6s" repeatCount="indefinite"/>
+    </path>
+  </g>
+
+  <!-- Talking Sound Sparkles -->
+  <g fill="#38bdf8" opacity="0.85">
+    <circle cx="178" cy="70" r="3">
+      <animate attributeName="opacity" values="0.2;1;0.2" dur="0.8s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="2;4.5;2" dur="0.8s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="42" cy="80" r="2.5">
+      <animate attributeName="opacity" values="1;0.2;1" dur="0.8s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="4;2;4" dur="0.8s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>

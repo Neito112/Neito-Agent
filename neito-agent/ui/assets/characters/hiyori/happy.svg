@@ -1,0 +1,78 @@
+<svg width="220" height="240" viewBox="0 0 220 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skinGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff5eb"/>
+      <stop offset="100%" stop-color="#fed7aa"/>
+    </linearGradient>
+    <linearGradient id="hairGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Happy Bouncing Hop Animation -->
+  <g id="vtuber-happy-body">
+    <animateTransform attributeName="transform" type="translate" values="0,0; 0,-14; 0,0" dur="0.45s" repeatCount="indefinite" ease="ease-out"/>
+
+    <!-- Hair Back Twin Tails bouncing happily -->
+    <path d="M45 105 C15 125 10 175 30 205 C48 180 54 140 60 115 Z" fill="url(#hairGrad)" opacity="0.95">
+      <animateTransform attributeName="transform" type="rotate" values="0 60 115; 10 60 115; 0 60 115" dur="0.45s" repeatCount="indefinite"/>
+    </path>
+    <path d="M175 105 C205 125 210 175 190 205 C172 180 166 140 160 115 Z" fill="url(#hairGrad)" opacity="0.95">
+      <animateTransform attributeName="transform" type="rotate" values="0 160 115; -10 160 115; 0 160 115" dur="0.45s" repeatCount="indefinite"/>
+    </path>
+
+    <!-- Collar -->
+    <path d="M100 160 L120 160 L125 185 L95 185 Z" fill="url(#skinGrad)"/>
+    <path d="M85 180 L135 180 L145 235 L75 235 Z" fill="#0f172a"/>
+    <path d="M98 180 L110 195 L122 180 L110 215 Z" fill="#38bdf8"/>
+    <circle cx="110" cy="188" r="4" fill="#fbbf24"/>
+
+    <!-- Head / Face -->
+    <path d="M60 90 C60 50 160 50 160 90 C160 135 140 168 110 168 C80 168 60 135 60 90 Z" fill="url(#skinGrad)"/>
+
+    <!-- Glowing Heart Blush -->
+    <ellipse cx="76" cy="125" rx="12" ry="7" fill="#f43f5e" opacity="0.6"/>
+    <ellipse cx="144" cy="125" rx="12" ry="7" fill="#f43f5e" opacity="0.6"/>
+
+    <!-- HAPPY ARCH EYES (^ ^) -->
+    <path d="M72 112 Q85 96 98 112" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+    <path d="M70 113 Q85 93 100 113" stroke="#e11d48" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    <path d="M122 112 Q135 96 148 112" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+    <path d="M120 113 Q135 93 150 113" stroke="#e11d48" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+
+    <!-- Eyebrows (High & Delighted) -->
+    <path d="M74 90 Q85 84 96 90" stroke="#be123c" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M124 90 Q135 84 146 90" stroke="#be123c" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+
+    <!-- Wide Joyful Open Mouth -->
+    <path d="M100 136 Q110 132 120 136 Q110 156 100 136 Z" fill="#be123c"/>
+    <path d="M104 144 Q110 140 116 144 Q110 152 104 144 Z" fill="#fb7185"/>
+
+    <!-- Bangs & Front Hair -->
+    <path d="M52 82 C55 35 165 35 168 82 C168 95 158 105 152 95 C146 85 142 80 135 88 C128 95 125 105 120 90 C115 80 105 80 100 90 C95 105 92 95 85 88 C78 80 74 85 68 95 C62 105 52 95 52 82 Z" fill="url(#hairGrad)"/>
+    <path d="M50 82 C45 110 50 140 55 155 C57 140 56 110 58 85 Z" fill="url(#hairGrad)"/>
+    <path d="M170 82 C175 110 170 140 165 155 C163 140 164 110 162 85 Z" fill="url(#hairGrad)"/>
+
+    <!-- Ribbons -->
+    <circle cx="58" cy="98" r="8" fill="#38bdf8"/>
+    <circle cx="162" cy="98" r="8" fill="#38bdf8"/>
+
+    <!-- Ahoge Fast Bouncing -->
+    <path d="M110 42 Q118 16 136 14 Q122 24 114 42 Z" fill="#e11d48">
+      <animateTransform attributeName="transform" type="rotate" values="0 110 42; 15 110 42; -12 110 42; 0 110 42" dur="0.45s" repeatCount="indefinite"/>
+    </path>
+  </g>
+
+  <!-- Floating Hearts for Happy State -->
+  <g fill="#f43f5e">
+    <path d="M30 65 Q30 55 40 55 Q50 55 50 65 Q50 75 40 85 Q30 75 30 65 Z" opacity="0.8">
+      <animateTransform attributeName="transform" type="translate" values="0,0; -4,-18; -8,-36" dur="1.2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.8;1;0" dur="1.2s" repeatCount="indefinite"/>
+    </path>
+    <path d="M170 60 Q170 50 180 50 Q190 50 190 60 Q190 70 180 80 Q170 70 170 60 Z" opacity="0.8">
+      <animateTransform attributeName="transform" type="translate" values="0,0; 5,-16; 10,-32" dur="1.4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.8;1;0" dur="1.4s" repeatCount="indefinite"/>
+    </path>
+  </g>
+</svg>

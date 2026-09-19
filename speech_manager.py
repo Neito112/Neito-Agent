@@ -126,7 +126,7 @@ def generate_tts_bytes(text: str) -> Optional[bytes]:
 SPEECH_QUEUE: List[Dict[str, Any]] = []
 LATEST_SPEECH_EVENT: Optional[Dict[str, Any]] = None
 
-def enqueue_speech(text: str, emotion: str = 'happy', source: str = 'advisor', force: bool = False) -> Optional[Dict[str, Any]]:
+def enqueue_speech(text: str, emotion: str = 'happy', source: str = 'advisor', force: bool = False, attention_point: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
     global LATEST_SPEECH_EVENT
     if not text or not text.strip():
         return None
@@ -144,6 +144,7 @@ def enqueue_speech(text: str, emotion: str = 'happy', source: str = 'advisor', f
         "spoken_text": normalize_for_vietnamese_speech(clean_text),
         "emotion": emotion,
         "source": source,
+        "attention_point": attention_point,
         "timestamp": time.time()
     }
     

@@ -1,0 +1,70 @@
+<svg width="220" height="240" viewBox="0 0 220 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skinGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff5eb"/>
+      <stop offset="100%" stop-color="#fed7aa"/>
+    </linearGradient>
+    <linearGradient id="hairGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </linearGradient>
+    <linearGradient id="eyeGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+  </defs>
+
+  <g id="vtuber-wave-body">
+    <animateTransform attributeName="transform" type="rotate" values="-1.5 110 240; 1.5 110 240; -1.5 110 240" dur="1.2s" repeatCount="indefinite" ease="ease-in-out"/>
+
+    <path d="M45 105 C20 130 15 180 35 210 C50 185 55 145 60 115 Z" fill="url(#hairGrad)" opacity="0.95"/>
+    <path d="M175 105 C200 130 205 180 185 210 C170 185 165 145 160 115 Z" fill="url(#hairGrad)" opacity="0.95"/>
+
+    <path d="M100 160 L120 160 L125 185 L95 185 Z" fill="url(#skinGrad)"/>
+    <path d="M85 180 L135 180 L145 235 L75 235 Z" fill="#0f172a"/>
+    <path d="M98 180 L110 195 L122 180 L110 215 Z" fill="#38bdf8"/>
+    <circle cx="110" cy="188" r="4" fill="#fbbf24"/>
+
+    <path d="M60 90 C60 50 160 50 160 90 C160 135 140 168 110 168 C80 168 60 135 60 90 Z" fill="url(#skinGrad)"/>
+
+    <ellipse cx="78" cy="125" rx="9" ry="5" fill="#f43f5e" opacity="0.5"/>
+    <ellipse cx="142" cy="125" rx="9" ry="5" fill="#f43f5e" opacity="0.5"/>
+
+    <path d="M74 112 Q85 100 96 112" stroke="#0f172a" stroke-width="3.8" stroke-linecap="round" fill="none"/>
+    <path d="M124 112 Q135 100 146 112" stroke="#0f172a" stroke-width="3.8" stroke-linecap="round" fill="none"/>
+    <circle cx="85" cy="115" r="2" fill="#38bdf8"/>
+    <circle cx="135" cy="115" r="2" fill="#38bdf8"/>
+
+    <path d="M76 92 Q85 86 94 92" stroke="#be123c" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+    <path d="M126 92 Q135 86 144 92" stroke="#be123c" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+
+    <path d="M103 140 Q110 148 117 140" stroke="#be123c" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <ellipse cx="110" cy="143" rx="4" ry="2.5" fill="#fb7185"/>
+
+    <path d="M52 82 C55 35 165 35 168 82 C168 95 158 105 152 95 C146 85 142 80 135 88 C128 95 125 105 120 90 C115 80 105 80 100 90 C95 105 92 95 85 88 C78 80 74 85 68 95 C62 105 52 95 52 82 Z" fill="url(#hairGrad)"/>
+    <path d="M50 82 C45 110 50 140 55 155 C57 140 56 110 58 85 Z" fill="url(#hairGrad)"/>
+    <path d="M170 82 C175 110 170 140 165 155 C163 140 164 110 162 85 Z" fill="url(#hairGrad)"/>
+
+    <circle cx="58" cy="98" r="8" fill="#38bdf8"/>
+    <circle cx="162" cy="98" r="8" fill="#38bdf8"/>
+
+    <path d="M110 42 Q105 10 88 16 Q100 24 107 38 Z" fill="url(#hairGrad)"/>
+
+    <g id="waving-arm">
+      <animateTransform attributeName="transform" type="rotate" values="0 155 190; 22 155 190; -8 155 190; 18 155 190; 0 155 190" dur="1s" repeatCount="indefinite" ease="ease-in-out"/>
+      <path d="M142 195 L175 165 L186 175 L150 210 Z" fill="#0f172a"/>
+      <path d="M170 160 L185 174 L178 180 L163 166 Z" fill="#38bdf8"/>
+      <ellipse cx="188" cy="155" rx="8" ry="9" fill="url(#skinGrad)"/>
+      <ellipse cx="184" cy="148" rx="3.5" ry="5" fill="url(#skinGrad)"/>
+      <ellipse cx="190" cy="147" rx="3.5" ry="5.5" fill="url(#skinGrad)"/>
+      <ellipse cx="195" cy="150" rx="3.5" ry="5" fill="url(#skinGrad)"/>
+      <ellipse cx="181" cy="158" rx="4" ry="4" fill="url(#skinGrad)"/>
+    </g>
+
+    <g fill="#fbbf24">
+      <path d="M195 125 L198 132 L205 135 L198 138 L195 145 L192 138 L185 135 L192 132 Z">
+        <animate attributeName="opacity" values="0.2;1;0.2" dur="0.8s" repeatCount="indefinite"/>
+      </path>
+    </g>
+  </g>
+</svg>

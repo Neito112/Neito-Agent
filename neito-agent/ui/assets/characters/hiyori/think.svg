@@ -1,0 +1,87 @@
+<svg width="220" height="240" viewBox="0 0 220 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skinGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff5eb"/>
+      <stop offset="100%" stop-color="#fed7aa"/>
+    </linearGradient>
+    <linearGradient id="hairGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </linearGradient>
+    <linearGradient id="eyeGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Thinking Floating Animation -->
+  <g id="vtuber-think-body">
+    <animateTransform attributeName="transform" type="translate" values="0,0; 0,-4; 0,0" dur="2.2s" repeatCount="indefinite" ease="ease-in-out"/>
+
+    <!-- Hair Back Twin Tails -->
+    <path d="M45 105 C20 130 15 180 35 210 C50 185 55 145 60 115 Z" fill="url(#hairGrad)" opacity="0.95"/>
+    <path d="M175 105 C200 130 205 180 185 210 C170 185 165 145 160 115 Z" fill="url(#hairGrad)" opacity="0.95"/>
+
+    <!-- Collar -->
+    <path d="M100 160 L120 160 L125 185 L95 185 Z" fill="url(#skinGrad)"/>
+    <path d="M85 180 L135 180 L145 235 L75 235 Z" fill="#0f172a"/>
+    <path d="M98 180 L110 195 L122 180 L110 215 Z" fill="#38bdf8"/>
+    <circle cx="110" cy="188" r="4" fill="#fbbf24"/>
+
+    <!-- Head / Face slightly tilted -->
+    <path d="M60 90 C60 50 160 50 160 90 C160 135 140 168 110 168 C80 168 60 135 60 90 Z" fill="url(#skinGrad)"/>
+
+    <!-- Blush -->
+    <ellipse cx="78" cy="125" rx="8" ry="5" fill="#f43f5e" opacity="0.35"/>
+    <ellipse cx="142" cy="125" rx="8" ry="5" fill="#f43f5e" opacity="0.35"/>
+
+    <!-- EYES LOOKING UP & RIGHT (Thinking Gaze) -->
+    <g id="think-eyes">
+      <g>
+        <ellipse cx="85" cy="110" rx="11" ry="14" fill="#0f172a"/>
+        <ellipse cx="88" cy="106" rx="8.5" ry="10.5" fill="url(#eyeGrad)"/>
+        <circle cx="89" cy="103" r="3.5" fill="#ffffff"/>
+        <path d="M72 104 Q85 96 98 102" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+      </g>
+      <g>
+        <ellipse cx="135" cy="110" rx="11" ry="14" fill="#0f172a"/>
+        <ellipse cx="138" cy="106" rx="8.5" ry="10.5" fill="url(#eyeGrad)"/>
+        <circle cx="139" cy="103" r="3.5" fill="#ffffff"/>
+        <path d="M122 102 Q135 96 148 104" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+      </g>
+    </g>
+
+    <!-- Eyebrows (One raised, thinking) -->
+    <path d="M74 94 Q85 90 94 95" stroke="#be123c" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+    <path d="M126 90 Q135 84 146 89" stroke="#be123c" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+
+    <!-- Curious Puckered Mouth (3 shape) -->
+    <path d="M106 141 Q110 137 114 141 Q110 145 106 141" stroke="#be123c" stroke-width="2.2" fill="none"/>
+
+    <!-- Cute Chibi Hand Touching Chin -->
+    <circle cx="128" cy="154" r="8.5" fill="url(#skinGrad)" stroke="#f59e0b" stroke-width="1.2"/>
+    <ellipse cx="124" cy="148" rx="3" ry="5" fill="url(#skinGrad)" stroke="#f59e0b" stroke-width="1.2"/>
+
+    <!-- Bangs -->
+    <path d="M52 82 C55 35 165 35 168 82 C168 95 158 105 152 95 C146 85 142 80 135 88 C128 95 125 105 120 90 C115 80 105 80 100 90 C95 105 92 95 85 88 C78 80 74 85 68 95 C62 105 52 95 52 82 Z" fill="url(#hairGrad)"/>
+    <path d="M50 82 C45 110 50 140 55 155 C57 140 56 110 58 85 Z" fill="url(#hairGrad)"/>
+    <path d="M170 82 C175 110 170 140 165 155 C163 140 164 110 162 85 Z" fill="url(#hairGrad)"/>
+
+    <!-- Ribbons -->
+    <circle cx="58" cy="98" r="8" fill="#38bdf8"/>
+    <circle cx="162" cy="98" r="8" fill="#38bdf8"/>
+
+    <!-- Ahoge curled into a question mark -->
+    <path d="M110 42 Q112 18 124 16 Q132 20 128 28 Q120 32 118 42 Z" fill="#e11d48"/>
+  </g>
+
+  <!-- Rotating Thinking Sparkles / Question mark -->
+  <g fill="#f59e0b">
+    <circle cx="178" cy="50" r="4" opacity="0.9">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
+      <animateTransform attributeName="transform" type="rotate" values="0 178 50; 360 178 50" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <path d="M176 42 L180 42 L180 46 L176 46 Z"/>
+    <circle cx="164" cy="62" r="2.5" opacity="0.7"/>
+  </g>
+</svg>

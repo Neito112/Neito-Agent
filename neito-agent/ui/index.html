@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Neito Agent Overlay</title>
+<!-- Live2D WebGL Dual Engine Support -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/6.5.8/browser/pixi.min.js"></script>
+<script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
@@ -267,6 +271,7 @@
     <!-- LỚP 2: NHÂN VẬT (NATIVE WINDOW DRAG) -->
     <div id="zone-char" class="zone-char" data-tauri-drag-region>
       <div id="char-wrapper" class="char-wrapper" data-tauri-drag-region>
+        <canvas id="live2d-canvas" style="display:none; width: 100%; height: 100%; object-fit: contain; pointer-events: none;" data-tauri-drag-region></canvas>
         <img id="char-img" src="assets/characters/panda/default.gif" alt="Pet" data-tauri-drag-region />
       </div>
     </div>
@@ -326,6 +331,7 @@
   const bubble = document.getElementById('bubble');
   const zoneChar = document.getElementById('zone-char');
   const charWrapper = document.getElementById('char-wrapper');
+  const live2dCanvas = document.getElementById('live2d-canvas');
   const charImg = document.getElementById('char-img');
   const iconBadge = document.getElementById('icon-badge');
   const badgeImg = document.getElementById('badge-img');
@@ -342,7 +348,7 @@
   const btnArcIconMode = document.getElementById('btn-arc-icon-mode');
   const btnArcDashboard = document.getElementById('btn-arc-dashboard');
 
-  let curChar = 'panda';
+  let curChar = 'hiyori';
   let curProtocol = null;
   let isIconMode = false;
   let bubbleTimer = null;
@@ -352,6 +358,12 @@
   let lastAdvisorEventId = null;
   let lastSpeechId = null;
   let currentAudio = null;
+
+  // Dual-Engine VTuber & Live2D State
+  let live2dApp = null;
+  let currentLive2DModel = null;
+  let isLive2DActive = false;
+  let petEmotionTimeout = null;
 
   // ══════════════════════════════════════════════════════════════════
   // 0. TÍNH TOÁN HÌNH HỌC VÒNG CUNG (ARC LAYOUT)
@@ -473,6 +485,7 @@
   // 3. ĐỒNG BỘ NHÂN VẬT & GIAO THỨC TÁC CHIẾN TỪ BRAIN
   // ══════════════════════════════════════════════════════════════════
   const CHAR_NAMES = {
+    hiyori: 'Hiyori Momose (VTuber Anime)',
     panda: 'Gấu Trúc Panda',
     cat: 'Mèo Con Cute',
     clippy: 'Kẹp Giấy Clippy',
@@ -482,6 +495,82 @@
     rocky: 'Hòn Đá Rocky',
     totoro: 'Thần Rừng Totoro'
   };
+
+  // Di chuyển Pet đến vị trí cần người dùng chú ý (Locomotion / Attention Gliding)
+  function triggerAttentionGlide(targetX, targetY, durMs = 650, returnAfterMs = 3500, reason = '') {
+    if (window.__TAURI__ && window.__TAURI__.core && typeof targetX === 'number' && typeof targetY === 'number') {
+      console.log(`[Locomotion] Gliding pet to (${targetX}, ${targetY}) - Reason: ${reason}`);
+      window.__TAURI__.core.invoke('glide_pet_to', {
+        targetX: Number(targetX),
+        targetY: Number(targetY),
+        durationMs: Number(durMs || 650),
+        returnAfterMs: Number(returnAfterMs || 3500)
+      }).catch(err => {
+        console.warn('[Locomotion error]:', err);
+      });
+    }
+  }
+
+  // Nhận diện cử chỉ / cảm xúc tương ứng ngữ nghĩa của câu nói (Semantic Speech Gestures)
+  function parseSpeechGestures(text) {
+    if (!text) return 'talk';
+    const t = text.toLowerCase();
+    if (/(chào|hello|hi\b|hế lô|hé lô|kính chào|bái bai|hẹn gặp|em chào|xin chào|sếp ơi)/i.test(t)) return 'wave';
+    if (/(chúc mừng|thắng rồi|tuyệt vời|đỉnh chóp|quá đỉnh|haha|yeah|hoan hô|tốt lắm|chiến thắng|hay lắm|chuẩn luôn|sướng|chiến|win)/i.test(t)) return 'happy';
+    if (/(cẩn thận|nguy hiểm|gank|chú ý|cảnh báo|báo động|lỗi|mất máu|chết|địch|kẻ địch|coi chừng|nguy cấp|thua)/i.test(t)) return 'shock';
+    if (/(đang suy nghĩ|để em xem|tra cứu|phân tích|xem nào|tìm hiểu|nghiên cứu|chờ xíu|đợi tí|thống kê|để em tra|kiểm tra)/i.test(t)) return 'think';
+    return 'talk';
+  }
+
+  // Dual-Engine Emotion Controller (Live2D WebGL + Multi-State Sprite PNGTuber)
+  function setPetEmotion(emotion, ms) {
+    // 1. Live2D Engine
+    if (isLive2DActive && currentLive2DModel) {
+      try {
+        currentLive2DModel.expression(emotion);
+      } catch(e) {}
+      if (ms) {
+        clearTimeout(petEmotionTimeout);
+        petEmotionTimeout = setTimeout(() => {
+          try { currentLive2DModel.expression('idle'); } catch(e) {}
+        }, ms);
+      }
+      return;
+    }
+
+    // 2. Multi-State Sprite Engine (Hiyori VTuber)
+    if (curChar === 'hiyori') {
+      const spriteMap = {
+        'idle': 'idle.svg',
+        'talk': 'talk.svg',
+        'happy': 'happy.svg',
+        'cheer': 'happy.svg',
+        'wave': 'wave.svg',
+        'shock': 'shock.svg',
+        'alert': 'shock.svg',
+        'think': 'think.svg',
+        'curious': 'think.svg',
+        'sad': 'shock.svg'
+      };
+      const file = spriteMap[emotion] || 'idle.svg';
+      charImg.src = `assets/characters/${curChar}/${file}`;
+
+      setAnim(emotion === 'happy' || emotion === 'cheer' ? 'hop' : emotion === 'shock' || emotion === 'alert' ? 'bounce' : 'idle', ms);
+
+      if (ms && emotion !== 'idle') {
+        clearTimeout(petEmotionTimeout);
+        petEmotionTimeout = setTimeout(() => {
+          if (curChar === 'hiyori') {
+            charImg.src = `assets/characters/${curChar}/idle.svg`;
+            setAnim('idle');
+          }
+        }, ms);
+      }
+    } else {
+      // Legacy animation fallback (Panda, Cat, etc.)
+      setAnim(emotion, ms);
+    }
+  }
 
   async function syncStatus() {
     try {
@@ -496,9 +585,8 @@
         if (data.active_protocol && (!curProtocol || curProtocol.id !== data.active_protocol.id)) {
           const oldName = curProtocol ? curProtocol.name : null;
           curProtocol = data.active_protocol;
-          // Chỉ phát thông báo khi chuyển sang Game hoặc Công việc cụ thể, không la làng khi về Desktop/General
           if (oldName && curProtocol.id !== 'general') {
-            setAnim('hop', 2000);
+            setPetEmotion('wave', 2500);
             const appLabel = curProtocol.appName || curProtocol.name;
             showBubble(`⚔️ Phát hiện Sếp đang mở [${appLabel}]! Em tự động chuyển sang Giao thức: ${curProtocol.name}!`);
           }
@@ -512,7 +600,7 @@
     } catch(e) {}
   }
 
-  // Lắng nghe Quân sư YOLO-World khi đang chơi game (Đồng bộ hoạt ảnh, phát ngôn do pollSpeech đảm nhiệm)
+  // Lắng nghe Quân sư YOLO-World khi đang chơi game (Đồng bộ hoạt ảnh và di chuyển chú ý)
   async function pollAdvisor() {
     try {
       const res = await fetch(BACKEND + '/api/advisor/latest');
@@ -521,10 +609,13 @@
         const evt = data.event;
         if (evt && evt.event_id && evt.event_id !== lastAdvisorEventId) {
           lastAdvisorEventId = evt.event_id;
+          if (evt.attention_point && typeof evt.attention_point.x === 'number') {
+            triggerAttentionGlide(evt.attention_point.x, evt.attention_point.y, 650, 3500, evt.advice);
+          }
           if (evt.type === 'known_situation') {
-            setAnim('alert', 4000);
+            setPetEmotion('alert', 4000);
           } else if (evt.type === 'new_learned_situation') {
-            setAnim('bounce', 5000);
+            setPetEmotion('think', 5000);
           }
         }
       }
@@ -532,21 +623,71 @@
   }
 
   async function setCharacter(name, notify) {
-    if (!name || name === 'default') name = 'panda';
+    if (!name || name === 'default') name = 'hiyori';
     curChar = name;
-    const ext = (name === 'cat') ? 'default.svg' : 'default.gif';
-    const p = `assets/characters/${name}/${ext}`;
-    charImg.src = p;
-    badgeImg.src = p;
+    if (petEmotionTimeout) clearTimeout(petEmotionTimeout);
+
+    // Kiểm tra và tải Live2D nếu có file model3.json
+    let loadedLive2D = false;
+    if (window.PIXI && window.PIXI.live2d) {
+      try {
+        const modelPath = `assets/characters/${name}/${name}.model3.json`;
+        const res = await fetch(modelPath, { method: 'HEAD' });
+        if (res.ok) {
+          if (!live2dApp) {
+            live2dApp = new PIXI.Application({
+              view: live2dCanvas,
+              transparent: true,
+              autoStart: true,
+              backgroundAlpha: 0,
+              width: 140,
+              height: 160
+            });
+          }
+          if (currentLive2DModel) {
+            live2dApp.stage.removeChild(currentLive2DModel);
+            currentLive2DModel.destroy();
+            currentLive2DModel = null;
+          }
+          currentLive2DModel = await PIXI.live2d.Live2DModel.from(modelPath);
+          currentLive2DModel.scale.set(0.18);
+          currentLive2DModel.x = 10;
+          currentLive2DModel.y = 10;
+          live2dApp.stage.addChild(currentLive2DModel);
+          live2dCanvas.style.display = 'block';
+          charImg.style.display = 'none';
+          isLive2DActive = true;
+          loadedLive2D = true;
+        }
+      } catch(e) {}
+    }
+
+    if (!loadedLive2D) {
+      isLive2DActive = false;
+      live2dCanvas.style.display = 'none';
+      charImg.style.display = 'block';
+
+      if (name === 'hiyori') {
+        charImg.src = `assets/characters/${name}/idle.svg`;
+        badgeImg.src = `assets/characters/${name}/default.svg`;
+      } else {
+        const ext = (name === 'cat') ? 'default.svg' : 'default.gif';
+        const p = `assets/characters/${name}/${ext}`;
+        charImg.src = p;
+        badgeImg.src = p;
+      }
+    }
+
+    setPetEmotion('idle');
 
     if (notify) {
-      setAnim('hop', 1200);
+      setPetEmotion('wave', 2500);
       showBubble(`Em đã đổi sang nhân vật: ${CHAR_NAMES[name] || name} rồi nhé! ✨`);
     }
   }
 
   charImg.onerror = () => {
-    charImg.src = 'assets/characters/panda/default.gif';
+    charImg.src = 'assets/characters/hiyori/default.svg';
   };
 
   function setAnim(animName, ms) {
@@ -572,7 +713,7 @@
   }
 
   function onPetClick() {
-    setAnim('happy', 2500);
+    setPetEmotion('happy', 2500);
     const pName = curProtocol ? curProtocol.name : 'Chiến thuật chung';
     const greetings = [
       `Dạ em đây Sếp ơi! Em đang quan sát và hỗ trợ Sếp trong [${pName}]! ✨`,
@@ -596,9 +737,20 @@
     } catch(e) {}
   }
 
-  function playSpeechAndBubble(text, emotion = 'happy', spokenText = '') {
+  function playSpeechAndBubble(text, emotion = 'happy', spokenText = '', attentionPoint = null) {
     if (!text) return;
-    if (emotion) setAnim(emotion, 4000);
+    const gesture = parseSpeechGestures(text) || emotion || 'talk';
+
+    // Xử lý chú ý & di chuyển Pet (Attention Locomotion)
+    if (attentionPoint && typeof attentionPoint.x === 'number' && typeof attentionPoint.y === 'number') {
+      triggerAttentionGlide(
+        attentionPoint.x,
+        attentionPoint.y,
+        attentionPoint.duration_ms || 650,
+        attentionPoint.return_after_ms || 3500,
+        text
+      );
+    }
 
     const cleanSpoken = spokenText || text.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').replace(/[⚔️👁️🎙️🔊🔇💡ℹ️⚠️❌🟢🔴🤖👤🧠👉✨🎮📌📊⏳💖]/g, '').trim();
 
@@ -625,18 +777,29 @@
         const audio = new Audio(audioUrl);
         currentAudio = audio;
 
-        // Cơ chế _pendingBubble: Khi audio cất lên -> Nở bóng thoại đồng bộ tiếng và hình
-        audio.onplay = () => triggerBubble();
+        // Cơ chế Lip-Sync & Semantic Gesture:
+        // Khi audio bắt đầu phát -> Kích hoạt cử chỉ và khẩu hình mở miệng nói
+        audio.onplay = () => {
+          triggerBubble();
+          setPetEmotion(gesture);
+        };
+        // Khi đọc xong -> Trở về trạng thái thở nhẹ idle
+        audio.onended = () => {
+          setTimeout(() => {
+            setPetEmotion('idle');
+          }, 250);
+        };
         audio.onerror = () => {
           triggerBubble();
+          setPetEmotion(gesture, Math.max(3000, text.length * 80));
           speakVoice(cleanSpoken);
         };
         audio.play().catch(() => {
           triggerBubble();
+          setPetEmotion(gesture, Math.max(3000, text.length * 80));
           speakVoice(cleanSpoken);
         });
 
-        // Timeout bảo hiểm nếu mạng chậm: sau 350ms nở bóng thoại luôn
         setTimeout(triggerBubble, 350);
         return;
       } catch (e) {
@@ -645,6 +808,7 @@
     }
 
     triggerBubble();
+    setPetEmotion(gesture, Math.max(3000, text.length * 80));
   }
 
   function showBubble(text) {
@@ -659,7 +823,7 @@
         const evt = data.event;
         if (evt && evt.id && evt.id !== lastSpeechId) {
           lastSpeechId = evt.id;
-          playSpeechAndBubble(evt.text, evt.emotion || 'happy', evt.spoken_text || '');
+          playSpeechAndBubble(evt.text, evt.emotion || 'happy', evt.spoken_text || '', evt.attention_point);
         }
       }
     } catch(e) {}
@@ -814,12 +978,15 @@
         statusDot.className = 'status-dot';
         const reply = data.answer || data.reply || 'Dạ em đã nhận được rồi ạ!';
         showBubble(reply);
-        if (data.emotion) setAnim(data.emotion, 5000);
-        if (data.guide_point && window.__TAURI__ && window.__TAURI__.core) {
-          window.__TAURI__.core.invoke('trigger_ghost_pointer', {
-            targetX: Number(data.guide_point.x),
-            targetY: Number(data.guide_point.y)
-          });
+        if (data.emotion) setPetEmotion(data.emotion, 5000);
+        if (data.guide_point) {
+          if (window.__TAURI__ && window.__TAURI__.core) {
+            window.__TAURI__.core.invoke('trigger_ghost_pointer', {
+              targetX: Number(data.guide_point.x),
+              targetY: Number(data.guide_point.y)
+            });
+          }
+          triggerAttentionGlide(Number(data.guide_point.x), Number(data.guide_point.y), 650, 3500, 'Chat guide point');
         }
       } else {
         throw new Error('Server error');
@@ -827,7 +994,7 @@
     } catch(e) {
       statusDot.className = 'status-dot';
       showBubble('Ôi Sếp ơi, hình như máy chủ Brain chưa phản hồi kịp! Sếp kiểm tra giúp em nhé!');
-      setAnim('sad', 4000);
+      setPetEmotion('shock', 4000);
     }
   }
 
@@ -839,9 +1006,9 @@
     }
   });
 
-  // Khởi chạy
-  setCharacter('panda', false);
-  setAnim('idle');
+  // Khởi chạy với nhân vật Anime VTuber Hiyori
+  setCharacter('hiyori', false);
+  setPetEmotion('idle');
   // Đồng bộ trạng thái Always-On ngay khi khởi động
   yoloActive = true;
   voiceActive = true;

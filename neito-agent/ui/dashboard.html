@@ -583,6 +583,29 @@
             <input type="range" min="10" max="95" value="25" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('yolo-conf-val').innerText = this.value">
           </div>
         </div>
+
+        <!-- ══ TEST DI CHUYỂN CHÚ Ý (LOCOMOTION GLIDING) ══ -->
+        <div class="card" style="border-color: rgba(56, 189, 248, 0.45); background: rgba(56, 189, 248, 0.05);">
+          <div class="card-title">
+            <span style="color: var(--accent);">🚀 Thử Nghiệm Di Chuyển Chú Ý Của Pet (Attention Locomotion)</span>
+          </div>
+          <p class="panel-desc" style="margin-bottom: 12px;">Khi phát hiện sự kiện quan trọng (mất máu, minimap bị gank, lỗi terminal), Pet tự động lướt mượt mà đến vị trí đó để hướng dẫn người dùng rồi quay về góc neo.</p>
+          
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
+            <button class="btn btn-sm" onclick="testGlidePreset(1650, 850, 'Góc Minimap: Cẩn thận rừng gank!')">🗺️ Góc Minimap (1650, 850)</button>
+            <button class="btn btn-sm" onclick="testGlidePreset(960, 540, 'Tâm Màn Hình: Mục tiêu xuất hiện!')">🎯 Tâm Màn Hình (960, 540)</button>
+            <button class="btn btn-sm" onclick="testGlidePreset(400, 750, 'Góc Terminal / Lỗi: Kiểm tra bug tại đây!')">⚠️ Góc Lỗi / Terminal (400, 750)</button>
+            <button class="btn btn-sm" onclick="testGlidePreset(960, 880, 'Thanh Máu / Kỹ Năng: Chiêu cuối đã sẵn sàng!')">🛡️ Thanh Máu / Skill (960, 880)</button>
+          </div>
+
+          <div style="display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 8px;">
+            <label style="font-size: 11.5px; color: var(--text-muted); white-space: nowrap;">Tọa độ:</label>
+            <input id="glide-x-input" class="input" type="number" placeholder="X" value="1200" style="width: 80px;">
+            <input id="glide-y-input" class="input" type="number" placeholder="Y" value="400" style="width: 80px;">
+            <input id="glide-msg-input" class="input" type="text" placeholder="Câu thoại nhắc nhở..." value="Sếp ơi chú ý góc này nè! ✨" style="flex: 1;">
+            <button class="btn btn-primary" onclick="testCustomGlide()">🚀 Lướt Pet Đến</button>
+          </div>
+        </div>
       </div>
 
       <!-- ══ TAB 4: GIỌNG NÓI AI ══ -->
@@ -725,10 +748,12 @@ function showToast(msg) {
 // 3. TAB NHÂN VẬT & LINH HỒN
 async function loadCharacters() {
   const CHAR_LABELS = {
+    hiyori: 'Hiyori Momose (VTuber Anime)',
     panda: 'Gấu Panda', cat: 'Mèo Con', clippy: 'Kẹp Giấy', dog: 'Cún Cưng',
     duck: 'Vịt Vàng', fox: 'Cáo Lửa', rocky: 'Hòn Đá', totoro: 'Totoro'
   };
   const FALLBACK_CHARS = [
+    { name: 'hiyori', path: 'assets/characters/hiyori/default.svg', is_vtuber: true },
     { name: 'panda', path: 'assets/characters/panda/default.gif' },
     { name: 'cat', path: 'assets/characters/cat/default.svg' },
     { name: 'clippy', path: 'assets/characters/clippy/default.gif' },
@@ -743,7 +768,7 @@ async function loadCharacters() {
     const res = await fetch(BACKEND + '/api/characters');
     if (res.ok) {
       const data = await res.json();
-      currentChar = data.current || 'panda';
+      currentChar = data.current || 'hiyori';
       if (data.characters && data.characters.length > 0) {
         chars = data.characters;
       }
@@ -754,11 +779,13 @@ async function loadCharacters() {
   grid.innerHTML = '';
   chars.forEach(c => {
     const isSel = (c.name === currentChar);
+    const isVtuber = (c.is_vtuber || c.name === 'hiyori');
     const item = document.createElement('div');
     item.className = 'char-item' + (isSel ? ' selected' : '');
     item.innerHTML = `
       ${isSel ? '<span class="active-badge">Đang dùng</span>' : ''}
-      <img class="char-thumb" src="${c.path}" alt="${c.name}" onerror="this.src='assets/characters/panda/default.gif'">
+      ${isVtuber ? '<span style="position: absolute; bottom: 6px; right: 6px; background: linear-gradient(135deg, #ec4899, #8b5cf6); color: #fff; font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 4px; box-shadow: 0 2px 6px rgba(236,72,153,0.4);">VTUBER</span>' : ''}
+      <img class="char-thumb" src="${c.path}" alt="${c.name}" onerror="this.src='assets/characters/hiyori/default.svg'">
       <span class="char-name">${CHAR_LABELS[c.name] || c.name}</span>
     `;
     item.onclick = () => selectCharacter(c.name);
@@ -1026,6 +1053,30 @@ async function refreshVisionStatus() {
         : '<span style="color:#64748b;font-size:11px;">Chưa có nhãn — Protocol đang ở chế độ General</span>';
     }
   } catch(e) {}
+}
+
+async function testGlidePreset(x, y, msg) {
+  try {
+    const res = await fetch(BACKEND + '/api/pet/glide', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ x, y, text: msg, duration_ms: 600, return_after_ms: 3500 })
+    });
+    if (res.ok) {
+      showToast(`🚀 Đang điều khiển Pet lướt đến (${x}, ${y})!`);
+    } else {
+      throw new Error('Server error');
+    }
+  } catch(e) {
+    showToast('Lỗi gửi lệnh di chuyển pet.');
+  }
+}
+
+async function testCustomGlide() {
+  const x = parseFloat(document.getElementById('glide-x-input').value) || 960;
+  const y = parseFloat(document.getElementById('glide-y-input').value) || 540;
+  const msg = document.getElementById('glide-msg-input').value.trim() || 'Sếp ơi chú ý vị trí này nhé!';
+  testGlidePreset(x, y, msg);
 }
 
 // Tự động nạp khi khởi động

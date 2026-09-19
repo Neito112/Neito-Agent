@@ -62,6 +62,7 @@ def advisor_loop():
                     if situations and random.random() < speak_prob:
                         sit = random.choice(situations)
                         source_tag = "📺 CẨM NANG VIDEO" if sit.get("source") == "video_online_research" else "⚔️ QUÂN SƯ"
+                        attn_pt = sit.get("attention_point")
                         LATEST_EVENT = {
                             "event_id": f"evt_{int(now)}",
                             "type": "known_situation",
@@ -70,6 +71,7 @@ def advisor_loop():
                             "situation_id": sit.get("id"),
                             "trigger": sit.get("trigger"),
                             "advice": sit.get("advice"),
+                            "attention_point": attn_pt,
                             "source": sit.get("source", "protocol_compiled"),
                             "timestamp": now
                         }
@@ -83,7 +85,8 @@ def advisor_loop():
                         enqueue_speech(
                             f"[{proto.get('name').upper()}] {source_tag}: {advice_text}",
                             emotion="alert" if proto_id != "general" else "happy",
-                            source="advisor"
+                            source="advisor",
+                            attention_point=attn_pt
                         )
         except Exception as e:
             # print(f"[-] Advisor loop error: {e}")
