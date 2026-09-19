@@ -304,224 +304,188 @@
   <div class="app-body">
     <!-- Sidebar navigation -->
     <div class="sidebar">
-      <button class="nav-btn active" data-tab="tab-chars">🎭 Nhân vật & Linh hồn</button>
-      <button class="nav-btn" data-tab="tab-protocols">📚 Giao thức tác chiến</button>
-      <button class="nav-btn" data-tab="tab-providers">🔌 Nhà Cung Cấp Model</button>
-      <button class="nav-btn" data-tab="tab-vision">👁️ Thị giác YOLO</button>
-      <button class="nav-btn" data-tab="tab-voice">🎙️ Giọng nói AI</button>
-      <button class="nav-btn" data-tab="tab-logs">📜 Lịch sử tác chiến</button>
-      <button class="nav-btn" data-tab="tab-settings">⚙️ Cài đặt hệ thống</button>
+      <button class="nav-btn active" data-tab="tab-chars">🎭 Nhân vật</button>
+      <button class="nav-btn" data-tab="tab-protocols">📚 Giao thức</button>
+      <button class="nav-btn" data-tab="tab-providers">🔌 Model AI</button>
+      <button class="nav-btn" data-tab="tab-vision">👁️ Thị giác</button>
+      <button class="nav-btn" data-tab="tab-voice">🎙️ Giọng nói</button>
+      <button class="nav-btn" data-tab="tab-logs">📜 Lịch sử</button>
+      <button class="nav-btn" data-tab="tab-settings">⚙️ Cài đặt</button>
 
       <div class="sidebar-footer">
-        <div>Neito Agent Portable</div>
-        <div style="color: #64748b; margin-top: 2px;">Tác chiến AI Đồng hành</div>
+        <div style="color: #64748b;">Neito Agent v0.1.2</div>
       </div>
     </div>
 
     <!-- Main Content Area -->
     <div class="content-view">
 
-      <!-- ══ TAB 1: NHÂN VẬT & LINH HỒN ══ -->
+      <!-- ══ TAB 1: NHÂN VẬT ══ -->
       <div id="tab-chars" class="tab-panel active">
         <div class="panel-header">
-          <div class="panel-title">🎭 Kho Nhân Vật & Chỉnh Sửa Linh Hồn</div>
-          <div class="panel-desc">Chọn nhân vật đại diện hiển thị trên màn hình và điều chỉnh tính cách qua soul.md</div>
+          <div class="panel-title">🎭 Nhân Vật</div>
         </div>
 
         <div class="card">
           <div class="card-title">
-            <span>Danh sách nhân vật khả dụng</span>
-            <button class="btn btn-sm" onclick="loadCharacters()">↻ Làm mới</button>
+            <span>Danh sách</span>
+            <button class="btn btn-sm" onclick="loadCharacters()">↻ Tải lại</button>
           </div>
           <div id="chars-grid" class="chars-grid"></div>
         </div>
 
         <div class="card" id="char-edit-card">
           <div class="card-title">
-            <span>⚙️ Cấu Hình Nhân Vật: <strong id="char-edit-title" style="color: var(--accent);">Hiyori</strong></span>
-            <button class="btn btn-primary" onclick="saveCurrentCharacterDetails()">💾 Lưu Thay Đổi Nhân Vật</button>
+            <span>Cấu hình: <strong id="char-edit-title" style="color: var(--accent);">Hiyori</strong></span>
+            <button class="btn btn-primary" onclick="saveCurrentCharacterDetails()">💾 Lưu</button>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
             <div>
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tên hiển thị trên màn hình:</label>
-              <input id="char-edit-display-name" class="input" placeholder="VD: Hiyori Momose, Bé Mèo, Quân Sư Neito...">
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tên hiển thị:</label>
+              <input id="char-edit-display-name" class="input" placeholder="VD: Hiyori, Bé Mèo, Quân Sư...">
             </div>
             <div>
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Giọng nói gán cho nhân vật:</label>
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Giọng đọc:</label>
               <div style="display: flex; gap: 6px;">
                 <select id="char-edit-voice-select" class="input" style="flex: 1; background: rgba(15,23,42,0.9);"></select>
-                <button class="btn" onclick="testCharVoice()" title="Nghe thử giọng này" style="white-space: nowrap;">▶ Test</button>
+                <button class="btn" onclick="testCharVoice()" title="Nghe thử" style="white-space: nowrap;">▶ Test</button>
               </div>
             </div>
           </div>
           <div>
-            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Linh hồn & Phong cách giao tiếp (soul.md):</label>
-            <textarea id="soul-editor" class="textarea" rows="8"></textarea>
+            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tính cách & phong cách (soul.md):</label>
+            <textarea id="soul-editor" class="textarea" rows="7"></textarea>
           </div>
         </div>
       </div>
 
-      <!-- ══ TAB PROTOCOLS: GIAO THỨC TÁC CHIẾN (1 ACTIVE, 2 QUEUED) ══ -->
+      <!-- ══ TAB PROTOCOLS ══ -->
       <div id="tab-protocols" class="tab-panel">
         <div class="panel-header">
-          <div class="panel-title">📚 Giao Thức Tác Chiến & Quân Sư YOLO-World</div>
-          <div class="panel-desc">Tự động kích hoạt Giao thức theo App/Game đang ON TOP (Cơ chế: 1 Active, 2 Queued)</div>
+          <div class="panel-title">📚 Giao Thức</div>
         </div>
 
-        <!-- LIVE ON-TOP FOREGROUND APP TRACKER -->
-        <div class="card" style="border-color: rgba(168, 85, 247, 0.45); background: rgba(168, 85, 247, 0.07); padding: 12px 16px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <div style="width: 10px; height: 10px; border-radius: 50%; background: #a855f7; box-shadow: 0 0 10px #a855f7; animation: pulseDot 1s infinite alternate;"></div>
-              <div>
-                <div style="font-size: 10.5px; color: #c084fc; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">🖥️ Cửa Sổ Tiền Cảnh Đang Mở (ON-TOP):</div>
-                <div style="font-size: 13px; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                  <span id="ontop-proc-name">Đang quét tiến trình...</span>
-                  <span id="ontop-win-title" style="color: #94a3b8; font-size: 11px; font-weight: 400; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
-                  <span id="ontop-matched-badge" style="background: rgba(16,185,129,0.2); border: 1px solid #10b981; color: #10b981; font-size: 10px; padding: 1px 7px; border-radius: 999px; display: none;"></span>
-                </div>
-              </div>
+        <!-- ON-TOP FOREGROUND TRACKER -->
+        <div class="card" style="padding: 10px 14px; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 11px; color: var(--text-muted);">Đang dùng:</span>
+              <strong id="ontop-proc-name" style="font-size: 12.5px; color: #fff;">Quét tiến trình...</strong>
+              <span id="ontop-win-title" style="color: #94a3b8; font-size: 11px; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
+              <span id="ontop-matched-badge" style="background: rgba(16,185,129,0.2); border: 1px solid #10b981; color: #10b981; font-size: 9.5px; padding: 1px 6px; border-radius: 999px; display: none;"></span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 11px; color: #cbd5e1;">⚡ Tự động kích hoạt:</span>
-              <button id="btn-toggle-autoswitch" class="btn btn-sm btn-primary" onclick="toggleAutoSwitch()" style="font-size: 10.5px; padding: 4px 10px;">Đang BẬT</button>
+              <span style="font-size: 11px; color: #cbd5e1;">Tự động:</span>
+              <button id="btn-toggle-autoswitch" class="btn btn-sm btn-primary" onclick="toggleAutoSwitch()" style="padding: 3px 8px; font-size: 10.5px;">BẬT</button>
             </div>
           </div>
         </div>
 
         <!-- Active Protocol Banner -->
-        <div class="card" style="border-color: rgba(56, 189, 248, 0.55); background: rgba(56, 189, 248, 0.08);">
-          <div class="card-title">
-            <span style="color: var(--accent); display: flex; align-items: center; gap: 8px;">
-              <span>⚡ GIAO THỨC ĐANG KÍCH HOẠT:</span>
-              <strong id="active-proto-name" style="color: #fff; font-size: 15px;">Đang tải...</strong>
+        <div class="card" style="border-color: rgba(56, 189, 248, 0.5); background: rgba(56, 189, 248, 0.06); padding: 12px 14px; margin-bottom: 12px;">
+          <div class="card-title" style="margin-bottom: 6px;">
+            <span style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 11.5px; color: var(--text-muted);">Kích hoạt:</span>
+              <strong id="active-proto-name" style="color: #38bdf8; font-size: 14px;">Đang tải...</strong>
             </span>
             <span class="active-badge" style="position: static;">ACTIVE</span>
           </div>
-          <p id="active-proto-desc" style="color: #cbd5e1; font-size: 12px; margin-bottom: 10px;">...</p>
-
-          <div style="background: rgba(0,0,0,0.35); border-radius: 8px; padding: 10px 14px; font-size: 11.5px; color: #94a3b8; margin-bottom: 10px;">
-            <div style="margin-bottom: 6px;"><strong>👁️ Nhãn nhận diện YOLO-World:</strong></div>
-            <div id="active-proto-classes" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;"></div>
-            <div><strong>📢 Meta chiến thuật:</strong> <span id="active-proto-meta">...</span></div>
-          </div>
-
-          <!-- Tình huống đã có câu hỗ trợ mẫu của Quân sư -->
-          <div style="font-size: 12px; font-weight: 600; color: #f1f5f9; margin-bottom: 6px;">⚔️ Tình huống & Câu thoại Quân sư đã biên soạn:</div>
-          <div id="active-proto-situations" style="display: flex; flex-direction: column; gap: 6px;"></div>
+          <p id="active-proto-desc" style="color: #cbd5e1; font-size: 11.5px; margin-bottom: 8px;"></p>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;" id="active-proto-classes"></div>
         </div>
 
-        <!-- Phidata Tự Học Cho YOLO-World -->
-        <div class="card" style="border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.04);">
-          <div class="card-title">
-            <span style="color: #10b981;">🧠 Phidata Tự Học & Huấn Luyện Cho YOLO-World</span>
+        <!-- Tạo Giao Thức Mới -->
+        <div class="card" style="padding: 12px 14px; margin-bottom: 12px;">
+          <div class="card-title" style="margin-bottom: 8px;"><span>Tạo Giao Thức Mới</span></div>
+          <div style="display: flex; gap: 8px;">
+            <input id="proto-learn-input" class="input" placeholder="Tên Game / App (vd: CS2, AutoCAD, Dota 2)..." style="flex: 1;">
+            <button class="btn btn-primary" id="btn-proto-learn" onclick="phidataLearnTopic()">Tạo Giao Thức</button>
           </div>
-          <p class="panel-desc" style="margin-bottom: 10px;">Nhập tên Game hoặc App bất kỳ: Bộ não Phidata LLM sẽ tự động tra cứu bách khoa toàn thư, phân loại nhãn nhận diện và nạp thẳng cho YOLO-World.</p>
-          <div style="display: flex; gap: 10px; margin-bottom: 8px;">
-            <input id="proto-learn-input" class="input" placeholder="Nhập tên Game/App (vd: Dota 2, AutoCAD, CS:GO, Premiere Pro)..." style="flex: 1;">
-            <button class="btn btn-primary" id="btn-proto-learn" onclick="phidataLearnTopic()">🚀 Phidata Tự Học Ngay</button>
-          </div>
-          <div id="proto-learn-status" style="display: none; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 10px; font-size: 11.5px; color: #cbd5e1;"></div>
+          <div id="proto-learn-status" style="display: none; background: rgba(0,0,0,0.3); border-radius: 6px; padding: 8px 10px; font-size: 11px; margin-top: 8px;"></div>
         </div>
 
-        <!-- Thử nghiệm Vòng lặp phản xạ Active Learning -->
-        <div class="card">
-          <div class="card-title"><span>⚡ Mô phỏng Tình Huống Lạ (YOLO -> Phidata Tra Cứu -> YOLO Dataset)</span></div>
-          <p class="panel-desc" style="margin-bottom: 8px;">Khi YOLO bắt gặp tình huống chưa từng có trên màn hình: gửi tín hiệu để Phidata tự hiểu, tra cứu câu hỗ trợ mẫu và nhét vào dataset của YOLO-World.</p>
-          <div style="display: flex; gap: 10px; margin-bottom: 8px;">
-            <input id="sit-test-input" class="input" placeholder="Mô tả tình huống lạ trên màn hình (vd: Baron bị đối phương cướp, Spike còn 3s)..." style="flex: 1;">
-            <button class="btn btn-primary" onclick="testUnknownSituation()">Gửi Tín Hiệu Cho Phidata</button>
-          </div>
-          <div id="sit-test-result" style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; min-height: 36px; font-size: 12px; color: #cbd5e1;">Chưa có tín hiệu mô phỏng.</div>
-        </div>
-
-        <!-- Protocols List with Categories Filter -->
+        <!-- Protocols List -->
         <div class="card">
           <div class="card-title">
-            <span>Danh mục toàn bộ Giao thức (Cơ chế: 1 Active, 2 Queued)</span>
+            <span>Danh mục</span>
             <button class="btn btn-sm" onclick="loadProtocols()">↻ Tải lại</button>
           </div>
-          <!-- Category Filter Tabs -->
-          <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
-            <button class="btn btn-sm proto-filter-btn active" data-filter="all" onclick="filterProtocols('all', this)" style="border-color: var(--accent); background: rgba(56,189,248,0.15);">🌟 Tất Cả (<span id="count-all">0</span>)</button>
-            <button class="btn btn-sm proto-filter-btn" data-filter="game" onclick="filterProtocols('game', this)">🎮 Game / Esports (<span id="count-game">0</span>)</button>
-            <button class="btn btn-sm proto-filter-btn" data-filter="app" onclick="filterProtocols('app', this)">💼 Phần Mềm & App (<span id="count-app">0</span>)</button>
-            <button class="btn btn-sm proto-filter-btn" data-filter="topic" onclick="filterProtocols('topic', this)">🧠 Chủ Đề Tri Thức & Ứng Xử (<span id="count-topic">0</span>)</button>
+          <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+            <button class="btn btn-sm proto-filter-btn active" data-filter="all" onclick="filterProtocols('all', this)" style="border-color: var(--accent); background: rgba(56,189,248,0.15);">Tất Cả (<span id="count-all">0</span>)</button>
+            <button class="btn btn-sm proto-filter-btn" data-filter="game" onclick="filterProtocols('game', this)">Game (<span id="count-game">0</span>)</button>
+            <button class="btn btn-sm proto-filter-btn" data-filter="app" onclick="filterProtocols('app', this)">Phần Mềm (<span id="count-app">0</span>)</button>
+            <button class="btn btn-sm proto-filter-btn" data-filter="topic" onclick="filterProtocols('topic', this)">Chủ Đề (<span id="count-topic">0</span>)</button>
           </div>
-          <div id="protocols-grid" style="display: flex; flex-direction: column; gap: 12px;"></div>
+          <div id="protocols-grid" style="display: flex; flex-direction: column; gap: 6px;"></div>
         </div>
       </div>
 
-      <!-- ══ TAB PROVIDERS: NHÀ CUNG CẤP MODEL (AGY, OLLAMA, OPENROUTER, NOUS, GEMINI, CUSTOM) ══ -->
+      <!-- ══ TAB PROVIDERS ══ -->
       <div id="tab-providers" class="tab-panel">
         <div class="panel-header">
-          <div class="panel-title">🔌 Nhà Cung Cấp Mô Hình & Đồng Bộ Bộ Não</div>
-          <div class="panel-desc">Chuyển đổi mô hình LLM. Tự động đồng bộ tức thời và dùng chung 100% giữa Phidata (Bộ não phân tích) và Smolagents (Đôi tay thực thi).</div>
+          <div class="panel-title">🔌 Model AI</div>
         </div>
 
         <!-- Active Model Status Banner -->
-        <div class="card" style="border-color: rgba(56, 189, 248, 0.5); background: rgba(56, 189, 248, 0.08);">
-          <div class="card-title">
+        <div class="card" style="border-color: rgba(56, 189, 248, 0.5); background: rgba(56, 189, 248, 0.08); padding: 12px 14px; margin-bottom: 12px;">
+          <div class="card-title" style="margin-bottom: 8px;">
             <span style="color: var(--accent); display: flex; align-items: center; gap: 8px;">
-              <span>⚡ MÔ HÌNH ĐANG KÍCH HOẠT:</span>
-              <strong id="active-provider-model-label" style="color: #fff; font-size: 15px;">Đang tải...</strong>
+              <span>Model:</span>
+              <strong id="active-provider-model-label" style="color: #fff; font-size: 14px;">Đang tải...</strong>
             </span>
             <span class="active-badge" id="active-provider-badge" style="position: static;">ONLINE</span>
           </div>
-          <p id="active-provider-desc" style="color: #cbd5e1; font-size: 12px; margin-bottom: 12px;">Google Antigravity CLI Bridge: Trích xuất trực tiếp mô hình Google Gemini/Claude/GPT sang cho Phidata & Smolagents.</p>
           
-          <div style="display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px;">
-            <input id="provider-test-prompt" class="input" placeholder="Nhập câu hỏi test tốc độ và phản xạ (vd: Bạn là ai, trả lời 1 câu)..." style="flex: 1;">
-            <button class="btn btn-primary" id="btn-test-provider" onclick="testActiveProviderModel()">⚡ Test Phản Xạ Model</button>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input id="provider-test-prompt" class="input" placeholder="Hỏi thử model..." style="flex: 1;">
+            <button class="btn btn-primary" id="btn-test-provider" onclick="testActiveProviderModel()">Test</button>
           </div>
-          <div id="provider-test-result" style="display: none; margin-top: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 10px; font-size: 12px;"></div>
+          <div id="provider-test-result" style="display: none; margin-top: 8px; background: rgba(0,0,0,0.3); border-radius: 6px; padding: 8px 10px; font-size: 11.5px;"></div>
         </div>
 
-        <!-- Provider Single Select & Dynamic Form (Chuẩn Ni-Oh Architecture) -->
+        <!-- Provider Single Select & Dynamic Form -->
         <div class="card">
-          <div class="card-title"><span>⚙️ Cấu Hình Nhà Cung Cấp Model</span></div>
-          <div style="margin-bottom: 14px;">
-            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 6px;">Nhà cung cấp (Phidata & Smolagents dùng chung):</label>
+          <div class="card-title"><span>Cấu hình</span></div>
+          <div style="margin-bottom: 12px;">
+            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Nhà cung cấp:</label>
             <select id="setting-model-provider" class="input" style="font-size: 13px; font-weight: 600; padding: 8px 12px; background: rgba(15,23,42,0.95); border: 1.5px solid var(--accent); width: 100%;" onchange="onProviderSelectChange(this.value)">
-              <option value="agy">🚀 Google Antigravity CLI (Mặc định - Gemini 3.8 / Claude 3.7 / GPT)</option>
-              <option value="ollama">💻 Ollama Local (Offline - Quét trực tiếp trên máy)</option>
-              <option value="openrouter">🌐 OpenRouter (DeepSeek R1, Claude, Llama 3, ...)</option>
-              <option value="nous">🏛️ Nous Portal (Hermes 3, DeepSeek)</option>
-              <option value="gemini">✨ Google Gemini API Key (Miễn phí)</option>
-              <option value="custom">⚙️ Chuẩn Endpoint Thủ Công (OpenAI-compatible)</option>
+              <option value="agy">Google Antigravity CLI (Mặc định)</option>
+              <option value="ollama">Ollama Local (Offline)</option>
+              <option value="openrouter">OpenRouter</option>
+              <option value="nous">Nous Portal</option>
+              <option value="gemini">Google Gemini API Key</option>
+              <option value="custom">Endpoint tùy chỉnh</option>
             </select>
           </div>
 
           <!-- SUB-FORM: AGY -->
           <div id="subform-agy" class="provider-subform">
-            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 14px; border: 1px solid rgba(56,189,248,0.3); margin-bottom: 12px;">
-              <p class="panel-desc" style="margin-bottom: 10px;">Trích xuất mô hình trực tiếp từ CLI Google Antigravity. Dùng chung 100% giữa Phidata (Bộ não phân tích) và Smolagents (Đôi tay thực thi). 0 token setup, tốc độ cao nhất.</p>
+            <div style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 12px; border: 1px solid rgba(56,189,248,0.25); margin-bottom: 10px;">
               <div style="display: flex; gap: 8px; align-items: flex-end;">
                 <div style="flex: 1;">
-                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Chọn mô hình AGY:</label>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô hình AGY:</label>
                   <select id="agy-model-select" class="input" style="background: rgba(15,23,42,0.9); width: 100%;"></select>
                 </div>
-                <button class="btn btn-sm" onclick="scanAgyModels()">↻ Quét Model</button>
+                <button class="btn btn-sm" onclick="scanAgyModels()">↻ Quét</button>
               </div>
             </div>
           </div>
 
           <!-- SUB-FORM: OLLAMA -->
           <div id="subform-ollama" class="provider-subform" style="display: none;">
-            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 14px; border: 1px solid rgba(16,185,129,0.3); margin-bottom: 12px;">
-              <p class="panel-desc" style="margin-bottom: 10px;">Chạy hoàn toàn offline trên máy cá nhân. Tự động nhận diện model đã tải trong Ollama.</p>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+            <div style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 12px; border: 1px solid rgba(16,185,129,0.25); margin-bottom: 10px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div>
-                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Địa chỉ Ollama Endpoint:</label>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Endpoint:</label>
                   <input id="ollama-endpoint-input" class="input" value="http://localhost:11434" style="width: 100%;">
                 </div>
                 <div>
-                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô hình Local phát hiện:</label>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô hình:</label>
                   <div style="display: flex; gap: 6px;">
                     <select id="ollama-model-select" class="input" style="flex: 1; background: rgba(15,23,42,0.9);">
-                      <option value="">(Bấm 'Quét Máy' để tìm model)...</option>
+                      <option value="">(Quét model)...</option>
                     </select>
-                    <button class="btn btn-sm" onclick="scanOllamaModels()">🔍 Quét Máy</button>
+                    <button class="btn btn-sm" onclick="scanOllamaModels()">🔍 Quét</button>
                   </div>
                 </div>
               </div>
@@ -530,16 +494,15 @@
 
           <!-- SUB-FORM: OPENROUTER -->
           <div id="subform-openrouter" class="provider-subform" style="display: none;">
-            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 14px; border: 1px solid rgba(192,132,252,0.3); margin-bottom: 12px;">
-              <p class="panel-desc" style="margin-bottom: 10px;">Cổng kết nối hàng trăm mô hình mã nguồn mở (Claude 3.5, DeepSeek R1, Llama 3.3, v.v.).</p>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 12px; border: 1px solid rgba(192,132,252,0.25); margin-bottom: 10px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div>
-                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">OpenRouter API Key:</label>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">API Key:</label>
                   <input id="openrouter-key-input" type="password" class="input" placeholder="sk-or-v1-..." style="width: 100%;">
                 </div>
                 <div>
                   <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô hình:</label>
-                  <input id="openrouter-model-input" class="input" value="google/gemini-2.0-flash-001" placeholder="vd: deepseek/deepseek-chat" style="width: 100%;">
+                  <input id="openrouter-model-input" class="input" value="google/gemini-2.0-flash-001" style="width: 100%;">
                 </div>
               </div>
             </div>
@@ -547,15 +510,14 @@
 
           <!-- SUB-FORM: NOUS -->
           <div id="subform-nous" class="provider-subform" style="display: none;">
-            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 14px; border: 1px solid rgba(245,158,11,0.3); margin-bottom: 12px;">
-              <p class="panel-desc" style="margin-bottom: 10px;">Nền tảng Nous Research chuyên biệt với dòng mô hình Hermes lý luận mạnh mẽ.</p>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 12px; border: 1px solid rgba(245,158,11,0.25); margin-bottom: 10px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div>
-                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Nous Portal API Key:</label>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">API Key:</label>
                   <input id="nous-key-input" type="password" class="input" placeholder="API Key..." style="width: 100%;">
                 </div>
                 <div>
-                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô hình Hermes:</label>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô hình:</label>
                   <input id="nous-model-input" class="input" value="Hermes-3-Llama-3.1-8B" style="width: 100%;">
                 </div>
               </div>
@@ -564,19 +526,18 @@
 
           <!-- SUB-FORM: GEMINI -->
           <div id="subform-gemini" class="provider-subform" style="display: none;">
-            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 14px; border: 1px solid rgba(56,189,248,0.3); margin-bottom: 12px;">
-              <p class="panel-desc" style="margin-bottom: 10px;">Sử dụng API Key cá nhân từ Google AI Studio (Gemini 2.0 Flash, 1.5 Pro).</p>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 12px; border: 1px solid rgba(56,189,248,0.25); margin-bottom: 10px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div>
-                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Google Gemini API Key:</label>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Gemini API Key:</label>
                   <input id="gemini-key-input" type="password" class="input" placeholder="AIzaSy..." style="width: 100%;">
                 </div>
                 <div>
-                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Chọn model:</label>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô hình:</label>
                   <select id="gemini-model-select" class="input" style="background: rgba(15,23,42,0.9); width: 100%;">
-                    <option value="gemini-2.0-flash">Gemini 2.0 Flash (Khuyên dùng, siêu nhanh)</option>
-                    <option value="gemini-1.5-pro">Gemini 1.5 Pro (Lý luận sâu)</option>
-                    <option value="gemini-1.5-flash">Gemini 1.5 Flash (Tiết kiệm)</option>
+                    <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
                   </select>
                 </div>
               </div>
@@ -585,27 +546,26 @@
 
           <!-- SUB-FORM: CUSTOM -->
           <div id="subform-custom" class="provider-subform" style="display: none;">
-            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 14px; border: 1px solid rgba(148,163,184,0.3); margin-bottom: 12px;">
-              <p class="panel-desc" style="margin-bottom: 10px;">Tương thích vLLM, LM Studio, Text-Gen-WebUI hoặc bất kỳ server chuẩn OpenAI nào.</p>
-              <div style="margin-bottom: 10px;">
-                <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Base URL Endpoint:</label>
-                <input id="custom-endpoint-input" class="input" value="http://localhost:8000/v1" placeholder="http://localhost:8000/v1" style="width: 100%;">
+            <div style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 12px; border: 1px solid rgba(148,163,184,0.25); margin-bottom: 10px;">
+              <div style="margin-bottom: 8px;">
+                <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Endpoint URL:</label>
+                <input id="custom-endpoint-input" class="input" value="http://localhost:8000/v1" style="width: 100%;">
               </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div>
                   <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">API Key (nếu có):</label>
-                  <input id="custom-key-input" type="password" class="input" placeholder="Không bắt buộc" style="width: 100%;">
+                  <input id="custom-key-input" type="password" class="input" placeholder="Tùy chọn" style="width: 100%;">
                 </div>
                 <div>
                   <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tên Model:</label>
-                  <input id="custom-model-input" class="input" value="default-model" placeholder="vd: my-model" style="width: 100%;">
+                  <input id="custom-model-input" class="input" value="default-model" style="width: 100%;">
                 </div>
               </div>
             </div>
           </div>
 
-          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px;">
-            <button class="btn btn-primary" onclick="applySelectedProvider()" style="font-weight: 600; padding: 8px 20px;">💾 Lưu Cấu Hình & Áp Dụng Cho Cả Phidata & Smolagents</button>
+          <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+            <button class="btn btn-primary" onclick="applySelectedProvider()" style="font-weight: 600; padding: 6px 18px;">💾 Lưu cấu hình</button>
           </div>
         </div>
       </div>
@@ -613,146 +573,137 @@
       <!-- ══ TAB 3: THỊ GIÁC YOLO ══ -->
       <div id="tab-vision" class="tab-panel">
         <div class="panel-header">
-          <div class="panel-title">👁️ Mắt Quan Sát & Thị Giác YOLO</div>
-          <div class="panel-desc">Dual Engine thời gian thực: YOLO11n quét nhanh + YOLO-World nhận diện Open-Vocabulary</div>
+          <div class="panel-title">👁️ Thị Giác YOLO</div>
         </div>
 
         <div class="card" style="border-color: rgba(16, 185, 129, 0.45); background: rgba(16, 185, 129, 0.05);">
           <div class="card-title">
-            <span style="color: #10b981;">⚡ Trạng Thái Động Cơ Thị Giác Thời Gian Thực</span>
+            <span style="color: #10b981;">⚡ Trạng thái Engine</span>
             <button class="btn btn-sm" onclick="refreshVisionStatus()">↻ Làm mới</button>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
             <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 14px; border: 1px solid rgba(56,189,248,0.2);">
               <div style="color: #38bdf8; font-weight: 700; font-size: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">⚡ TẦNG 1: YOLO11n <span id="yolo11n-badge" style="background: rgba(16,185,129,0.2); color: #10b981; font-size: 9px; padding: 1px 6px; border-radius: 999px; font-weight: 600;">READY</span></div>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px; color: #cbd5e1;">
-                <div>📐 Parameters: <strong style="color:#fff;">2.6M</strong></div>
-                <div>🎯 mAP50-95: <strong style="color:#fff;">39.5%</strong></div>
-                <div>📏 Input: <strong style="color:#fff;">640×640px</strong></div>
-                <div>⚡ Speed GPU: <strong style="color:#10b981;">~1.5ms/frame</strong></div>
-                <div>🖥️ Speed CPU: <strong style="color:#f59e0b;">~55ms/frame</strong></div>
-                <div>📦 Model: <strong style="color:#fff;">yolo11n.pt (5.4MB)</strong></div>
+                <div>Parameters: <strong style="color:#fff;">2.6M</strong></div>
+                <div>mAP50-95: <strong style="color:#fff;">39.5%</strong></div>
+                <div>Input: <strong style="color:#fff;">640×640px</strong></div>
+                <div>GPU: <strong style="color:#10b981;">~1.5ms</strong></div>
+                <div>CPU: <strong style="color:#f59e0b;">~55ms</strong></div>
+                <div>Model: <strong style="color:#fff;">yolo11n.pt</strong></div>
               </div>
-              <div style="margin-top: 8px; font-size: 10.5px; color: #94a3b8;">Quét siêu tốc bounding-box, UI HUD, minimap, đối tượng di chuyển. Backbone: C3k2 + SPPF + C2PSA.</div>
             </div>
             <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 14px; border: 1px solid rgba(16,185,129,0.2);">
               <div style="color: #10b981; font-weight: 700; font-size: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">🌐 TẦNG 2: YOLO-World <span id="yoloworld-badge" style="background: rgba(56,189,248,0.2); color: #38bdf8; font-size: 9px; padding: 1px 6px; border-radius: 999px; font-weight: 600;">ACTIVE</span></div>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px; color: #cbd5e1;">
-                <div>🧠 Backbone: <strong style="color:#fff;">YOLOv8s-World</strong></div>
-                <div>🔤 Vocab: <strong style="color:#fff;">Open-Vocabulary</strong></div>
-                <div>🎯 Zero-Shot: <strong style="color:#10b981;">Có</strong></div>
-                <div>📏 Input: <strong style="color:#fff;">640×640px</strong></div>
-                <div>🏷️ Nhãn Active: <strong style="color:#38bdf8;"><span id="vision-active-count">0</span></strong></div>
-                <div>📡 Mode: <span id="vision-engine-mode" style="color:#f59e0b; font-weight:600;">Adaptive</span></div>
+                <div>Backbone: <strong style="color:#fff;">YOLOv8s-World</strong></div>
+                <div>Vocab: <strong style="color:#fff;">Open-Vocabulary</strong></div>
+                <div>Zero-Shot: <strong style="color:#10b981;">Có</strong></div>
+                <div>Input: <strong style="color:#fff;">640×640px</strong></div>
+                <div>Nhãn Active: <strong style="color:#38bdf8;"><span id="vision-active-count">0</span></strong></div>
+                <div>Chế độ: <span id="vision-engine-mode" style="color:#f59e0b; font-weight:600;">Adaptive</span></div>
               </div>
-              <div style="margin-top: 8px; font-size: 10.5px; color: #94a3b8;">Nhận diện Open-Vocabulary: Tự nạp nhãn từ Protocol On-Top mà không cần train lại mô hình.</div>
             </div>
           </div>
           <div style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 10px 14px; margin-bottom: 10px;">
-            <div style="font-size: 11.5px; color: #94a3b8; margin-bottom: 6px;">🏷️ Nhãn YOLO-World đang theo dõi (từ Protocol On-Top):</div>
+            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px;">🏷️ Nhãn theo dõi:</div>
             <div id="vision-active-classes" style="display: flex; flex-wrap: wrap; gap: 6px;"><span style="color: #64748b; font-size: 11px;">Đang tải...</span></div>
           </div>
           <div style="display: flex; align-items: center; justify-content: space-between;">
             <div>
-              <strong>Chế độ Screen Watch thời gian thực</strong>
-              <div class="panel-desc">Quan sát liên tục cửa sổ On-Top (Game, IDE, Trình duyệt)</div>
+              <strong>Quan sát màn hình On-Top</strong>
             </div>
             <button class="btn btn-primary" id="btn-toggle-yolo" onclick="toggleYolo()">Bật Quan Sát</button>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-title"><span>⚙️ Cấu Hình Quét</span></div>
+          <div class="card-title"><span>⚙️ Cấu hình</span></div>
           <div style="margin-bottom: 12px;">
-            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tần suất quét (<span id="yolo-fps-val">2</span> FPS) — YOLO11n có thể đạt ~150 FPS trên GPU</label>
+            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tần suất quét: <span id="yolo-fps-val">2</span> FPS</label>
             <input type="range" min="1" max="30" value="2" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('yolo-fps-val').innerText = this.value">
           </div>
           <div>
-            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Ngưỡng tin cậy nhận diện (<span id="yolo-conf-val">25</span>%) — Thấp hơn = nhạy hơn, cao hơn = chính xác hơn</label>
+            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Độ tin cậy: <span id="yolo-conf-val">25</span>%</label>
             <input type="range" min="10" max="95" value="25" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('yolo-conf-val').innerText = this.value">
           </div>
         </div>
 
-        <!-- ══ TEST DI CHUYỂN CHÚ Ý (LOCOMOTION GLIDING) ══ -->
+        <!-- ══ TEST DI CHUYỂN CHÚ Ý ══ -->
         <div class="card" style="border-color: rgba(56, 189, 248, 0.45); background: rgba(56, 189, 248, 0.05);">
           <div class="card-title">
-            <span style="color: var(--accent);">🚀 Thử Nghiệm Di Chuyển Chú Ý Của Pet (Attention Locomotion)</span>
+            <span style="color: var(--accent);">🚀 Di chuyển chú ý</span>
           </div>
-          <p class="panel-desc" style="margin-bottom: 12px;">Khi phát hiện sự kiện quan trọng (mất máu, minimap bị gank, lỗi terminal), Pet tự động lướt mượt mà đến vị trí đó để hướng dẫn người dùng rồi quay về góc neo.</p>
           
-          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
-            <button class="btn btn-sm" onclick="testGlidePreset(1650, 850, 'Góc Minimap: Cẩn thận rừng gank!')">🗺️ Góc Minimap (1650, 850)</button>
-            <button class="btn btn-sm" onclick="testGlidePreset(960, 540, 'Tâm Màn Hình: Mục tiêu xuất hiện!')">🎯 Tâm Màn Hình (960, 540)</button>
-            <button class="btn btn-sm" onclick="testGlidePreset(400, 750, 'Góc Terminal / Lỗi: Kiểm tra bug tại đây!')">⚠️ Góc Lỗi / Terminal (400, 750)</button>
-            <button class="btn btn-sm" onclick="testGlidePreset(960, 880, 'Thanh Máu / Kỹ Năng: Chiêu cuối đã sẵn sàng!')">🛡️ Thanh Máu / Skill (960, 880)</button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+            <button class="btn btn-sm" onclick="testGlidePreset(1650, 850, 'Minimap: Cẩn thận gank!')">🗺️ Minimap</button>
+            <button class="btn btn-sm" onclick="testGlidePreset(960, 540, 'Mục tiêu xuất hiện!')">🎯 Giữa màn hình</button>
+            <button class="btn btn-sm" onclick="testGlidePreset(400, 750, 'Kiểm tra lỗi tại đây!')">⚠️ Lỗi / Terminal</button>
+            <button class="btn btn-sm" onclick="testGlidePreset(960, 880, 'Chiêu cuối sẵn sàng!')">🛡️ Máu / Skill</button>
           </div>
 
-          <div style="display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 8px;">
-            <label style="font-size: 11.5px; color: var(--text-muted); white-space: nowrap;">Tọa độ:</label>
-            <input id="glide-x-input" class="input" type="number" placeholder="X" value="1200" style="width: 80px;">
-            <input id="glide-y-input" class="input" type="number" placeholder="Y" value="400" style="width: 80px;">
-            <input id="glide-msg-input" class="input" type="text" placeholder="Câu thoại nhắc nhở..." value="Sếp ơi chú ý góc này nè! ✨" style="flex: 1;">
-            <button class="btn btn-primary" onclick="testCustomGlide()">🚀 Lướt Pet Đến</button>
+          <div style="display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 8px;">
+            <input id="glide-x-input" class="input" type="number" placeholder="X" value="1200" style="width: 70px;">
+            <input id="glide-y-input" class="input" type="number" placeholder="Y" value="400" style="width: 70px;">
+            <input id="glide-msg-input" class="input" type="text" placeholder="Câu thoại..." value="Chú ý góc này!" style="flex: 1;">
+            <button class="btn btn-primary" onclick="testCustomGlide()">🚀 Di chuyển</button>
           </div>
         </div>
       </div>
 
-      <!-- ══ TAB 4: GIỌNG NÓI AI (CHUẨN 2 DÒNG NI-OH) ══ -->
+      <!-- ══ TAB 4: GIỌNG NÓI ══ -->
       <div id="tab-voice" class="tab-panel">
         <div class="panel-header">
-          <div class="panel-title">🎙️ Giọng Nói & Đúc Giọng AI</div>
-          <div class="panel-desc">Hai hàng tinh gọn: Chọn giọng đang dùng & Nghe thử đồng bộ Pet — Đúc giọng mới từ mô tả hoặc file mẫu</div>
+          <div class="panel-title">🎙️ Giọng Nói</div>
         </div>
 
-        <!-- DÒNG 1: CHỌN GIỌNG ĐANG DÙNG + TEST ĐỒNG BỘ OVERLAY -->
+        <!-- HÀNG 1: CHỌN GIỌNG ĐANG DÙNG -->
         <div class="card">
           <div class="card-title">
-            <span>🔊 Dòng 1: Giọng Đang Dùng Của Pet</span>
-            <span style="font-size: 11px; color: #10b981;">● Đồng bộ 100% với Pet</span>
+            <span>Giọng đang dùng</span>
           </div>
           <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 14px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 260px;">
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Danh sách giọng nói khả dụng:</label>
+            <div style="flex: 1; min-width: 240px;">
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Chọn giọng:</label>
               <select id="vsel" class="input" style="width: 100%; font-size: 12.5px; background: rgba(15,23,42,0.95); border: 1.5px solid var(--accent);"></select>
             </div>
-            <button class="btn btn-primary" id="btn-test-voice" onclick="testCurrentVoice()" title="Nghe thử đúng giọng Pet sẽ nói trên màn hình">▶ Test Giọng Này</button>
-            <button class="btn" onclick="saveActiveVoiceSelection()" title="Lưu giọng này làm mặc định cho Pet">💾 Lưu Giọng Mặc Định</button>
+            <button class="btn btn-primary" id="btn-test-voice" onclick="testCurrentVoice()">▶ Nghe thử</button>
+            <button class="btn" onclick="saveActiveVoiceSelection()">💾 Lưu mặc định</button>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; background: rgba(0,0,0,0.25); padding: 10px 14px; border-radius: 8px;">
             <div>
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Âm lượng phát (<span id="voice-vol-val">100</span>%)</label>
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Âm lượng: <span id="voice-vol-val">100</span>%</label>
               <input type="range" min="0" max="100" value="100" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('voice-vol-val').innerText = this.value">
             </div>
             <div>
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tốc độ nói (<span id="voice-rate-val">1.05</span>x) — Quân sư tự tăng lên 1.30x khi combat</label>
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tốc độ: <span id="voice-rate-val">1.05</span>x</label>
               <input type="range" min="0.5" max="2.0" step="0.05" value="1.05" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('voice-rate-val').innerText = this.value">
             </div>
           </div>
         </div>
 
-        <!-- DÒNG 2: ĐÚC GIỌNG MỚI & TẢI LÊN GIỌNG NÓI MẪU -->
+        <!-- HÀNG 2: TẠO GIỌNG MỚI / TẢI MẪU -->
         <div class="card" style="border-color: rgba(245, 158, 11, 0.45); background: rgba(245, 158, 11, 0.04);">
           <div class="card-title">
-            <span style="color: #f59e0b;">✨ Dòng 2: Đúc Giọng Mới / Tải Lên Giọng Mẫu</span>
+            <span style="color: #f59e0b;">✨ Tạo giọng mới / Tải mẫu</span>
           </div>
-          <p class="panel-desc" style="margin-bottom: 12px;">Đúc profile giọng mới từ ngôn ngữ tự nhiên hoặc tải file âm thanh mẫu (.mp3, .wav, .ogg) từ 5-30 giây.</p>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px;">
             <div>
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tên Voice Profile mới:</label>
-              <input id="vc-name" class="input" placeholder="VD: Giong_Thach_Sanh, Nu_Anime_Vui_Tuoi..." style="width: 100%;">
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tên giọng:</label>
+              <input id="vc-name" class="input" placeholder="Tên giọng..." style="width: 100%;">
               <div style="margin-top: 10px;">
-                <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô tả tính cách & phong cách giọng nói:</label>
-                <textarea id="vc-desc" class="textarea" rows="4" placeholder="VD: Giọng nữ trẻ 18 tuổi, âm sắc trong trẻo cao vút, nói nhanh dứt khoát kiểu quân sư anime, đôi khi pha chút tinh nghịch..."></textarea>
+                <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô tả phong cách:</label>
+                <textarea id="vc-desc" class="textarea" rows="4" placeholder="VD: Nam trầm dứt khoát, điềm tĩnh..."></textarea>
               </div>
             </div>
 
             <div>
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tệp âm thanh mẫu (Voice Cloning):</label>
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tệp âm thanh mẫu:</label>
               <div id="voice-dropzone" style="border: 2px dashed rgba(245,158,11,0.4); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: rgba(0,0,0,0.25);" onclick="document.getElementById('voice-file-input').click()" ondragover="event.preventDefault(); this.style.borderColor='#f59e0b';" ondragleave="this.style.borderColor='rgba(245,158,11,0.4)';" ondrop="handleVoiceDrop(event)">
                 <div style="font-size: 26px; margin-bottom: 4px;">🎧</div>
-                <div style="color: #f59e0b; font-weight: 600; font-size: 12px;">Kéo thả file âm thanh mẫu vào đây</div>
-                <div style="color: var(--text-muted); font-size: 11px; margin-top: 2px;">hoặc bấm để chọn file (.mp3, .wav, .ogg)</div>
+                <div style="color: #f59e0b; font-weight: 600; font-size: 12px;">Kéo thả file âm thanh vào đây</div>
+                <div style="color: var(--text-muted); font-size: 11px; margin-top: 2px;">hoặc bấm chọn (.mp3, .wav)</div>
                 <input type="file" id="voice-file-input" accept=".mp3,.wav,.ogg,.m4a" style="display: none;" onchange="handleVoiceFileSelect(this)">
               </div>
               <div id="voice-upload-status" style="display: none; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 8px; font-size: 11px; color: #cbd5e1; margin-top: 8px;"></div>
@@ -761,25 +712,24 @@
 
           <div style="display: flex; gap: 10px; align-items: center; justify-content: flex-end;">
             <span id="voice-gen-status" style="font-size: 11.5px; color: var(--text-muted);"></span>
-            <button class="btn btn-primary" id="btn-gen-voice" onclick="generateVoiceFromDesc()" style="font-weight: 600; padding: 8px 18px;">✨ Đúc Giọng Mới</button>
+            <button class="btn btn-primary" id="btn-gen-voice" onclick="generateVoiceFromDesc()" style="font-weight: 600; padding: 8px 18px;">✨ Tạo giọng</button>
           </div>
           <div id="voice-list" style="margin-top: 14px;"></div>
         </div>
       </div>
 
-      <!-- ══ TAB 5: LỊCH SỬ TÁC CHIẾN ══ -->
+      <!-- ══ TAB 5: LỊCH SỬ ══ -->
       <div id="tab-logs" class="tab-panel">
         <div class="panel-header">
-          <div class="panel-title">📜 Lịch Sử Tác Chiến Của Smolagents</div>
-          <div class="panel-desc">Nhật ký thực thi lệnh hệ thống, thao tác file và duyệt thông tin của CodeAgent</div>
+          <div class="panel-title">📜 Lịch Sử</div>
         </div>
 
         <div class="card">
           <div class="card-title">
-            <span>Danh sách hành động gần nhất</span>
+            <span>Nhật ký hoạt động</span>
             <div style="display: flex; gap: 8px;">
               <button class="btn btn-sm" onclick="loadActionLogs()">↻ Làm mới</button>
-              <button class="btn btn-danger btn-sm" onclick="clearLogs()">🗑️ Xóa logs</button>
+              <button class="btn btn-danger btn-sm" onclick="clearLogs()">🗑️ Xóa</button>
             </div>
           </div>
           <div class="table-wrap">
@@ -791,23 +741,22 @@
         </div>
       </div>
 
-      <!-- ══ TAB 6: CÀI ĐẶT HỆ THỐNG ══ -->
+      <!-- ══ TAB 6: CÀI ĐẶT ══ -->
       <div id="tab-settings" class="tab-panel">
         <div class="panel-header">
-          <div class="panel-title">⚙️ Cài Đặt Hệ Thống & Kiểm Tra Kết Nối</div>
-          <div class="panel-desc">Thông số vận hành của Neito Agent Desktop Companion</div>
+          <div class="panel-title">⚙️ Cài Đặt</div>
         </div>
 
         <div class="card">
-          <div class="card-title"><span>Máy chủ Brain Server</span></div>
+          <div class="card-title"><span>Thông tin hệ thống</span></div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
-            <div><strong>Địa chỉ:</strong> <code>http://127.0.0.1:4242</code></div>
-            <div><strong>Khung tác chiến:</strong> Phidata + Smolagents</div>
-            <div><strong>Cơ sở bộ nhớ:</strong> Mem0 SQLite Persistent</div>
-            <div><strong>Tauri Version:</strong> v2.0 Frameless Desktop</div>
+            <div><strong>Địa chỉ:</strong> <code>127.0.0.1:4242</code></div>
+            <div><strong>Agent Framework:</strong> Phidata + Smolagents</div>
+            <div><strong>Bộ nhớ:</strong> SQLite Persistent</div>
+            <div><strong>Giao diện:</strong> Tauri Desktop</div>
           </div>
           <div style="margin-top: 14px;">
-            <button class="btn btn-primary" onclick="pingServer()">⚡ Kiểm tra Ping Server</button>
+            <button class="btn btn-primary" onclick="pingServer()">⚡ Kiểm tra kết nối</button>
             <span id="ping-status" style="margin-left: 10px; font-size: 12px; color: var(--ok);"></span>
           </div>
         </div>
@@ -966,15 +915,103 @@ async function loadSoul(name) {
   } catch(e) {}
 }
 
+let cachedVoices = [];
+function updateVoices() {
+  if ('speechSynthesis' in window) {
+    cachedVoices = window.speechSynthesis.getVoices();
+  }
+}
+if ('speechSynthesis' in window) {
+  updateVoices();
+  window.speechSynthesis.onvoiceschanged = updateVoices;
+}
+
+function speakWithVoice(text, voiceId = 'namminh', rate = 1.05, vol = 1.0, onStart = null, onEnd = null) {
+  if (!text) return null;
+  const clean = text.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').replace(/[⚔️👁️🎙️🔊🔇💡ℹ️⚠️❌🟢🔴🤖👤🧠👉✨🎮📌📊⏳💖]/g, '').trim();
+  if (!clean) return null;
+
+  const vId = (voiceId || 'namminh').toLowerCase();
+
+  // 1. Google TTS
+  if (vId === 'google_vi') {
+    if (onStart) onStart();
+    const url = BACKEND + '/api/speech/tts?text=' + encodeURIComponent(clean);
+    const audio = new Audio(url);
+    audio.playbackRate = rate;
+    audio.volume = vol;
+    if (onEnd) {
+      audio.onended = onEnd;
+      audio.onerror = onEnd;
+    }
+    audio.play().catch(() => { if (onEnd) onEnd(); });
+    return audio;
+  }
+
+  // 2. Microsoft Natural Voice qua window.speechSynthesis
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(clean);
+    const voices = cachedVoices.length > 0 ? cachedVoices : window.speechSynthesis.getVoices();
+    
+    let chosenVoice = null;
+    let pitch = 1.0;
+
+    if (vId.includes('nam') || vId.includes('an') || vId === 'male') {
+      // Giọng Nam (Nam Minh hoặc An)
+      chosenVoice = voices.find(v => (v.lang.includes('vi') || v.lang.includes('VI')) && (v.name.includes('NamMinh') || v.name.includes('An') || v.name.toLowerCase().includes('male')))
+                 || voices.find(v => v.name.includes('NamMinh') || v.name.includes('An'))
+                 || voices.find(v => v.lang.includes('vi'));
+      pitch = 0.88; // Tông nam trầm ấm, dứt khoát
+    } else if (vId.includes('hoai') || vId.includes('nu') || vId === 'female') {
+      // Giọng Nữ (Hoài My)
+      chosenVoice = voices.find(v => (v.lang.includes('vi') || v.lang.includes('VI')) && (v.name.includes('HoaiMy') || v.name.toLowerCase().includes('female')))
+                 || voices.find(v => v.name.includes('HoaiMy'))
+                 || voices.find(v => v.lang.includes('vi'));
+      pitch = 1.05; // Tông nữ trong trẻo
+    } else {
+      // Mặc định: Giọng Nam
+      chosenVoice = voices.find(v => (v.lang.includes('vi') || v.lang.includes('VI')) && (v.name.includes('NamMinh') || v.name.includes('An')))
+                 || voices.find(v => v.lang.includes('vi'));
+      pitch = 0.88;
+    }
+
+    if (chosenVoice) u.voice = chosenVoice;
+    u.lang = 'vi-VN';
+    u.rate = rate;
+    u.pitch = pitch;
+    u.volume = vol;
+
+    if (onStart) u.onstart = onStart;
+    if (onEnd) {
+      u.onend = onEnd;
+      u.onerror = onEnd;
+    }
+
+    window.speechSynthesis.speak(u);
+    return null;
+  }
+
+  // Fallback nếu không có speechSynthesis
+  if (onStart) onStart();
+  const url = BACKEND + '/api/speech/tts?text=' + encodeURIComponent(clean);
+  const audio = new Audio(url);
+  audio.playbackRate = rate;
+  audio.volume = vol;
+  if (onEnd) {
+    audio.onended = onEnd;
+    audio.onerror = onEnd;
+  }
+  audio.play().catch(() => { if (onEnd) onEnd(); });
+  return audio;
+}
+
 function testCharVoice() {
-  const v = document.getElementById('char-edit-voice-select').value || 'google_vi';
+  const v = document.getElementById('char-edit-voice-select').value || 'namminh';
   const dName = document.getElementById('char-edit-display-name').value.trim() || currentChar;
-  const text = `Dạ em chào Sếp! Em là ${dName}, sẵn sàng tác chiến cùng Sếp!`;
-  const url = BACKEND + '/api/speech/tts?text=' + encodeURIComponent(text) + '&voice=' + encodeURIComponent(v);
-  const a = new Audio(url);
-  a.playbackRate = 1.05;
-  a.play().catch(() => showToast('Không thể phát âm thanh test.'));
-  showToast(`Đang nghe thử giọng cho [${dName}]...`);
+  const text = `Tôi là ${dName}, sẵn sàng hỗ trợ bạn.`;
+  speakWithVoice(text, v, 1.05, 1.0);
+  showToast(`Nghe thử giọng: ${dName}`);
 }
 
 async function saveCurrentCharacterDetails() {
@@ -1038,22 +1075,28 @@ async function loadVoiceTab() {
 
 function testCurrentVoice() {
   const vsel = document.getElementById('vsel');
-  const voiceId = vsel ? vsel.value : 'google_vi';
+  const voiceId = vsel ? vsel.value : 'namminh';
   const rate = parseFloat(document.getElementById('voice-rate-val').innerText) || 1.05;
   const vol = (parseFloat(document.getElementById('voice-vol-val').innerText) || 100) / 100;
-  const text = "Dạ em chào Sếp! Em là Neito Tactical Companion, luôn sẵn sàng đồng hành và tác chiến cùng Sếp!";
-  const audioUrl = BACKEND + '/api/speech/tts?text=' + encodeURIComponent(text) + '&voice=' + encodeURIComponent(voiceId);
-  const audio = new Audio(audioUrl);
-  audio.playbackRate = rate;
-  audio.volume = vol;
-  audio.play().catch(() => showToast('Không thể phát âm thanh test.'));
-  showToast('Đang phát giọng đọc mẫu đồng bộ 100% với Pet...');
+  const text = "Tôi là Neito Agent, sẵn sàng hỗ trợ bạn.";
+  speakWithVoice(text, voiceId, rate, vol);
+  showToast('Đang phát giọng nghe thử...');
 }
 
-function saveActiveVoiceSelection() {
+async function saveActiveVoiceSelection() {
   const vsel = document.getElementById('vsel');
-  const v = vsel ? vsel.value : 'google_vi';
-  showToast(`Đã lưu [${v}] làm giọng mặc định cho Pet!`);
+  const v = vsel ? vsel.value : 'namminh';
+  try {
+    await fetch(BACKEND + '/api/character/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: currentChar,
+        voice_id: v
+      })
+    });
+  } catch(e) {}
+  showToast(`Đã lưu [${v}] làm giọng mặc định!`);
 }
 
 async function generateVoiceFromDesc() {

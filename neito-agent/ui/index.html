@@ -371,7 +371,7 @@
   const btnArcDashboard = document.getElementById('btn-arc-dashboard');
 
   let curChar = 'hiyori';
-  let curCharVoice = 'google_vi';
+  let curCharVoice = 'namminh';
   let curProtocol = null;
   let isIconMode = false;
   let bubbleTimer = null;
@@ -740,42 +740,116 @@
 
   function onPetClick() {
     setPetEmotion('happy', 2500);
-    const pName = curProtocol ? curProtocol.name : 'Chiến thuật chung';
+    const pName = curProtocol ? curProtocol.name : 'Chung';
     const greetings = [
-      `Dạ em đây Sếp ơi! Em đang quan sát và hỗ trợ Sếp trong [${pName}]! ✨`,
-      `Quân sư Neito sẵn sàng tác chiến! Sếp bảo gì em làm ngay nhé! ⚔️`,
-      `Em đang túc trực bên cạnh Sếp đây ạ! Mọi biến động trên màn hình em đều nắm rõ! 💖`
+      `Sếp cần hỗ trợ gì không?`,
+      `Tôi đang sẵn sàng tác chiến.`,
+      `Đang theo dõi màn hình cùng bạn.`
     ];
     const pick = greetings[Math.floor(Math.random() * greetings.length)];
     showBubble(pick);
   }
 
-  function speakVoice(text, rate = 1.05) {
-    if (!voiceActive || !('speechSynthesis' in window) || !text) return;
-    try {
+  let cachedVoices = [];
+  function updateVoices() {
+    if ('speechSynthesis' in window) {
+      cachedVoices = window.speechSynthesis.getVoices();
+    }
+  }
+  if ('speechSynthesis' in window) {
+    updateVoices();
+    window.speechSynthesis.onvoiceschanged = updateVoices;
+  }
+
+  function speakWithVoice(text, voiceId = 'namminh', rate = 1.05, vol = 1.0, onStart = null, onEnd = null) {
+    if (!text) return null;
+    const clean = text.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').replace(/[⚔️👁️🎙️🔊🔇💡ℹ️⚠️❌🟢🔴🤖👤🧠👉✨🎮📌📊⏳💖]/g, '').trim();
+    if (!clean) return null;
+
+    const vId = (voiceId || 'namminh').toLowerCase();
+
+    // 1. Google TTS
+    if (vId === 'google_vi') {
+      if (onStart) onStart();
+      const url = BACKEND + '/api/speech/tts?text=' + encodeURIComponent(clean);
+      const audio = new Audio(url);
+      audio.playbackRate = rate;
+      audio.volume = vol;
+      if (onEnd) {
+        audio.onended = onEnd;
+        audio.onerror = onEnd;
+      }
+      audio.play().catch(() => { if (onEnd) onEnd(); });
+      return audio;
+    }
+
+    // 2. Microsoft Natural Voice qua window.speechSynthesis
+    if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      const clean = text.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim();
-      if (!clean) return;
       const u = new SpeechSynthesisUtterance(clean);
+      const voices = cachedVoices.length > 0 ? cachedVoices : window.speechSynthesis.getVoices();
+      
+      let chosenVoice = null;
+      let pitch = 1.0;
+
+      if (vId.includes('nam') || vId.includes('an') || vId === 'male') {
+        // Giọng Nam (Nam Minh hoặc An)
+        chosenVoice = voices.find(v => (v.lang.includes('vi') || v.lang.includes('VI')) && (v.name.includes('NamMinh') || v.name.includes('An') || v.name.toLowerCase().includes('male')))
+                   || voices.find(v => v.name.includes('NamMinh') || v.name.includes('An'))
+                   || voices.find(v => v.lang.includes('vi'));
+        pitch = 0.88; // Tông nam trầm, dứt khoát
+      } else if (vId.includes('hoai') || vId.includes('nu') || vId === 'female') {
+        // Giọng Nữ (Hoài My)
+        chosenVoice = voices.find(v => (v.lang.includes('vi') || v.lang.includes('VI')) && (v.name.includes('HoaiMy') || v.name.toLowerCase().includes('female')))
+                 || voices.find(v => v.name.includes('HoaiMy'))
+                 || voices.find(v => v.lang.includes('vi'));
+        pitch = 1.05; // Tông nữ trong trẻo
+      } else {
+        // Mặc định: Giọng Nam
+        chosenVoice = voices.find(v => (v.lang.includes('vi') || v.lang.includes('VI')) && (v.name.includes('NamMinh') || v.name.includes('An')))
+                   || voices.find(v => v.lang.includes('vi'));
+        pitch = 0.88;
+      }
+
+      if (chosenVoice) u.voice = chosenVoice;
       u.lang = 'vi-VN';
-      u.rate = rate || 1.05;
+      u.rate = rate;
+      u.pitch = pitch;
+      u.volume = vol;
+
+      if (onStart) u.onstart = onStart;
+      if (onEnd) {
+        u.onend = onEnd;
+        u.onerror = onEnd;
+      }
+
       window.speechSynthesis.speak(u);
-    } catch(e) {}
+      return null;
+    }
+
+    // Fallback nếu không có speechSynthesis
+    if (onStart) onStart();
+    const url = BACKEND + '/api/speech/tts?text=' + encodeURIComponent(clean);
+    const audio = new Audio(url);
+    audio.playbackRate = rate;
+    audio.volume = vol;
+    if (onEnd) {
+      audio.onended = onEnd;
+      audio.onerror = onEnd;
+    }
+    audio.play().catch(() => { if (onEnd) onEnd(); });
+    return audio;
   }
 
   function playSpeechAndBubble(text, emotion = 'happy', spokenText = '', attentionPoint = null) {
     if (!text) return;
     const gesture = parseSpeechGestures(text) || emotion || 'talk';
 
-    // Tốc độ nói linh hoạt theo tiết tấu chiến thuật:
-    // 1.05x: bạn đồng hành / trò chuyện
-    // 1.30x: quân sư chiến thuật game
-    // 1.45x: báo động nguy cấp (nói dứt khoát, thần tốc)
     const isAlert = (emotion === 'alert' || emotion === 'shock');
     const isAdvisor = isAlert || emotion === 'tactical' || text.includes('QUÂN SƯ') || text.includes('CẨM NANG') || text.startsWith('[');
     const speechRate = isAlert ? 1.45 : (isAdvisor ? 1.30 : 1.05);
 
-    // Xử lý chú ý & di chuyển Pet (Attention Locomotion)
+    // Di chuyển chú ý (Attention Locomotion)
     if (attentionPoint && typeof attentionPoint.x === 'number' && typeof attentionPoint.y === 'number') {
       triggerAttentionGlide(
         attentionPoint.x,
@@ -793,7 +867,7 @@
       if (!bubbleShown) {
         bubbleShown = true;
         const charName = (CHAR_NAMES[curChar] || curChar || 'Hiyori').split('(')[0].trim();
-        const tagLabel = isAdvisor ? '⚡ QUÂN SƯ TÁC CHIẾN' : '✨ BẠN ĐỒNG HÀNH';
+        const tagLabel = isAdvisor ? '⚡ QUÂN SƯ' : '✨ PET';
         const tagClass = isAdvisor ? 'bubble-tag-advisor' : 'bubble-tag-companion';
         bubble.innerHTML = `
           <div class="bubble-header">
@@ -810,48 +884,28 @@
       }
     };
 
+    triggerBubble();
+
     if (voiceActive && cleanSpoken) {
-      try {
-        if (currentAudio) {
-          currentAudio.pause();
+      if (currentAudio) {
+        try { currentAudio.pause(); } catch(e) {}
+        currentAudio = null;
+      }
+      setPetEmotion(gesture);
+      currentAudio = speakWithVoice(
+        cleanSpoken,
+        curCharVoice || 'namminh',
+        speechRate,
+        1.0,
+        () => setPetEmotion(gesture),
+        () => {
+          setTimeout(() => setPetEmotion('idle'), 250);
           currentAudio = null;
         }
-        const voiceParam = curCharVoice ? ('&voice=' + encodeURIComponent(curCharVoice)) : '';
-        const audioUrl = BACKEND + '/api/speech/tts?text=' + encodeURIComponent(cleanSpoken) + voiceParam;
-        const audio = new Audio(audioUrl);
-        audio.playbackRate = speechRate;
-        currentAudio = audio;
-
-        // Cơ chế Lip-Sync & Semantic Gesture
-        audio.onplay = () => {
-          triggerBubble();
-          setPetEmotion(gesture);
-        };
-        audio.onended = () => {
-          setTimeout(() => {
-            setPetEmotion('idle');
-          }, 250);
-        };
-        audio.onerror = () => {
-          triggerBubble();
-          setPetEmotion(gesture, Math.max(3000, text.length * 80));
-          speakVoice(cleanSpoken, speechRate);
-        };
-        audio.play().catch(() => {
-          triggerBubble();
-          setPetEmotion(gesture, Math.max(3000, text.length * 80));
-          speakVoice(cleanSpoken, speechRate);
-        });
-
-        setTimeout(triggerBubble, 350);
-        return;
-      } catch (e) {
-        // Fallback
-      }
+      );
+    } else {
+      setPetEmotion(gesture, Math.max(3000, text.length * 80));
     }
-
-    triggerBubble();
-    setPetEmotion(gesture, Math.max(3000, text.length * 80));
   }
 
   function showBubble(text) {

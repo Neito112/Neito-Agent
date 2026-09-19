@@ -75,7 +75,7 @@ def get_character_list():
 
                 meta_file = os.path.join(cdir, 'meta.json')
                 display_name = name
-                voice_id = 'google_vi'
+                voice_id = 'namminh'
                 if os.path.exists(meta_file):
                     try:
                         with open(meta_file, 'r', encoding='utf-8') as f:
@@ -546,9 +546,10 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
 
         elif self.path == '/api/voice/all':
             voices = [
-                {'id': 'google_vi', 'name': 'Google TTS (Tiếng Việt Nữ Chuẩn - 0 Token)', 'type': 'system'},
-                {'id': 'hoaimy', 'name': 'Edge TTS Hoài My (Nữ truyền cảm)', 'type': 'system'},
-                {'id': 'namminh', 'name': 'Edge TTS Nam Minh (Nam trầm ấm)', 'type': 'system'}
+                {'id': 'namminh', 'name': 'Nam Minh (Nam trầm ấm - Mặc định)', 'type': 'system'},
+                {'id': 'an', 'name': 'An (Nam dứt khoát)', 'type': 'system'},
+                {'id': 'hoaimy', 'name': 'Hoài My (Nữ truyền cảm)', 'type': 'system'},
+                {'id': 'google_vi', 'name': 'Google TTS (Nữ tiêu chuẩn)', 'type': 'system'}
             ]
             voices_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voices')
             if os.path.exists(voices_dir):
