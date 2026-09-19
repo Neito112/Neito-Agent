@@ -209,6 +209,14 @@
     opacity: 0; transform: translateY(10px); transition: all 0.2s; pointer-events: none; z-index: 9999;
   }
   #toast.show { opacity: 1; transform: translateY(0); }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.03); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.35); border-radius: 3px; transition: background 0.2s; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.65); }
+  ::-webkit-scrollbar-corner { background: transparent; }
+  * { scrollbar-width: thin; scrollbar-color: rgba(56,189,248,0.35) rgba(255,255,255,0.03); }
 </style>
 </head>
 <body>
@@ -241,7 +249,7 @@
     <div class="sidebar">
       <button class="nav-btn active" data-tab="tab-chars">🎭 Nhân vật & Linh hồn</button>
       <button class="nav-btn" data-tab="tab-protocols">📚 Giao thức tác chiến</button>
-      <button class="nav-btn" data-tab="tab-memory">🧠 Trí nhớ & Não bộ</button>
+      <button class="nav-btn" data-tab="tab-providers">🔌 Nhà Cung Cấp Model</button>
       <button class="nav-btn" data-tab="tab-vision">👁️ Thị giác YOLO</button>
       <button class="nav-btn" data-tab="tab-voice">🎙️ Giọng nói AI</button>
       <button class="nav-btn" data-tab="tab-logs">📜 Lịch sử tác chiến</button>
@@ -355,52 +363,161 @@
           <div id="sit-test-result" style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; min-height: 36px; font-size: 12px; color: #cbd5e1;">Chưa có tín hiệu mô phỏng.</div>
         </div>
 
-        <!-- Protocols List -->
+        <!-- Protocols List with Categories Filter -->
         <div class="card">
           <div class="card-title">
             <span>Danh mục toàn bộ Giao thức (Cơ chế: 1 Active, 2 Queued)</span>
             <button class="btn btn-sm" onclick="loadProtocols()">↻ Tải lại</button>
           </div>
+          <!-- Category Filter Tabs -->
+          <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
+            <button class="btn btn-sm proto-filter-btn active" data-filter="all" onclick="filterProtocols('all', this)" style="border-color: var(--accent); background: rgba(56,189,248,0.15);">🌟 Tất Cả (<span id="count-all">0</span>)</button>
+            <button class="btn btn-sm proto-filter-btn" data-filter="game" onclick="filterProtocols('game', this)">🎮 Game / Esports (<span id="count-game">0</span>)</button>
+            <button class="btn btn-sm proto-filter-btn" data-filter="app" onclick="filterProtocols('app', this)">💼 Phần Mềm & App (<span id="count-app">0</span>)</button>
+            <button class="btn btn-sm proto-filter-btn" data-filter="topic" onclick="filterProtocols('topic', this)">🧠 Chủ Đề Tri Thức & Ứng Xử (<span id="count-topic">0</span>)</button>
+          </div>
           <div id="protocols-grid" style="display: flex; flex-direction: column; gap: 12px;"></div>
         </div>
       </div>
 
-      <!-- ══ TAB 2: TRÍ NHỚ & NÃO BỘ ══ -->
-      <div id="tab-memory" class="tab-panel">
+      <!-- ══ TAB PROVIDERS: NHÀ CUNG CẤP MODEL (AGY, OLLAMA, OPENROUTER, NOUS, GEMINI, CUSTOM) ══ -->
+      <div id="tab-providers" class="tab-panel">
         <div class="panel-header">
-          <div class="panel-title">🧠 Trí Nhớ Vĩnh Cửu & Trắc Nghiệm Não Bộ</div>
-          <div class="panel-desc">Quản lý cơ sở dữ liệu ký ức lâu dài (Mem0 SQLite) và tương tác thử nghiệm với Phidata</div>
+          <div class="panel-title">🔌 Nhà Cung Cấp Mô Hình & Đồng Bộ Bộ Não</div>
+          <div class="panel-desc">Chuyển đổi mô hình LLM. Tự động đồng bộ tức thời và dùng chung 100% giữa Phidata (Bộ não phân tích) và Smolagents (Đôi tay thực thi).</div>
         </div>
 
-        <div class="card">
-          <div class="card-title"><span>＋ Thêm ký ức mới</span></div>
-          <div style="display: flex; gap: 10px; margin-bottom: 8px;">
-            <input id="mem-key" class="input" style="flex: 1;" placeholder="Chủ đề / Khóa (vd: Sở thích của Sếp)">
-            <input id="mem-val" class="input" style="flex: 2;" placeholder="Nội dung ghi nhớ (vd: Thích code Python và giao diện Dark)">
-            <button class="btn btn-primary" onclick="addNewMemory()">💾 Ghi nhớ</button>
-          </div>
-        </div>
-
-        <div class="card">
+        <!-- Active Model Status Banner -->
+        <div class="card" style="border-color: rgba(56, 189, 248, 0.5); background: rgba(56, 189, 248, 0.08);">
           <div class="card-title">
-            <span>Danh sách ký ức đã lưu (<span id="mem-count">0</span>)</span>
-            <button class="btn btn-sm" onclick="loadMemories()">↻ Tải lại</button>
+            <span style="color: var(--accent); display: flex; align-items: center; gap: 8px;">
+              <span>⚡ MÔ HÌNH ĐANG KÍCH HOẠT:</span>
+              <strong id="active-provider-model-label" style="color: #fff; font-size: 15px;">Đang tải...</strong>
+            </span>
+            <span class="active-badge" id="active-provider-badge" style="position: static;">ONLINE</span>
           </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>ID</th><th>Khóa</th><th>Nội dung</th><th>Thao tác</th></tr></thead>
-              <tbody id="memories-body"></tbody>
-            </table>
+          <p id="active-provider-desc" style="color: #cbd5e1; font-size: 12px; margin-bottom: 12px;">Google Antigravity CLI Bridge: Trích xuất trực tiếp mô hình Google Gemini/Claude/GPT sang cho Phidata & Smolagents.</p>
+          
+          <div style="display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px;">
+            <input id="provider-test-prompt" class="input" placeholder="Nhập câu hỏi test tốc độ và phản xạ (vd: Bạn là ai, trả lời 1 câu)..." style="flex: 1;">
+            <button class="btn btn-primary" id="btn-test-provider" onclick="testActiveProviderModel()">⚡ Test Phản Xạ Model</button>
           </div>
+          <div id="provider-test-result" style="display: none; margin-top: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 10px; font-size: 12px;"></div>
         </div>
 
-        <div class="card">
-          <div class="card-title"><span>💬 Thử nghiệm phản xạ Brain</span></div>
-          <div style="display: flex; gap: 10px; margin-bottom: 8px;">
-            <input id="test-ask-input" class="input" placeholder="Nhập câu hỏi test trực tiếp với Neito Brain..." style="flex: 1;">
-            <button class="btn btn-primary" onclick="testAsk()">Gửi</button>
+        <!-- Provider Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          
+          <!-- 1. Google Antigravity (AGY CLI) -->
+          <div class="card" style="border-color: rgba(56, 189, 248, 0.4); margin-bottom: 0;">
+            <div class="card-title">
+              <span style="color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+                <span>🚀 Google Antigravity (AGY CLI)</span>
+                <span style="background: rgba(56,189,248,0.2); color: #38bdf8; font-size: 9px; padding: 1px 6px; border-radius: 999px;">KHUYÊN DÙNG</span>
+              </span>
+              <button class="btn btn-sm" onclick="scanAgyModels()">↻ Quét Model</button>
+            </div>
+            <p class="panel-desc" style="margin-bottom: 10px;">Trích xuất mô hình trực tiếp từ CLI Google Antigravity đang chạy trên máy. 0 token setup, tốc độ siêu tốc.</p>
+            <div style="margin-bottom: 12px;">
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Chọn mô hình AGY:</label>
+              <select id="agy-model-select" class="input" style="background: rgba(15,23,42,0.9);"></select>
+            </div>
+            <button class="btn btn-primary" onclick="applyAgyModel()" style="width: 100%;">✓ Áp Dụng AGY Cho Phidata & Smolagents</button>
           </div>
-          <div id="test-ask-result" style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 10px; min-height: 40px; font-size: 12px; color: #cbd5e1;">Chưa có phản hồi.</div>
+
+          <!-- 2. Ollama (Local Machine) -->
+          <div class="card" style="border-color: rgba(16, 185, 129, 0.4); margin-bottom: 0;">
+            <div class="card-title">
+              <span style="color: #10b981; display: flex; align-items: center; gap: 6px;">
+                <span>💻 Ollama (Local Machine)</span>
+                <span id="ollama-status-badge" style="background: rgba(16,185,129,0.2); color: #10b981; font-size: 9px; padding: 1px 6px; border-radius: 999px;">LOCAL</span>
+              </span>
+              <button class="btn btn-sm" onclick="scanOllamaModels()">🔍 Quét Máy</button>
+            </div>
+            <p class="panel-desc" style="margin-bottom: 10px;">Chạy hoàn toàn offline trên máy cá nhân. Tự động nhận diện model đã tải trong Ollama.</p>
+            <div style="margin-bottom: 8px;">
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Địa chỉ Ollama Endpoint:</label>
+              <input id="ollama-endpoint-input" class="input" value="http://localhost:11434">
+            </div>
+            <div style="margin-bottom: 12px;">
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô hình Local phát hiện:</label>
+              <select id="ollama-model-select" class="input" style="background: rgba(15,23,42,0.9);">
+                <option value="">(Bấm 'Quét Máy' để tìm model)...</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="applyOllamaModel()" style="width: 100%;">✓ Áp Dụng Ollama Local</button>
+          </div>
+
+          <!-- 3. OpenRouter -->
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card-title"><span style="color: #c084fc;">🌐 OpenRouter</span></div>
+            <p class="panel-desc" style="margin-bottom: 10px;">Cổng kết nối hàng trăm mô hình mã nguồn mở (Claude 3.5, DeepSeek R1, Llama 3.3, v.v.).</p>
+            <div style="margin-bottom: 8px;">
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">OpenRouter API Key:</label>
+              <input id="openrouter-key-input" type="password" class="input" placeholder="sk-or-v1-...">
+            </div>
+            <div style="margin-bottom: 12px;">
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô hình:</label>
+              <input id="openrouter-model-input" class="input" value="google/gemini-2.0-flash-001" placeholder="vd: deepseek/deepseek-chat">
+            </div>
+            <button class="btn btn-primary" onclick="applyOpenRouterModel()" style="width: 100%;">✓ Lưu & Áp Dụng OpenRouter</button>
+          </div>
+
+          <!-- 4. Nous Portal -->
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card-title"><span style="color: #f59e0b;">🏛️ Nous Portal</span></div>
+            <p class="panel-desc" style="margin-bottom: 10px;">Nền tảng Nous Research chuyên biệt với dòng mô hình Hermes lý luận mạnh mẽ.</p>
+            <div style="margin-bottom: 8px;">
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Nous Portal API Key:</label>
+              <input id="nous-key-input" type="password" class="input" placeholder="API Key...">
+            </div>
+            <div style="margin-bottom: 12px;">
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô hình Hermes:</label>
+              <input id="nous-model-input" class="input" value="Hermes-3-Llama-3.1-8B">
+            </div>
+            <button class="btn btn-primary" onclick="applyNousModel()" style="width: 100%;">✓ Lưu & Áp Dụng Nous Portal</button>
+          </div>
+
+          <!-- 5. Google Gemini API Key -->
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card-title"><span style="color: #38bdf8;">🔑 Google Gemini API Key</span></div>
+            <p class="panel-desc" style="margin-bottom: 10px;">Sử dụng API Key cá nhân từ Google AI Studio (Gemini 2.0 Flash, 1.5 Pro).</p>
+            <div style="margin-bottom: 8px;">
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Google Gemini API Key:</label>
+              <input id="gemini-key-input" type="password" class="input" placeholder="AIzaSy...">
+            </div>
+            <div style="margin-bottom: 12px;">
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Chọn model:</label>
+              <select id="gemini-model-select" class="input" style="background: rgba(15,23,42,0.9);">
+                <option value="gemini-2.0-flash">Gemini 2.0 Flash (Khuyên dùng, siêu nhanh)</option>
+                <option value="gemini-1.5-pro">Gemini 1.5 Pro (Lý luận sâu)</option>
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash (Tiết kiệm)</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="applyGeminiModel()" style="width: 100%;">✓ Lưu & Áp Dụng Gemini API</button>
+          </div>
+
+          <!-- 6. Chuẩn Endpoint Thủ Công -->
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card-title"><span style="color: #94a3b8;">⚙️ Chuẩn Endpoint Thủ Công (OpenAI-compatible)</span></div>
+            <p class="panel-desc" style="margin-bottom: 10px;">Tương thích vLLM, LM Studio, Text-Gen-WebUI hoặc bất kỳ server chuẩn OpenAI nào.</p>
+            <div style="margin-bottom: 8px;">
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Base URL Endpoint:</label>
+              <input id="custom-endpoint-input" class="input" value="http://localhost:8000/v1" placeholder="http://localhost:8000/v1">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+              <div>
+                <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">API Key (nếu có):</label>
+                <input id="custom-key-input" type="password" class="input" placeholder="Không bắt buộc">
+              </div>
+              <div>
+                <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tên Model:</label>
+                <input id="custom-model-input" class="input" value="default-model" placeholder="vd: my-model">
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="applyCustomModel()" style="width: 100%;">✓ Lưu & Áp Dụng Custom Endpoint</button>
+          </div>
+
         </div>
       </div>
 
@@ -408,42 +525,62 @@
       <div id="tab-vision" class="tab-panel">
         <div class="panel-header">
           <div class="panel-title">👁️ Mắt Quan Sát & Thị Giác YOLO</div>
-          <div class="panel-desc">Cấu hình tính năng quét màn hình thời gian thực để hỗ trợ Sếp làm việc</div>
+          <div class="panel-desc">Dual Engine thời gian thực: YOLO11n quét nhanh + YOLO-World nhận diện Open-Vocabulary</div>
         </div>
 
         <div class="card" style="border-color: rgba(16, 185, 129, 0.45); background: rgba(16, 185, 129, 0.05);">
           <div class="card-title">
-            <span style="color: #10b981;">👁️ Động Cơ Thị Giác Kép: YOLO11n + YOLO-World</span>
+            <span style="color: #10b981;">⚡ Trạng Thái Động Cơ Thị Giác Thời Gian Thực</span>
+            <button class="btn btn-sm" onclick="refreshVisionStatus()">↻ Làm mới</button>
           </div>
-          <p class="panel-desc" style="margin-bottom: 12px;">Kết hợp hai tầng mô hình thị giác AI tối tân nhất:</p>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px 12px; font-size: 11.5px;">
-              <div style="color: #38bdf8; font-weight: 700; margin-bottom: 4px;">⚡ TẦNG 1: YOLO11n</div>
-              <div style="color: #cbd5e1; font-size: 11px;">Quét màn hình siêu tốc (60FPS), bóc tách bounding-box, khung giao diện HUD, minimap và đối tượng di chuyển.</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+            <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 14px; border: 1px solid rgba(56,189,248,0.2);">
+              <div style="color: #38bdf8; font-weight: 700; font-size: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">⚡ TẦNG 1: YOLO11n <span id="yolo11n-badge" style="background: rgba(16,185,129,0.2); color: #10b981; font-size: 9px; padding: 1px 6px; border-radius: 999px; font-weight: 600;">READY</span></div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px; color: #cbd5e1;">
+                <div>📐 Parameters: <strong style="color:#fff;">2.6M</strong></div>
+                <div>🎯 mAP50-95: <strong style="color:#fff;">39.5%</strong></div>
+                <div>📏 Input: <strong style="color:#fff;">640×640px</strong></div>
+                <div>⚡ Speed GPU: <strong style="color:#10b981;">~1.5ms/frame</strong></div>
+                <div>🖥️ Speed CPU: <strong style="color:#f59e0b;">~55ms/frame</strong></div>
+                <div>📦 Model: <strong style="color:#fff;">yolo11n.pt (5.4MB)</strong></div>
+              </div>
+              <div style="margin-top: 8px; font-size: 10.5px; color: #94a3b8;">Quét siêu tốc bounding-box, UI HUD, minimap, đối tượng di chuyển. Backbone: C3k2 + SPPF + C2PSA.</div>
             </div>
-            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px 12px; font-size: 11.5px;">
-              <div style="color: #10b981; font-weight: 700; margin-bottom: 4px;">🌐 TẦNG 2: YOLO-World</div>
-              <div style="color: #cbd5e1; font-size: 11px;">Nhận diện Open-Vocabulary Zero-Shot! Tự động nạp danh sách nhãn theo Giao thức đang On-Top mà không cần train lại.</div>
+            <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 14px; border: 1px solid rgba(16,185,129,0.2);">
+              <div style="color: #10b981; font-weight: 700; font-size: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">🌐 TẦNG 2: YOLO-World <span id="yoloworld-badge" style="background: rgba(56,189,248,0.2); color: #38bdf8; font-size: 9px; padding: 1px 6px; border-radius: 999px; font-weight: 600;">ACTIVE</span></div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px; color: #cbd5e1;">
+                <div>🧠 Backbone: <strong style="color:#fff;">YOLOv8s-World</strong></div>
+                <div>🔤 Vocab: <strong style="color:#fff;">Open-Vocabulary</strong></div>
+                <div>🎯 Zero-Shot: <strong style="color:#10b981;">Có</strong></div>
+                <div>📏 Input: <strong style="color:#fff;">640×640px</strong></div>
+                <div>🏷️ Nhãn Active: <strong style="color:#38bdf8;"><span id="vision-active-count">0</span></strong></div>
+                <div>📡 Mode: <span id="vision-engine-mode" style="color:#f59e0b; font-weight:600;">Adaptive</span></div>
+              </div>
+              <div style="margin-top: 8px; font-size: 10.5px; color: #94a3b8;">Nhận diện Open-Vocabulary: Tự nạp nhãn từ Protocol On-Top mà không cần train lại mô hình.</div>
             </div>
           </div>
-          <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 6px;">
+          <div style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 10px 14px; margin-bottom: 10px;">
+            <div style="font-size: 11.5px; color: #94a3b8; margin-bottom: 6px;">🏷️ Nhãn YOLO-World đang theo dõi (từ Protocol On-Top):</div>
+            <div id="vision-active-classes" style="display: flex; flex-wrap: wrap; gap: 6px;"><span style="color: #64748b; font-size: 11px;">Đang tải...</span></div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
             <div>
               <strong>Chế độ Screen Watch thời gian thực</strong>
-              <div class="panel-desc">Tự động quan sát cửa sổ ứng dụng đang mở (Game, VSCode, CAD, Trình duyệt)</div>
+              <div class="panel-desc">Quan sát liên tục cửa sổ On-Top (Game, IDE, Trình duyệt)</div>
             </div>
             <button class="btn btn-primary" id="btn-toggle-yolo" onclick="toggleYolo()">Bật Quan Sát</button>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-title"><span>Thông số quét</span></div>
+          <div class="card-title"><span>⚙️ Cấu Hình Quét</span></div>
           <div style="margin-bottom: 12px;">
-            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tần suất quét (FPS: <span id="yolo-fps-val">2</span> FPS)</label>
-            <input type="range" min="1" max="10" value="2" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('yolo-fps-val').innerText = this.value">
+            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tần suất quét (<span id="yolo-fps-val">2</span> FPS) — YOLO11n có thể đạt ~150 FPS trên GPU</label>
+            <input type="range" min="1" max="30" value="2" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('yolo-fps-val').innerText = this.value">
           </div>
           <div>
-            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Độ tin cậy nhận diện (Confidence: <span id="yolo-conf-val">75</span>%)</label>
-            <input type="range" min="40" max="95" value="75" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('yolo-conf-val').innerText = this.value">
+            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Ngưỡng tin cậy nhận diện (<span id="yolo-conf-val">25</span>%) — Thấp hơn = nhạy hơn, cao hơn = chính xác hơn</label>
+            <input type="range" min="10" max="95" value="25" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('yolo-conf-val').innerText = this.value">
           </div>
         </div>
       </div>
@@ -451,12 +588,12 @@
       <!-- ══ TAB 4: GIỌNG NÓI AI ══ -->
       <div id="tab-voice" class="tab-panel">
         <div class="panel-header">
-          <div class="panel-title">🎙️ Giọng Nói & Đọc Lời Thoại</div>
-          <div class="panel-desc">Cấu hình Text-to-Speech (TTS) và trải nghiệm âm thanh sinh động từ Pet</div>
+          <div class="panel-title">🎙️ Giọng Nói & Tạo Giọng AI</div>
+          <div class="panel-desc">Cấu hình TTS, tạo giọng nói mới từ mô tả hoặc tải lên file âm thanh mẫu</div>
         </div>
 
         <div class="card">
-          <div class="card-title"><span>Cài đặt âm sắc</span></div>
+          <div class="card-title"><span>🔊 Giọng Nói Hiện Tại</span></div>
           <div style="margin-bottom: 14px;">
             <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Âm lượng (<span id="voice-vol-val">100</span>%)</label>
             <input type="range" min="0" max="100" value="100" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('voice-vol-val').innerText = this.value">
@@ -466,6 +603,29 @@
             <input type="range" min="0.5" max="2.0" step="0.1" value="1.0" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('voice-rate-val').innerText = this.value">
           </div>
           <button class="btn btn-primary" onclick="testVoiceSpeak()">▶ Nghe Thử Giọng Nói</button>
+        </div>
+
+        <div class="card" style="border-color: rgba(168, 85, 247, 0.4); background: rgba(168, 85, 247, 0.04);">
+          <div class="card-title"><span style="color: #a855f7;">✨ Tạo Giọng Nói Mới Từ Mô Tả</span></div>
+          <p class="panel-desc" style="margin-bottom: 10px;">Mô tả giọng nói mong muốn bằng ngôn ngữ tự nhiên — AI sẽ phân tích và tạo profile giọng phù hợp.</p>
+          <textarea id="voice-desc-input" class="textarea" rows="3" placeholder="Ví dụ: Giọng nữ trẻ, cao, vui tươi và năng động. Nói nhanh, rõ ràng, có chút tinh nghịch..." style="margin-bottom: 10px;"></textarea>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button class="btn btn-primary" id="btn-gen-voice" onclick="generateVoiceFromDesc()">✨ Tạo Giọng Mới</button>
+            <span id="voice-gen-status" style="font-size: 11px; color: var(--text-muted);"></span>
+          </div>
+        </div>
+
+        <div class="card" style="border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.04);">
+          <div class="card-title"><span style="color: #f59e0b;">📁 Tải Lên Giọng Nói Mẫu</span></div>
+          <p class="panel-desc" style="margin-bottom: 10px;">Tải lên file âm thanh (.mp3, .wav, .ogg) chứa giọng nói mẫu — Hệ thống sẽ phân tích và clone voice profile.</p>
+          <div id="voice-dropzone" style="border: 2px dashed rgba(245,158,11,0.4); border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; background: rgba(0,0,0,0.2);" onclick="document.getElementById('voice-file-input').click()" ondragover="event.preventDefault(); this.style.borderColor='#f59e0b'; this.style.background='rgba(245,158,11,0.08)';" ondragleave="this.style.borderColor='rgba(245,158,11,0.4)'; this.style.background='rgba(0,0,0,0.2)';" ondrop="handleVoiceDrop(event)">
+            <div style="font-size: 28px; margin-bottom: 6px;">🎵</div>
+            <div style="color: #f59e0b; font-weight: 600; font-size: 12px;">Kéo thả file âm thanh vào đây</div>
+            <div style="color: var(--text-muted); font-size: 11px; margin-top: 4px;">hoặc bấm để chọn file (.mp3, .wav, .ogg)</div>
+            <input type="file" id="voice-file-input" accept=".mp3,.wav,.ogg,.m4a" style="display: none;" onchange="handleVoiceFileSelect(this)">
+          </div>
+          <div id="voice-upload-status" style="display: none; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; font-size: 12px; color: #cbd5e1;"></div>
+          <div id="voice-list" style="margin-top: 10px;"></div>
         </div>
       </div>
 
@@ -537,7 +697,9 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 
     if (tabId === 'tab-chars') loadCharacters();
     else if (tabId === 'tab-protocols') loadProtocols();
-    else if (tabId === 'tab-memory') loadMemories();
+    else if (tabId === 'tab-providers') loadProviders();
+    else if (tabId === 'tab-vision') refreshVisionStatus();
+    else if (tabId === 'tab-voice') loadVoiceList();
     else if (tabId === 'tab-logs') loadActionLogs();
   });
 });
@@ -562,43 +724,47 @@ function showToast(msg) {
 
 // 3. TAB NHÂN VẬT & LINH HỒN
 async function loadCharacters() {
+  const CHAR_LABELS = {
+    panda: 'Gấu Panda', cat: 'Mèo Con', clippy: 'Kẹp Giấy', dog: 'Cún Cưng',
+    duck: 'Vịt Vàng', fox: 'Cáo Lửa', rocky: 'Hòn Đá', totoro: 'Totoro'
+  };
+  const FALLBACK_CHARS = [
+    { name: 'panda', path: 'assets/characters/panda/default.gif' },
+    { name: 'cat', path: 'assets/characters/cat/default.svg' },
+    { name: 'clippy', path: 'assets/characters/clippy/default.gif' },
+    { name: 'dog', path: 'assets/characters/dog/default.gif' },
+    { name: 'duck', path: 'assets/characters/duck/default.gif' },
+    { name: 'fox', path: 'assets/characters/fox/default.gif' },
+    { name: 'rocky', path: 'assets/characters/rocky/default.gif' },
+    { name: 'totoro', path: 'assets/characters/totoro/default.gif' }
+  ];
+  let chars = FALLBACK_CHARS;
   try {
     const res = await fetch(BACKEND + '/api/characters');
-    if (!res.ok) return;
-    const data = await res.json();
-    currentChar = data.current || 'panda';
-    const grid = document.getElementById('chars-grid');
-    grid.innerHTML = '';
+    if (res.ok) {
+      const data = await res.json();
+      currentChar = data.current || 'panda';
+      if (data.characters && data.characters.length > 0) {
+        chars = data.characters;
+      }
+    }
+  } catch(e) {}
 
-    const CHAR_LABELS = {
-      
-      panda: 'Gấu Panda',
-      cat: 'Mèo Con',
-      clippy: 'Kẹp Giấy',
-      dog: 'Cún Cưng',
-      duck: 'Vịt Vàng',
-      fox: 'Cáo Lửa',
-      rocky: 'Hòn Đá',
-      totoro: 'Totoro'
-    };
-
-    (data.characters || []).forEach(c => {
-      const isSel = (c.name === currentChar);
-      const item = document.createElement('div');
-      item.className = 'char-item' + (isSel ? ' selected' : '');
-      item.innerHTML = `
-        ${isSel ? '<span class="active-badge">Đang dùng</span>' : ''}
-        <img class="char-thumb" src="${c.path}" alt="${c.name}" onerror="this.src='assets/characters/panda/default.gif'">
-        <span class="char-name">${CHAR_LABELS[c.name] || c.name}</span>
-      `;
-      item.onclick = () => selectCharacter(c.name);
-      grid.appendChild(item);
-    });
-
-    loadSoul(currentChar);
-  } catch(e) {
-    showToast('Không thể tải danh sách nhân vật từ Brain.');
-  }
+  const grid = document.getElementById('chars-grid');
+  grid.innerHTML = '';
+  chars.forEach(c => {
+    const isSel = (c.name === currentChar);
+    const item = document.createElement('div');
+    item.className = 'char-item' + (isSel ? ' selected' : '');
+    item.innerHTML = `
+      ${isSel ? '<span class="active-badge">Đang dùng</span>' : ''}
+      <img class="char-thumb" src="${c.path}" alt="${c.name}" onerror="this.src='assets/characters/panda/default.gif'">
+      <span class="char-name">${CHAR_LABELS[c.name] || c.name}</span>
+    `;
+    item.onclick = () => selectCharacter(c.name);
+    grid.appendChild(item);
+  });
+  loadSoul(currentChar);
 }
 
 async function selectCharacter(name) {
@@ -645,97 +811,6 @@ async function saveSoul() {
   }
 }
 
-// 4. TAB TRÍ NHỚ (MEMORIES)
-async function loadMemories() {
-  try {
-    const res = await fetch(BACKEND + '/api/memories');
-    if (!res.ok) return;
-    const data = await res.json();
-    const list = data.memories || [];
-    document.getElementById('mem-count').textContent = list.length;
-    const tbody = document.getElementById('memories-body');
-    tbody.innerHTML = '';
-
-    if (list.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8;">Chưa có mục ký ức nào.</td></tr>';
-      return;
-    }
-
-    list.forEach(m => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td style="color:#94a3b8;">${m.id}</td>
-        <td style="font-weight:600; color:var(--accent);">${escapeHtml(m.key)}</td>
-        <td>${escapeHtml(m.value)}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="deleteMem(${m.id})">Xóa</button></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch(e) {
-    showToast('Lỗi tải danh sách ký ức.');
-  }
-}
-
-async function addNewMemory() {
-  const key = document.getElementById('mem-key').value.trim();
-  const val = document.getElementById('mem-val').value.trim();
-  if (!val) { showToast('Vui lòng nhập nội dung ghi nhớ!'); return; }
-
-  try {
-    const res = await fetch(BACKEND + '/api/memories', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key, value: val })
-    });
-    if (res.ok) {
-      document.getElementById('mem-key').value = '';
-      document.getElementById('mem-val').value = '';
-      showToast('Đã thêm ký ức mới vào Mem0!');
-      loadMemories();
-    }
-  } catch(e) {
-    showToast('Lỗi kết nối khi lưu ký ức.');
-  }
-}
-
-async function deleteMem(id) {
-  if (!confirm('Sếp có chắc muốn xóa mục ký ức này?')) return;
-  try {
-    const res = await fetch(BACKEND + '/api/memories/delete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id })
-    });
-    if (res.ok) {
-      showToast('Đã xóa ký ức!');
-      loadMemories();
-    }
-  } catch(e) {
-    showToast('Lỗi khi xóa ký ức.');
-  }
-}
-
-async function testAsk() {
-  const q = document.getElementById('test-ask-input').value.trim();
-  if (!q) return;
-  const resDiv = document.getElementById('test-ask-result');
-  resDiv.textContent = 'Đang gửi truy vấn tới Brain...';
-
-  try {
-    const res = await fetch(BACKEND + '/api/ask', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: q })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      resDiv.innerHTML = `<strong>Phản hồi:</strong> ${escapeHtml(data.answer || data.reply || '')} <br><small style="color:var(--accent);">Cảm xúc: ${data.emotion || 'idle'}</small>`;
-    }
-  } catch(e) {
-    resDiv.textContent = 'Lỗi kết nối Brain.';
-  }
-}
-
 // 5. TAB THỊ GIÁC YOLO
 let yoloState = false;
 async function toggleYolo() {
@@ -766,6 +841,89 @@ function testVoiceSpeak() {
   } else {
     showToast('Trình duyệt không hỗ trợ Web Speech API.');
   }
+}
+
+async function generateVoiceFromDesc() {
+  const desc = document.getElementById('voice-desc-input').value.trim();
+  if (!desc) { showToast('Vui lòng nhập mô tả giọng nói!'); return; }
+  const btn = document.getElementById('btn-gen-voice');
+  const status = document.getElementById('voice-gen-status');
+  btn.disabled = true;
+  btn.textContent = '⏳ Đang tạo...';
+  status.textContent = 'AI đang phân tích mô tả và tạo voice profile...';
+  try {
+    const res = await fetch(BACKEND + '/api/voice/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description: desc })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      status.innerHTML = `<span style="color:#10b981;">✓ ${data.message || 'Đã tạo voice profile thành công!'}</span>`;
+      showToast('Đã tạo giọng nói mới!');
+      loadVoiceList();
+    } else {
+      throw new Error('Server error');
+    }
+  } catch(e) {
+    status.innerHTML = '<span style="color:var(--err);">Lỗi tạo giọng nói. Kiểm tra kết nối server.</span>';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✨ Tạo Giọng Mới';
+  }
+}
+
+function handleVoiceDrop(e) {
+  e.preventDefault();
+  e.currentTarget.style.borderColor = 'rgba(245,158,11,0.4)';
+  e.currentTarget.style.background = 'rgba(0,0,0,0.2)';
+  const files = e.dataTransfer.files;
+  if (files.length > 0) uploadVoiceFile(files[0]);
+}
+
+function handleVoiceFileSelect(input) {
+  if (input.files.length > 0) uploadVoiceFile(input.files[0]);
+}
+
+async function uploadVoiceFile(file) {
+  const statusEl = document.getElementById('voice-upload-status');
+  statusEl.style.display = 'block';
+  statusEl.innerHTML = `⏳ Đang tải lên: <strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)...`;
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(BACKEND + '/api/voice/upload', {
+      method: 'POST',
+      body: formData
+    });
+    if (res.ok) {
+      const data = await res.json();
+      statusEl.innerHTML = `<span style="color:#10b981;">✓ Đã tải lên thành công: <strong>${file.name}</strong>! ${data.message || ''}</span>`;
+      showToast(`Đã tải lên giọng mẫu: ${file.name}`);
+      loadVoiceList();
+    } else {
+      throw new Error('Upload failed');
+    }
+  } catch(e) {
+    statusEl.innerHTML = `<span style="color:var(--err);">Lỗi tải lên file: ${file.name}</span>`;
+  }
+}
+
+async function loadVoiceList() {
+  try {
+    const res = await fetch(BACKEND + '/api/voice/list');
+    if (!res.ok) return;
+    const data = await res.json();
+    const list = data.voices || [];
+    const el = document.getElementById('voice-list');
+    if (list.length === 0) { el.innerHTML = ''; return; }
+    el.innerHTML = '<div style="font-size:12px;font-weight:600;color:#f1f5f9;margin-bottom:8px;">🎤 Giọng nói đã lưu:</div>' +
+      list.map(v => `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:6px;margin-bottom:4px;font-size:11.5px;">
+        <span style="color:#f59e0b;">🎵</span>
+        <span style="flex:1;color:#e2e8f0;">${v.name}</span>
+        <span style="color:#94a3b8;font-size:10px;">${v.type || 'uploaded'}</span>
+      </div>`).join('');
+  } catch(e) {}
 }
 
 // 7. TAB LOGS SMOLAGENTS
@@ -847,11 +1005,50 @@ async function loadYoloState() {
   } catch(e) {}
 }
 
+async function refreshVisionStatus() {
+  try {
+    const res = await fetch(BACKEND + '/api/vision/status');
+    if (!res.ok) return;
+    const data = await res.json();
+    const countEl = document.getElementById('vision-active-count');
+    const modeEl = document.getElementById('vision-engine-mode');
+    const classesEl = document.getElementById('vision-active-classes');
+    if (countEl) countEl.textContent = data.dual_engine ? data.dual_engine.active_classes_count : 0;
+    if (modeEl) {
+      const hasNeural = data.dual_engine && data.dual_engine.bounding_engine;
+      modeEl.textContent = hasNeural ? 'Neural GPU' : 'Adaptive CPU';
+      modeEl.style.color = hasNeural ? '#10b981' : '#f59e0b';
+    }
+    if (classesEl) {
+      const classes = (data.dual_engine && data.dual_engine.active_classes) || [];
+      classesEl.innerHTML = classes.length > 0 
+        ? classes.map(c => `<span style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:var(--accent);font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:4px;">🏷️ ${c}</span>`).join('')
+        : '<span style="color:#64748b;font-size:11px;">Chưa có nhãn — Protocol đang ở chế độ General</span>';
+    }
+  } catch(e) {}
+}
+
 // Tự động nạp khi khởi động
 
 // ─── QUẢN LÝ GIAO THỨC TÁC CHIẾN (PROTOCOLS & YOLO-WORLD) ───
 // ─── QUẢN LÝ GIAO THỨC TÁC CHIẾN (PROTOCOLS & YOLO-WORLD & VIDEO RESEARCH) ───
 let autoSwitchEnabled = true;
+let currentProtocolFilter = 'all';
+
+function filterProtocols(category, btn) {
+  currentProtocolFilter = category;
+  document.querySelectorAll('.proto-filter-btn').forEach(b => {
+    b.classList.remove('active');
+    b.style.borderColor = 'var(--border)';
+    b.style.background = 'rgba(255,255,255,0.06)';
+  });
+  if (btn) {
+    btn.classList.add('active');
+    btn.style.borderColor = 'var(--accent)';
+    btn.style.background = 'rgba(56,189,248,0.15)';
+  }
+  loadProtocols();
+}
 
 async function loadProtocols() {
   try {
@@ -859,7 +1056,28 @@ async function loadProtocols() {
     if (!res.ok) return;
     const data = await res.json();
     const active = data.active;
-    const list = data.protocols || [];
+    const allList = data.protocols || [];
+
+    // Cập nhật số lượng đếm theo danh mục
+    const countAll = allList.length;
+    const countGame = allList.filter(p => p.category === 'game').length;
+    const countApp = allList.filter(p => p.category === 'app' || !p.category).length;
+    const countTopic = allList.filter(p => p.category === 'topic').length;
+
+    const elAll = document.getElementById('count-all'); if (elAll) elAll.textContent = countAll;
+    const elGame = document.getElementById('count-game'); if (elGame) elGame.textContent = countGame;
+    const elApp = document.getElementById('count-app'); if (elApp) elApp.textContent = countApp;
+    const elTopic = document.getElementById('count-topic'); if (elTopic) elTopic.textContent = countTopic;
+
+    // Lọc danh sách theo bộ lọc đang chọn
+    let list = allList;
+    if (currentProtocolFilter === 'game') {
+      list = allList.filter(p => p.category === 'game');
+    } else if (currentProtocolFilter === 'app') {
+      list = allList.filter(p => p.category === 'app' || !p.category);
+    } else if (currentProtocolFilter === 'topic') {
+      list = allList.filter(p => p.category === 'topic');
+    }
 
     if (active) {
       document.getElementById('active-proto-name').textContent = active.name + ' (' + (active.appName || '') + ')';
@@ -896,6 +1114,11 @@ async function loadProtocols() {
     const grid = document.getElementById('protocols-grid');
     grid.innerHTML = '';
 
+    if (list.length === 0) {
+      grid.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:20px;">Không có giao thức nào trong danh mục này.</div>';
+      return;
+    }
+
     list.forEach(p => {
       const isActive = p.status === 'active';
       const isQueued = p.status === 'queued';
@@ -917,13 +1140,26 @@ async function loadProtocols() {
         badgeHtml = '<span style="background: rgba(255,255,255,0.06); color: #94a3b8; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px;">INACTIVE</span>';
       }
 
+      // Tag danh mục
+      let catBadge = '';
+      if (p.category === 'game') {
+        catBadge = '<span style="background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid #ef4444; font-size: 9.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px;">🎮 GAME</span>';
+      } else if (p.category === 'topic') {
+        catBadge = '<span style="background: rgba(168,85,247,0.2); color: #c084fc; border: 1px solid #a855f7; font-size: 9.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px;">🧠 CHỦ ĐỀ</span>';
+      } else {
+        catBadge = '<span style="background: rgba(56,189,248,0.2); color: #38bdf8; border: 1px solid #38bdf8; font-size: 9.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px;">💼 APP</span>';
+      }
+
       const procBadge = (p.app_processes && p.app_processes.length) 
         ? `<span style="color: #a855f7; font-size: 10.5px; font-weight: 500;">🖥️ ${p.app_processes.join(', ')}</span>`
         : '';
 
+      const btnActionText = p.category === 'topic' ? '▶ Kích hoạt Chủ Đề' : '▶ Kích hoạt';
+
       item.innerHTML = `
         <div style="flex: 1;">
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+            ${catBadge}
             <strong style="font-size: 13.5px; color: #fff;">${p.name}</strong>
             <span style="font-size: 11px; color: var(--text-muted);">(${p.appName || p.id})</span>
             ${badgeHtml}
@@ -939,13 +1175,242 @@ async function loadProtocols() {
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
           <button class="btn btn-sm" onclick="researchVideo('${p.name}', '${p.id}')" title="Tra cứu video và cẩm nang trên mạng">🎥 Video Mạng</button>
-          ${!isActive ? `<button class="btn btn-sm btn-primary" onclick="activateProtocol('${p.id}')">▶ Kích hoạt</button>` : `<button class="btn btn-sm" disabled style="opacity: 0.6;">✓ Đang dùng</button>`}
+          ${!isActive ? `<button class="btn btn-sm btn-primary" onclick="activateProtocol('${p.id}')">${btnActionText}</button>` : `<button class="btn btn-sm" disabled style="opacity: 0.6;">✓ Đang dùng</button>`}
         </div>
       `;
       grid.appendChild(item);
     });
   } catch(e) {
     showToast('Lỗi khi tải danh sách Giao thức tác chiến.');
+  }
+}
+
+// ─── QUẢN LÝ NHÀ CUNG CẤP MODEL (PROVIDERS & MODELS) ───
+let providersConfig = null;
+
+async function loadProviders() {
+  try {
+    const res = await fetch(BACKEND + '/api/providers');
+    if (!res.ok) return;
+    providersConfig = await res.json();
+    const curP = providersConfig.provider || 'agy';
+    const curM = providersConfig.model || 'gemini-3.8-flash-high';
+    const pName = providersConfig.provider_name || 'AGY CLI';
+
+    const lbl = document.getElementById('active-provider-model-label');
+    if (lbl) lbl.textContent = `${pName} ➔ ${curM}`;
+
+    // Cập nhật giá trị vào các form
+    const allCfg = providersConfig.all_config || {};
+    const pDict = allCfg.providers || {};
+
+    // Quét AGY models
+    scanAgyModels();
+
+    // Ollama
+    if (pDict.ollama && pDict.ollama.endpoint) {
+      const epEl = document.getElementById('ollama-endpoint-input');
+      if (epEl) epEl.value = pDict.ollama.endpoint;
+    }
+    scanOllamaModels();
+
+    // OpenRouter
+    if (pDict.openrouter) {
+      const kEl = document.getElementById('openrouter-key-input');
+      const mEl = document.getElementById('openrouter-model-input');
+      if (kEl && pDict.openrouter.api_key) kEl.value = pDict.openrouter.api_key;
+      if (mEl && pDict.openrouter.selected_model) mEl.value = pDict.openrouter.selected_model;
+    }
+
+    // Nous
+    if (pDict.nous) {
+      const kEl = document.getElementById('nous-key-input');
+      const mEl = document.getElementById('nous-model-input');
+      if (kEl && pDict.nous.api_key) kEl.value = pDict.nous.api_key;
+      if (mEl && pDict.nous.selected_model) mEl.value = pDict.nous.selected_model;
+    }
+
+    // Gemini
+    if (pDict.gemini) {
+      const kEl = document.getElementById('gemini-key-input');
+      const mEl = document.getElementById('gemini-model-select');
+      if (kEl && pDict.gemini.api_key) kEl.value = pDict.gemini.api_key;
+      if (mEl && pDict.gemini.selected_model) mEl.value = pDict.gemini.selected_model;
+    }
+
+    // Custom
+    if (pDict.custom) {
+      const epEl = document.getElementById('custom-endpoint-input');
+      const kEl = document.getElementById('custom-key-input');
+      const mEl = document.getElementById('custom-model-input');
+      if (epEl && pDict.custom.endpoint) epEl.value = pDict.custom.endpoint;
+      if (kEl && pDict.custom.api_key) kEl.value = pDict.custom.api_key;
+      if (mEl && pDict.custom.selected_model) mEl.value = pDict.custom.selected_model;
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function scanAgyModels() {
+  const sel = document.getElementById('agy-model-select');
+  if (!sel) return;
+  try {
+    const res = await fetch(BACKEND + '/api/providers/agy/scan');
+    if (res.ok) {
+      const data = await res.json();
+      const models = data.models || [];
+      const curM = (providersConfig && providersConfig.model) ? providersConfig.model : 'gemini-3.8-flash-high';
+      sel.innerHTML = models.map(m => `
+        <option value="${m.id}" ${m.id === curM ? 'selected' : ''}>${m.name}</option>
+      `).join('');
+    }
+  } catch (e) {}
+}
+
+async function scanOllamaModels() {
+  const epInp = document.getElementById('ollama-endpoint-input');
+  const ep = (epInp ? epInp.value.trim() : '') || 'http://localhost:11434';
+  const sel = document.getElementById('ollama-model-select');
+  const badge = document.getElementById('ollama-status-badge');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Đang quét Ollama trên máy...</option>';
+  try {
+    const res = await fetch(BACKEND + '/api/providers/ollama/scan?endpoint=' + encodeURIComponent(ep));
+    if (res.ok) {
+      const data = await res.json();
+      if (data.online && data.models && data.models.length > 0) {
+        if (badge) {
+          badge.textContent = 'ONLINE (' + data.models.length + ' MODELS)';
+          badge.style.background = 'rgba(16,185,129,0.2)';
+          badge.style.color = '#10b981';
+        }
+        sel.innerHTML = data.models.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+      } else {
+        if (badge) {
+          badge.textContent = data.online ? 'CHƯA CÓ MODEL' : 'OFFLINE';
+          badge.style.background = 'rgba(239,68,68,0.2)';
+          badge.style.color = '#ef4444';
+        }
+        sel.innerHTML = '<option value="">(Không tìm thấy model nào trong Ollama)</option>';
+      }
+    }
+  } catch (e) {
+    if (badge) {
+      badge.textContent = 'OFFLINE';
+      badge.style.background = 'rgba(239,68,68,0.2)';
+      badge.style.color = '#ef4444';
+    }
+    sel.innerHTML = '<option value="">(Không thể kết nối Ollama)</option>';
+  }
+}
+
+async function selectProviderModel(provider, model, settings = {}) {
+  try {
+    const res = await fetch(BACKEND + '/api/providers/select', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider, model, settings })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      showToast(`Đã chuyển sang model: ${model} (${provider.toUpperCase()}) cho cả Phidata & Smolagents!`);
+      loadProviders();
+    } else {
+      showToast('Lỗi khi đổi nhà cung cấp.');
+    }
+  } catch (e) {
+    showToast('Lỗi kết nối máy chủ Brain.');
+  }
+}
+
+function applyAgyModel() {
+  const sel = document.getElementById('agy-model-select');
+  const m = sel ? sel.value : 'gemini-3.8-flash-high';
+  selectProviderModel('agy', m);
+}
+
+function applyOllamaModel() {
+  const sel = document.getElementById('ollama-model-select');
+  const ep = document.getElementById('ollama-endpoint-input').value.trim();
+  const m = sel ? sel.value : '';
+  if (!m) { showToast('Vui lòng chọn model Ollama đã cài đặt!'); return; }
+  selectProviderModel('ollama', m, { endpoint: ep });
+}
+
+function applyOpenRouterModel() {
+  const k = document.getElementById('openrouter-key-input').value.trim();
+  const m = document.getElementById('openrouter-model-input').value.trim();
+  if (!k) { showToast('Vui lòng nhập OpenRouter API Key!'); return; }
+  if (!m) { showToast('Vui lòng nhập tên model OpenRouter!'); return; }
+  selectProviderModel('openrouter', m, { api_key: k, selected_model: m });
+}
+
+function applyNousModel() {
+  const k = document.getElementById('nous-key-input').value.trim();
+  const m = document.getElementById('nous-model-input').value.trim();
+  selectProviderModel('nous', m, { api_key: k, selected_model: m });
+}
+
+function applyGeminiModel() {
+  const k = document.getElementById('gemini-key-input').value.trim();
+  const sel = document.getElementById('gemini-model-select');
+  const m = sel ? sel.value : 'gemini-2.0-flash';
+  if (!k) { showToast('Vui lòng nhập Google Gemini API Key!'); return; }
+  selectProviderModel('gemini', m, { api_key: k, selected_model: m });
+}
+
+function applyCustomModel() {
+  const ep = document.getElementById('custom-endpoint-input').value.trim();
+  const k = document.getElementById('custom-key-input').value.trim();
+  const m = document.getElementById('custom-model-input').value.trim();
+  if (!ep || !m) { showToast('Vui lòng nhập đầy đủ Endpoint và Tên Model!'); return; }
+  selectProviderModel('custom', m, { endpoint: ep, api_key: k, selected_model: m });
+}
+
+async function testActiveProviderModel() {
+  const inp = document.getElementById('provider-test-prompt');
+  const prompt = (inp ? inp.value.trim() : '') || 'Xin chào, trả lời bằng 1 câu ngắn: Bạn là ai?';
+  const btn = document.getElementById('btn-test-provider');
+  const resDiv = document.getElementById('provider-test-result');
+
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳ Đang thử nghiệm...';
+  }
+  if (resDiv) {
+    resDiv.style.display = 'block';
+    resDiv.innerHTML = '<span style="color:#94a3b8;">Đang gửi yêu cầu tới mô hình qua bộ định tuyến thống nhất...</span>';
+  }
+
+  try {
+    const res = await fetch(BACKEND + '/api/providers/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (resDiv) {
+        resDiv.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <strong style="color:#10b981;">✓ Phản hồi thành công!</strong>
+            <span style="color:#38bdf8; font-size:11px;">Độ trễ: <strong>${data.latency_ms} ms</strong></span>
+          </div>
+          <div style="color:#f8fafc; font-style:italic;">"${escapeHtml(data.reply)}"</div>
+          <div style="color:#94a3b8; font-size:10.5px; margin-top:4px;">✓ Cả Phidata và Smolagents đang sẵn sàng dùng mô hình này.</div>
+        `;
+      }
+    } else {
+      if (resDiv) resDiv.innerHTML = '<span style="color:var(--err);">Mô hình chưa phản hồi hoặc gặp lỗi.</span>';
+    }
+  } catch (e) {
+    if (resDiv) resDiv.innerHTML = '<span style="color:var(--err);">Lỗi kết nối máy chủ Brain.</span>';
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '⚡ Test Phản Xạ Model';
+    }
   }
 }
 
@@ -1154,8 +1619,12 @@ async function createProtocol() {
 window.addEventListener('DOMContentLoaded', () => {
   loadCharacters();
   loadProtocols();
+  loadProviders();
   loadYoloState();
   pingServer();
+  refreshVisionStatus();
+  loadVoiceList();
+  setInterval(pollForeground, 1500);
 });
 </script>
 </body>

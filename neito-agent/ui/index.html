@@ -138,11 +138,11 @@
      XỔ XUỐNG DƯỚI 2 NÚT TRÒN (BOTTOM 10PX) - KHÔNG ĐẨY BỐ CỤC LÊN TRÊN
      ══════════════════════════════════════════════════════════════════ */
   .chat-panel {
-    position: absolute; bottom: 10px; left: 16px; right: 16px; height: 50px;
+    position: absolute; bottom: 10px; left: 16px; right: 16px;
     background: rgba(17, 24, 39, 0.97); backdrop-filter: blur(16px);
     border: 1px solid rgba(56, 189, 248, 0.55); border-radius: 12px;
     padding: 6px 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.8), 0 0 12px rgba(56,189,248,0.25);
-    display: none; flex-direction: column; justify-content: space-between;
+    display: none; flex-direction: column; justify-content: space-between; gap: 4px;
     opacity: 0; pointer-events: none; transform: translateY(-8px);
     transition: opacity 0.2s ease, transform 0.2s ease;
     z-index: 90;
@@ -151,10 +151,11 @@
     display: flex; opacity: 1; pointer-events: auto; transform: translateY(0);
   }
   .chat-input {
-    width: 100%; height: 22px; max-height: 22px;
+    width: 100%; min-height: 26px; max-height: 110px;
     background: transparent; border: none;
-    color: #fff; font-size: 11.5px; padding: 0 4px;
-    outline: none; resize: none; font-family: inherit; line-height: 22px;
+    color: #fff; font-size: 11.5px; padding: 4px 4px;
+    outline: none; resize: vertical; font-family: inherit; line-height: 1.5;
+    overflow-y: auto;
   }
   .chat-actions { display: flex; justify-content: space-between; align-items: center; }
   .chat-hint { font-size: 9px; color: #94a3b8; }
@@ -170,12 +171,11 @@
 
   /* ══════════════════════════════════════════════════════════════════
      LỚP 5: VÒNG CUNG CHIẾN THUẬT (RADIAL ARC MENU)
-     KHI ĐÓNG: DISPLAY: NONE - KHÔNG CHẮN CLICK CỦA CÁC THÀNH PHẦN KHÁC
-     CÁCH XA NHÂN VẬT (X: 235 - 290px) & DÃN ĐỀU CÁC NÚT (~60px)
+     Các nút được JS tính tọa độ hình học bán nguyệt, cách đều trên cung tròn.
      ══════════════════════════════════════════════════════════════════ */
   .arc-menu-container {
     position: absolute; inset: 0; display: none; pointer-events: none !important; z-index: 70;
-    opacity: 0; transition: opacity 0.2s ease;
+    opacity: 0; transition: opacity 0.15s ease;
   }
   .arc-menu-container.open {
     display: block; opacity: 1;
@@ -187,28 +187,40 @@
   }
   .arc-path {
     fill: none; stroke: url(#arcGlowGrad);
-    stroke-width: 2.5; stroke-dasharray: 6 4; stroke-linecap: round;
-    filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.7));
+    stroke-width: 2; stroke-dasharray: 6 4; stroke-linecap: round;
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.6));
     animation: dashMarch 20s linear infinite;
     pointer-events: none !important;
   }
   @keyframes dashMarch { from { stroke-dashoffset: 200; } to { stroke-dashoffset: 0; } }
 
   .arc-btn {
-    position: absolute; width: 36px; height: 36px; margin-left: -18px; margin-top: -18px;
+    position: absolute; width: 40px; height: 40px; margin-left: -20px; margin-top: -20px;
     border-radius: 50%;
-    background: rgba(15, 23, 42, 0.95); border: 2px solid rgba(56, 189, 248, 0.65);
-    color: #fff; font-size: 16px; cursor: pointer;
+    background: rgba(15, 23, 42, 0.95); border: 2px solid rgba(56, 189, 248, 0.6);
+    color: #fff; font-size: 17px; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7), 0 0 10px rgba(56, 189, 248, 0.35);
-    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7), 0 0 10px rgba(56, 189, 248, 0.3);
     user-select: none; -webkit-user-drag: none;
     pointer-events: auto !important;
+    /* Stagger pop-in animation */
+    opacity: 0; transform: scale(0.3);
+    transition: opacity 0.22s ease, transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+                background 0.15s, border-color 0.15s, box-shadow 0.15s;
   }
+  .arc-menu-container.open .arc-btn {
+    opacity: 1; transform: scale(1);
+  }
+  .arc-menu-container.open .arc-btn:nth-child(2) { transition-delay: 0s; }
+  .arc-menu-container.open .arc-btn:nth-child(3) { transition-delay: 0.04s; }
+  .arc-menu-container.open .arc-btn:nth-child(4) { transition-delay: 0.08s; }
+  .arc-menu-container.open .arc-btn:nth-child(5) { transition-delay: 0.12s; }
+  .arc-menu-container.open .arc-btn:nth-child(6) { transition-delay: 0.16s; }
+
   .arc-btn:hover {
-    transform: scale(1.22);
+    transform: scale(1.2) !important;
     border-color: #38bdf8; background: #0284c7;
-    box-shadow: 0 0 16px #38bdf8, 0 6px 18px rgba(0,0,0,0.8);
+    box-shadow: 0 0 18px #38bdf8, 0 6px 20px rgba(0,0,0,0.8);
   }
   .arc-btn.active {
     background: #0284c7; border-color: #38bdf8;
@@ -219,14 +231,14 @@
     box-shadow: 0 0 16px #10b981 !important;
   }
 
-  /* Tooltip hiển thị khi hover vào nút trên vòng cung */
+  /* Tooltip */
   .arc-btn::after {
     content: attr(data-title);
-    position: absolute; left: 42px; top: 50%; transform: translateY(-50%);
-    background: rgba(15, 23, 42, 0.95); border: 1px solid #38bdf8;
-    border-radius: 6px; padding: 3px 8px; color: #f0f9ff;
-    font-size: 10px; white-space: nowrap; pointer-events: none;
-    opacity: 0; transition: opacity 0.15s; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    position: absolute; left: 48px; top: 50%; transform: translateY(-50%);
+    background: rgba(15, 23, 42, 0.97); border: 1px solid #38bdf8;
+    border-radius: 6px; padding: 4px 10px; color: #f0f9ff;
+    font-size: 10.5px; white-space: nowrap; pointer-events: none;
+    opacity: 0; transition: opacity 0.15s; box-shadow: 0 4px 14px rgba(0,0,0,0.6);
   }
   .arc-btn:hover::after { opacity: 1; }
 
@@ -235,6 +247,14 @@
   @keyframes petHop { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
   @keyframes petBounce { 0%,100% { transform: scale(1); } 40% { transform: scale(1.08, 0.92); } 70% { transform: scale(0.96, 1.04); } }
   @keyframes petSad { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02, 0.95) translateY(4px); } }
+
+  /* ═══ CUSTOM SCROLLBAR TOÀN CỤC ═══ */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.4); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.7); }
+  ::-webkit-scrollbar-corner { background: transparent; }
+  * { scrollbar-width: thin; scrollbar-color: rgba(56,189,248,0.4) transparent; }
 </style>
 </head>
 <body>
@@ -275,7 +295,7 @@
       </div>
     </div>
 
-    <!-- LỚP 5: VÒNG CUNG CHIẾN THUẬT (DÃN ĐỀU CÁCH XA NHÂN VẬT) -->
+    <!-- LỚP 5: VÒNG CUNG CHIẾN THUẬT (TÍNH TOÁN HÌNH HỌC BÁN NGUYỆT) -->
     <div id="arc-menu" class="arc-menu-container">
       <svg class="arc-curve-svg" viewBox="0 0 340 460">
         <defs>
@@ -285,15 +305,15 @@
             <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.4"/>
           </linearGradient>
         </defs>
-        <path class="arc-path" d="M 205 385 C 235 375, 310 280, 290 235 C 275 190, 245 130, 220 105" />
+        <path id="arc-svg-path" class="arc-path" d="" />
       </svg>
 
-      <!-- 5 Nút dãn đều ~60px, cách xa thân Pet (X: 235-290px) -->
-      <button id="btn-arc-yolo" class="arc-btn active" style="left: 235px; top: 355px;" data-title="Bật/tắt Mắt YOLO">👁️</button>
-      <button id="btn-arc-mic" class="arc-btn" style="left: 272px; top: 300px;" data-title="Bật/tắt Micro">🎙️</button>
-      <button id="btn-arc-voice" class="arc-btn active" style="left: 288px; top: 235px;" data-title="Bật/tắt Tiếng nói">🔊</button>
-      <button id="btn-arc-icon-mode" class="arc-btn" style="left: 272px; top: 170px;" data-title="Thu nhỏ thành Icon">🙈</button>
-      <button id="btn-arc-dashboard" class="arc-btn" style="left: 235px; top: 115px;" data-title="Mở Dashboard">📊</button>
+      <!-- 5 Nút — vị trí do JS layoutArcMenu() tính toán cung đều -->
+      <button id="btn-arc-yolo" class="arc-btn active" data-title="Bật/tắt Mắt YOLO">👁️</button>
+      <button id="btn-arc-mic" class="arc-btn" data-title="Bật/tắt Micro">🎙️</button>
+      <button id="btn-arc-voice" class="arc-btn active" data-title="Bật/tắt Tiếng nói">🔊</button>
+      <button id="btn-arc-icon-mode" class="arc-btn" data-title="Thu nhỏ thành Icon">🙈</button>
+      <button id="btn-arc-dashboard" class="arc-btn" data-title="Mở Dashboard">📊</button>
     </div>
 
   </div>
@@ -332,6 +352,54 @@
   let lastAdvisorEventId = null;
   let lastSpeechId = null;
   let currentAudio = null;
+
+  // ══════════════════════════════════════════════════════════════════
+  // 0. TÍNH TOÁN HÌNH HỌC VÒNG CUNG (ARC LAYOUT)
+  //    Đặt 5 nút cách đều nhau trên cung bán nguyệt bên phải nhân vật.
+  //    Tâm cung = trung tâm khung nhân vật (170, 245).
+  //    Bán kính R = 130px. Góc quét: 230° → 310° (cung bên phải).
+  // ══════════════════════════════════════════════════════════════════
+  function layoutArcMenu() {
+    const cx = 170, cy = 240;     // Tâm vòng cung (trung tâm khung nhân vật)
+    const R = 128;                 // Bán kính cung
+    const startDeg = 225;          // Góc bắt đầu (phía dưới bên phải)
+    const endDeg = 315;            // Góc kết thúc (phía trên bên phải)
+    const arcBtns = arcMenu.querySelectorAll('.arc-btn');
+    const n = arcBtns.length;
+    const stepDeg = (endDeg - startDeg) / (n - 1);
+
+    // Tính tọa độ từng nút
+    const points = [];
+    arcBtns.forEach((btn, i) => {
+      const deg = startDeg + i * stepDeg;
+      const rad = deg * Math.PI / 180;
+      const x = cx + R * Math.cos(rad);
+      const y = cy - R * Math.sin(rad);  // Y trục ngược trong SVG/CSS
+      btn.style.left = x + 'px';
+      btn.style.top = y + 'px';
+      points.push({ x, y });
+    });
+
+    // Sinh SVG path mượt qua các điểm (đường cong Catmull-Rom → Cubic Bezier)
+    if (points.length >= 2) {
+      let d = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+      for (let i = 0; i < points.length - 1; i++) {
+        const p0 = points[Math.max(i - 1, 0)];
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        const p3 = points[Math.min(i + 2, points.length - 1)];
+        const cp1x = p1.x + (p2.x - p0.x) / 6;
+        const cp1y = p1.y + (p2.y - p0.y) / 6;
+        const cp2x = p2.x - (p3.x - p1.x) / 6;
+        const cp2y = p2.y - (p3.y - p1.y) / 6;
+        d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+      }
+      const svgPath = document.getElementById('arc-svg-path');
+      if (svgPath) svgPath.setAttribute('d', d);
+    }
+  }
+  // Gọi ngay khi khởi tạo
+  layoutArcMenu();
 
   // ══════════════════════════════════════════════════════════════════
   // 1. KÉO THẢ NATIVE AN TOÀN TUYỆT ĐỐI (KHÔNG BAO GIỜ BAY MẤT CỬA SỔ)

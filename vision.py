@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Adaptive Vision Engine for Neito Agent
 - Tầng 1: YOLO11n - Quét màn hình tốc độ cao, nhận diện UI, mục tiêu, thanh máu, người chơi.
@@ -120,9 +120,12 @@ class AdaptiveVisionEngine:
     def get_status(self) -> Dict:
         return {
             "has_neural": self.has_neural,
-            "engine_mode": "YOLO11n + YOLO-World (Neural)" if self.has_neural else "YOLO11n + YOLO-World (Adaptive Screen Vision)",
+            "bounding_engine": "YOLO11n (2.6M params, mAP50-95 39.5%)" if self.has_neural else "YOLO11n (Adaptive Sim)",
+            "open_vocabulary_engine": "YOLOv8s-World (Open-Vocabulary Zero-Shot)" if self.has_neural else "YOLO-World (Adaptive Sim)",
+            "engine_mode": "YOLO11n + YOLO-World (Neural GPU)" if self.has_neural else "YOLO11n + YOLO-World (Adaptive CPU)",
             "active_classes_count": len(self.active_classes),
-            "active_classes": self.active_classes,
+            "active_classes": list(self.active_classes),
+            "backend": "ultralytics (PyTorch CUDA)" if self.has_neural else "adaptive-heuristic (CPU)",
             "fps": self.fps
         }
 

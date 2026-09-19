@@ -1,0 +1,118 @@
+{
+  "active_provider": "agy",
+  "active_model": "gemini-3.7-flash-high",
+  "providers": {
+    "agy": {
+      "name": "Google Antigravity (AGY CLI)",
+      "description": "Cầu nối trực tiếp CLI của Google Antigravity. Miễn phí, 0 token setup, tốc độ cao.",
+      "models": [
+        {
+          "id": "gemini-3.8-flash-high",
+          "name": "Gemini 3.8 Flash (High)",
+          "recommended": true
+        },
+        {
+          "id": "gemini-3.8-flash-medium",
+          "name": "Gemini 3.8 Flash (Medium)"
+        },
+        {
+          "id": "gemini-3.7-flash-high",
+          "name": "Gemini 3.7 Flash (High)"
+        },
+        {
+          "id": "gemini-3.1-pro-high",
+          "name": "Gemini 3.1 Pro (High)"
+        },
+        {
+          "id": "claude-sonnet-4-6",
+          "name": "Claude Sonnet 4.6 (Thinking)"
+        },
+        {
+          "id": "claude-opus-4-6-thinking",
+          "name": "Claude Opus 4.6 (Thinking)"
+        },
+        {
+          "id": "gpt-oss-120b-medium",
+          "name": "GPT-OSS 120B (Medium)"
+        }
+      ]
+    },
+    "ollama": {
+      "name": "Ollama (Local Machine)",
+      "description": "Chạy mô hình hoàn toàn offline trên máy cá nhân, bảo mật 100%, tự động nhận diện model đã tải.",
+      "endpoint": "http://localhost:11434",
+      "models": []
+    },
+    "openrouter": {
+      "name": "OpenRouter",
+      "description": "Cổng kết nối hàng trăm mô hình mã nguồn mở và thương mại hàng đầu thế giới.",
+      "endpoint": "https://openrouter.ai/api/v1",
+      "api_key": "",
+      "selected_model": "google/gemini-2.0-flash-001",
+      "models": [
+        {
+          "id": "google/gemini-2.0-flash-001",
+          "name": "Gemini 2.0 Flash (Fastest)"
+        },
+        {
+          "id": "anthropic/claude-3.5-sonnet",
+          "name": "Claude 3.5 Sonnet"
+        },
+        {
+          "id": "deepseek/deepseek-chat",
+          "name": "DeepSeek V3 / R1"
+        },
+        {
+          "id": "meta-llama/llama-3.3-70b-instruct",
+          "name": "Llama 3.3 70B Instruct"
+        }
+      ]
+    },
+    "nous": {
+      "name": "Nous Portal",
+      "description": "Mô hình chuyên biệt từ Nous Research với năng lực lý luận và tự học sâu sắc.",
+      "endpoint": "https://portal.nousresearch.com/v1",
+      "api_key": "",
+      "selected_model": "Hermes-3-Llama-3.1-8B",
+      "models": [
+        {
+          "id": "Hermes-3-Llama-3.1-8B",
+          "name": "Hermes 3 Llama 3.1 8B"
+        },
+        {
+          "id": "Hermes-3-Llama-3.1-70B",
+          "name": "Hermes 3 Llama 3.1 70B"
+        }
+      ]
+    },
+    "gemini": {
+      "name": "Google Gemini API Key",
+      "description": "Sử dụng trực tiếp Google AI Studio API Key của cá nhân.",
+      "endpoint": "https://generativelanguage.googleapis.com/v1beta",
+      "api_key": "",
+      "selected_model": "gemini-2.0-flash",
+      "models": [
+        {
+          "id": "gemini-2.0-flash",
+          "name": "Gemini 2.0 Flash"
+        },
+        {
+          "id": "gemini-1.5-pro",
+          "name": "Gemini 1.5 Pro"
+        },
+        {
+          "id": "gemini-1.5-flash",
+          "name": "Gemini 1.5 Flash"
+        }
+      ]
+    },
+    "custom": {
+      "name": "Chuẩn Endpoint Thủ Công (OpenAI-compatible)",
+      "description": "Tương thích với LM Studio, vLLM, Text-Gen-WebUI hoặc bất kỳ endpoint chuẩn OpenAI nào.",
+      "endpoint": "http://localhost:8000/v1",
+      "api_key": "",
+      "selected_model": "default-model",
+      "models": []
+    }
+  }
+}

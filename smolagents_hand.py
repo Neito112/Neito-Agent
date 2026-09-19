@@ -119,7 +119,9 @@ def execute_python(code: str) -> str:
         record_log('execute_python', code[:60], err)
         return err
 
-class AgyDirectModel(Model):
+import providers_manager
+
+class UnifiedDirectModel(Model):
     def generate(self, messages, **kwargs):
         prompt = ''
         for m in messages:
@@ -128,8 +130,7 @@ class AgyDirectModel(Model):
             prompt += f'{role}: {content}\n'
         prompt += '\nTrả lời dưới dạng Thought: ... và Action:\n<code>...</code>\n'
         try:
-            res = subprocess.run(['agy', '--print', prompt], capture_output=True, text=True, encoding='utf-8')
-            out = res.stdout.strip() if res.stdout else ''
+            out = providers_manager.query_llm(prompt)
             if 'Action:' not in out:
                 clean_out = out.replace("'", "")
                 out = "Thought: I will complete the task.\nAction:\n<code>\nfinal_answer('" + clean_out + "')\n</code>"
@@ -140,7 +141,7 @@ class AgyDirectModel(Model):
 def execute_smolagents_task(task_description: str) -> str:
     print(f'[Smolagents-Hand] Đang thực thi yêu cầu: {task_description}')
     try:
-        model = AgyDirectModel()
+        model = UnifiedDirectModel()
         agent = CodeAgent(
             tools=[run_terminal, search_github, manage_file, execute_python],
             model=model,

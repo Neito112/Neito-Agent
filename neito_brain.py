@@ -22,9 +22,11 @@ VALID_EMOTIONS = [
     'wink', 'love', 'shiver', 'tremble', 'march', 'yes', 'no', 'look', 'stretch'
 ]
 
-class AgyPhiBrainModel(Model):
-    id: str = 'agy-phi-brain'
-    name: str = 'AgyPhiBrain'
+import providers_manager
+
+class UnifiedPhiBrainModel(Model):
+    id: str = 'unified-phi-brain'
+    name: str = 'UnifiedPhiBrain'
     provider: str = 'custom'
 
     def response(self, messages):
@@ -36,11 +38,11 @@ class AgyPhiBrainModel(Model):
         
         full_prompt = '\n'.join(prompt_parts)
         try:
-            res = subprocess.run(['agy', '--print', full_prompt], capture_output=True, text=True, encoding='utf-8')
-            if res.returncode == 0 and res.stdout.strip():
-                return ModelResponse(content=res.stdout.strip())
+            resp_text = providers_manager.query_llm(full_prompt)
+            if resp_text and resp_text.strip():
+                return ModelResponse(content=resp_text.strip())
         except Exception as e:
-            print(f'[-] Agy model error: {e}')
+            print(f'[-] Unified brain model error: {e}')
         
         return ModelResponse(content='Neito Agent sẵn sàng hỗ trợ Sếp!')
 
@@ -61,7 +63,7 @@ def get_character_soul(character_name: str) -> str:
 
 class NeitoOrchestrator:
     def __init__(self):
-        self.brain_model = AgyPhiBrainModel()
+        self.brain_model = UnifiedPhiBrainModel()
         self.agent = Agent(
             model=self.brain_model,
             description='Neito Agent - Bộ não chỉ huy chiến lược, giao tiếp và quản lý tác vụ',

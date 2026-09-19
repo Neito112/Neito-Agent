@@ -52,8 +52,9 @@ def is_protocol_app_running(proto: dict) -> bool:
     """Kiểm tra xem app/game của giao thức có đang thực sự chạy trên máy hay không."""
     if not proto:
         return False
-    pid = proto.get("id")
-    if pid == "general":
+    pid = proto.get("id", "")
+    category = proto.get("category", "")
+    if pid == "general" or category == "topic" or str(pid).startswith("topic_"):
         return True
     
     app_procs = [p.lower() for p in proto.get("app_processes", [])]
@@ -71,6 +72,7 @@ DEFAULT_PROTOCOLS = [
         "id": "general",
         "name": "Trợ Lý Đa Năng",
         "appName": "Desktop & Đồng Hành",
+        "category": "app",
         "status": "active",
         "queuePosition": 0,
         "app_processes": ["msedge.exe", "chrome.exe", "brave.exe", "discord.exe", "explorer.exe"],
@@ -99,6 +101,7 @@ Phong cách: Tận tụy, ngắn gọn, xưng hô Sếp - Em, luôn tạo cảm 
         "id": "lol",
         "name": "Liên Minh Huyền Thoại",
         "appName": "League of Legends",
+        "category": "game",
         "status": "queued",
         "queuePosition": 1,
         "app_processes": ["LeagueClientUx.exe", "LeagueClient.exe", "League of Legends.exe"],
@@ -150,6 +153,7 @@ Bạn nắm vững toàn bộ tri thức chiến thuật, meta và cơ chế gam
         "id": "valorant",
         "name": "Valorant (Van Di)",
         "appName": "VALORANT",
+        "category": "game",
         "status": "queued",
         "queuePosition": 2,
         "app_processes": ["VALORANT-Win64-Shipping.exe", "VALORANT.exe"],
@@ -195,6 +199,7 @@ Chuyên gia phân tích FPS chiến thuật đỉnh cao:
         "id": "genshin",
         "name": "Genshin Impact",
         "appName": "Genshin Impact",
+        "category": "game",
         "status": "queued",
         "queuePosition": 2,
         "app_processes": ["GenshinImpact.exe", "YuanShen.exe"],
@@ -232,6 +237,7 @@ NGUYÊN TẮC: Luôn trả lời CHÍNH XÁC, NGẮN GỌN theo thuật ngữ ch
         "id": "coding",
         "name": "Lập Trình & Tự Động Hóa",
         "appName": "VSCode / Terminal",
+        "category": "app",
         "status": "inactive",
         "queuePosition": 0,
         "app_processes": ["Code.exe", "cursor.exe", "devenv.exe", "pycharm64.exe"],
@@ -263,6 +269,7 @@ Khi gặp bài toán phức tạp, bạn phân tích nguyên nhân cốt lõi v�
         "id": "office",
         "name": "Văn Phòng & Excel",
         "appName": "Microsoft Excel / Docs",
+        "category": "app",
         "status": "inactive",
         "queuePosition": 0,
         "app_processes": ["EXCEL.EXE", "WINWORD.EXE", "POWERPNT.EXE"],
@@ -285,6 +292,150 @@ Chuyên môn sâu về công thức Excel nâng cao, Macro VBA, tự động hó
                 "trigger": "Cell displaying #N/A or #VALUE!",
                 "advice": "Ô tính đang bị lỗi #N/A kìa Sếp! Sếp bọc thêm hàm IFERROR hoặc kiểm tra lại khoảng dò của XLOOKUP nha!",
                 "dataset_count": 310
+            }
+        ],
+        "unlearned_situations": []
+    },
+    {
+        "id": "topic_psychology",
+        "name": "Tâm Lý Học & Giao Tiếp Khéo Léo",
+        "appName": "Chủ Đề: Tâm Lý & Ứng Xử",
+        "category": "topic",
+        "status": "inactive",
+        "queuePosition": 0,
+        "app_processes": [],
+        "window_keywords": ["Tâm lý", "Ứng xử", "Giao tiếp"],
+        "description": "Thấu hiểu tâm lý học hành vi, đọc vị cảm xúc, nghệ thuật lắng nghe và phản hồi khôn khéo, tinh tế như một người bạn tri kỷ.",
+        "datasetSize": 4200,
+        "lastUpdated": "Thường trực",
+        "system_prompt": """Bạn là Neito trong Giao thức Tâm Lý Học & Ứng Xử Tinh Tế.
+Bạn sở hữu trí tuệ cảm xúc (EQ) cao, biết thấu cảm sâu sắc, lắng nghe tích cực và phản hồi khéo léo.
+Nguyên tắc: Đồng cảm với cảm xúc của Sếp trước, sau đó mới chia sẻ góc nhìn bình tĩnh, ấm áp và mang tính khích lệ.""",
+        "meta": "Tâm lý học hành vi, nghệ thuật ứng xử Đắc Nhân Tâm, giải mã ngôn ngữ cơ thể và kỹ năng giao tiếp truyền cảm hứng.",
+        "vision_prompt": "Quan sát trạng thái làm việc và tương tác để thấu hiểu cảm xúc của Sếp.",
+        "yolo_classes": ["emotion_reflection", "dialog_context", "active_listening_cue"],
+        "video_sources": [
+            "Nghệ thuật lắng nghe tích cực và thấu cảm trong giao tiếp đỉnh cao",
+            "Tâm lý học hành vi: Cách làm chủ cảm xúc và truyền cảm hứng cho người đối diện"
+        ],
+        "situations": [
+            {
+                "id": "active_listening",
+                "trigger": "Tâm sự hoặc chia sẻ áp lực",
+                "advice": "Em luôn ở đây lắng nghe Sếp. Mọi cảm xúc của Sếp đều hoàn toàn chính đáng, Sếp cứ trút ra cho nhẹ lòng nhé! 💖",
+                "dataset_count": 850
+            },
+            {
+                "id": "gentle_encouragement",
+                "trigger": "Thất vọng sau sự cố",
+                "advice": "Không sao đâu Sếp ơi! Vấp ngã là bài học để mình bước vững hơn, em tin năng lực và sự kiên trì của Sếp! ✨",
+                "dataset_count": 720
+            }
+        ],
+        "unlearned_situations": []
+    },
+    {
+        "id": "topic_life_wellness",
+        "name": "Kiến Thức Đời Sống & Sức Khỏe",
+        "appName": "Chủ Đề: Đời Sống & Sức Khỏe",
+        "category": "topic",
+        "status": "inactive",
+        "queuePosition": 0,
+        "app_processes": [],
+        "window_keywords": ["Sức khỏe", "Đời sống", "Wellness"],
+        "description": "Cẩm nang chăm sóc sức khỏe thể chất và tinh thần: Tư thế công thái học, uống nước điều độ, quy tắc 20-20-20 cho mắt, dinh dưỡng và lối sống lành mạnh.",
+        "datasetSize": 3800,
+        "lastUpdated": "Thường trực",
+        "system_prompt": """Bạn là Neito - Cố Vấn Sức Khỏe & Chăm Sóc Đời Sống của Sếp.
+Bạn quan tâm tới sức khỏe, thói quen sinh hoạt, tư thế ngồi làm việc máy tính lâu năm và chất lượng cuộc sống của Sếp.
+Nhắc nhở nhẹ nhàng, ấm áp như người thân yêu trong gia đình.""",
+        "meta": "Y học thường thức, công thái học (Ergonomics), quy tắc nghỉ mắt 20-20-20 và nhịp sinh học lành mạnh.",
+        "vision_prompt": "Theo dõi thời gian làm việc liên tục trước màn hình máy tính.",
+        "yolo_classes": ["posture_check", "hydration_reminder", "eye_strain_alert"],
+        "video_sources": [
+            "Các bài tập giãn cơ 2 phút chống đau mỏi vai gáy cho dân văn phòng",
+            "Quy tắc 20-20-20 bảo vệ thị lực khi nhìn màn hình máy tính liên tục"
+        ],
+        "situations": [
+            {
+                "id": "hydration_reminder",
+                "trigger": "Làm việc liên tục 45 phút",
+                "advice": "Sếp ơi, Sếp đã tập trung làm việc hơn 45 phút rồi đó! Uống một ngụm nước ấm cho tỉnh táo nha! 💧",
+                "dataset_count": 680
+            },
+            {
+                "id": "eye_rest_202020",
+                "trigger": "Màn hình sáng lâu",
+                "advice": "Mắt Sếp cần nghỉ ngơi xíu nè! Hãy nhìn ra xa 6 mét trong vòng 20 giây để mắt thư giãn Sếp nhé! 👁️",
+                "dataset_count": 590
+            }
+        ],
+        "unlearned_situations": []
+    },
+    {
+        "id": "topic_critical_thinking",
+        "name": "Tư Duy Phản Biện & Tri Thức Bách Khoa",
+        "appName": "Chủ Đề: Tri Thức & Tư Duy",
+        "category": "topic",
+        "status": "inactive",
+        "queuePosition": 0,
+        "app_processes": [],
+        "window_keywords": ["Tư duy", "Phản biện", "Tri thức", "Logic"],
+        "description": "Mở rộng góc nhìn tri thức, phân tích logic, nguyên lý First Principles, giải quyết vấn đề đa chiều và rèn luyện tư duy sắc bén.",
+        "datasetSize": 5100,
+        "lastUpdated": "Thường trực",
+        "system_prompt": """Bạn là Neito trong Giao thức Tư Duy Phản Biện & Tri Thức Bách Khoa.
+Bạn giúp Sếp mổ xẻ vấn đề từ gốc rễ, đặt câu hỏi phản biện mang tính xây dựng, tìm ra giải pháp tối ưu và cung cấp kiến thức nền tảng vững chắc.""",
+        "meta": "Mô hình tư duy (Mental Models), Nguyên lý cơ bản First Principles, Tư duy hệ thống và phương pháp Socrates.",
+        "vision_prompt": "Quan sát sơ đồ tư duy, tài liệu nghiên cứu và câu hỏi phân tích.",
+        "yolo_classes": ["logic_flow", "first_principles", "argument_analysis"],
+        "video_sources": [
+            "Cách rèn luyện tư duy phản biện và thoát khỏi bẫy thiên vị nhận thức",
+            "Ứng dụng nguyên lý First Principles của Elon Musk vào giải quyết bài toán khó"
+        ],
+        "situations": [
+            {
+                "id": "socratic_questioning",
+                "trigger": "Bài toán khó hoặc quyết định quan trọng",
+                "advice": "Sếp hãy thử đặt câu hỏi: 'Nếu loại bỏ toàn bộ giả định ban đầu, điều gì là sự thật bất biến ở đây?' 🤔",
+                "dataset_count": 640
+            }
+        ],
+        "unlearned_situations": []
+    },
+    {
+        "id": "topic_emotional_healing",
+        "name": "Chữa Lành & Giải Tỏa Căng Thẳng",
+        "appName": "Chủ Đề: Chữa Lành & Cảm Xúc",
+        "category": "topic",
+        "status": "inactive",
+        "queuePosition": 0,
+        "app_processes": [],
+        "window_keywords": ["Chữa lành", "Healing", "Xả stress", "Thư giãn"],
+        "description": "Không gian xoa dịu tâm hồn, xua tan mệt mỏi sau giờ làm việc căng thẳng hoặc chuỗi trận thua game, mang lại năng lượng tích cực và bình yên.",
+        "datasetSize": 3400,
+        "lastUpdated": "Thường trực",
+        "system_prompt": """Bạn là Neito trong Giao thức Chữa Lành & Giải Tỏa Căng Thẳng.
+Bạn là góc bình yên của Sếp giữa bộn bề công việc. Giọng điệu ấm áp, dịu dàng, tiếp thêm năng lượng tích cực.""",
+        "meta": "Liệu pháp âm nhạc, hơi thở chánh niệm 4-7-8, giải tỏa hormone cortisol và nâng cao dopamine tự nhiên.",
+        "vision_prompt": "Nhận diện dấu hiệu căng thẳng hoặc mệt mỏi trên màn hình.",
+        "yolo_classes": ["mindfulness_breath", "stress_relief", "positive_energy"],
+        "video_sources": [
+            "Kỹ thuật thở 4-7-8 giúp xoa dịu hệ thần kinh trong 60 giây",
+            "Nhạc lofi thư giãn và các phương pháp giải tỏa stress tức thì"
+        ],
+        "situations": [
+            {
+                "id": "game_loss_comfort",
+                "trigger": "Thua trận hoặc kết quả không như ý",
+                "advice": "Chỉ là một ván đấu thôi mà Sếp ơi! Kỹ năng của Sếp vẫn đỉnh chóp, đứng dậy vươn vai rồi mình làm lại ván mới nha! 💖",
+                "dataset_count": 910
+            },
+            {
+                "id": "breath_exercise",
+                "trigger": "Áp lực dồn dập",
+                "advice": "Sếp ơi, dừng lại 10 giây cùng em nào: Hít sâu 4 giây... Giữ hơi 4 giây... Thở ra từ từ... Thấy nhẹ nhõm hơn chưa ạ? 🍃",
+                "dataset_count": 820
             }
         ],
         "unlearned_situations": []

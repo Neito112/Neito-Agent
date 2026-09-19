@@ -1,0 +1,338 @@
+# -*- coding: utf-8 -*-
+"""
+Providers & Model Manager for Neito Agent
+- Quản lý tập trung các nhà cung cấp mô hình LLM (AGY CLI, Ollama Local, OpenRouter, Nous Portal, Google Gemini API, Custom Endpoint).
+- Đồng bộ mô hình 100% giữa Phidata (Bộ não phân tích) và Smolagents (Đôi tay thực thi).
+- Tự động quét Ollama cục bộ trên máy và các model có sẵn từ AGY CLI.
+"""
+
+import os
+import json
+import time
+import subprocess
+import requests
+from typing import Dict, List, Any, Optional
+
+CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'model_config.json')
+
+DEFAULT_CONFIG = {
+    "active_provider": "agy",
+    "active_model": "gemini-3.8-flash-high",
+    "providers": {
+        "agy": {
+            "name": "Google Antigravity (AGY CLI)",
+            "description": "Cầu nối trực tiếp CLI của Google Antigravity. Miễn phí, 0 token setup, tốc độ cao.",
+            "models": [
+                {"id": "gemini-3.8-flash-high", "name": "Gemini 3.8 Flash (High)", "recommended": True},
+                {"id": "gemini-3.8-flash-medium", "name": "Gemini 3.8 Flash (Medium)"},
+                {"id": "gemini-3.7-flash-high", "name": "Gemini 3.7 Flash (High)"},
+                {"id": "gemini-3.1-pro-high", "name": "Gemini 3.1 Pro (High)"},
+                {"id": "claude-sonnet-4-6", "name": "Claude Sonnet 4.6 (Thinking)"},
+                {"id": "claude-opus-4-6-thinking", "name": "Claude Opus 4.6 (Thinking)"},
+                {"id": "gpt-oss-120b-medium", "name": "GPT-OSS 120B (Medium)"}
+            ]
+        },
+        "ollama": {
+            "name": "Ollama (Local Machine)",
+            "description": "Chạy mô hình hoàn toàn offline trên máy cá nhân, bảo mật 100%, tự động nhận diện model đã tải.",
+            "endpoint": "http://localhost:11434",
+            "models": []
+        },
+        "openrouter": {
+            "name": "OpenRouter",
+            "description": "Cổng kết nối hàng trăm mô hình mã nguồn mở và thương mại hàng đầu thế giới.",
+            "endpoint": "https://openrouter.ai/api/v1",
+            "api_key": "",
+            "selected_model": "google/gemini-2.0-flash-001",
+            "models": [
+                {"id": "google/gemini-2.0-flash-001", "name": "Gemini 2.0 Flash (Fastest)"},
+                {"id": "anthropic/claude-3.5-sonnet", "name": "Claude 3.5 Sonnet"},
+                {"id": "deepseek/deepseek-chat", "name": "DeepSeek V3 / R1"},
+                {"id": "meta-llama/llama-3.3-70b-instruct", "name": "Llama 3.3 70B Instruct"}
+            ]
+        },
+        "nous": {
+            "name": "Nous Portal",
+            "description": "Mô hình chuyên biệt từ Nous Research với năng lực lý luận và tự học sâu sắc.",
+            "endpoint": "https://portal.nousresearch.com/v1",
+            "api_key": "",
+            "selected_model": "Hermes-3-Llama-3.1-8B",
+            "models": [
+                {"id": "Hermes-3-Llama-3.1-8B", "name": "Hermes 3 Llama 3.1 8B"},
+                {"id": "Hermes-3-Llama-3.1-70B", "name": "Hermes 3 Llama 3.1 70B"}
+            ]
+        },
+        "gemini": {
+            "name": "Google Gemini API Key",
+            "description": "Sử dụng trực tiếp Google AI Studio API Key của cá nhân.",
+            "endpoint": "https://generativelanguage.googleapis.com/v1beta",
+            "api_key": "",
+            "selected_model": "gemini-2.0-flash",
+            "models": [
+                {"id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash"},
+                {"id": "gemini-1.5-pro", "name": "Gemini 1.5 Pro"},
+                {"id": "gemini-1.5-flash", "name": "Gemini 1.5 Flash"}
+            ]
+        },
+        "custom": {
+            "name": "Chuẩn Endpoint Thủ Công (OpenAI-compatible)",
+            "description": "Tương thích với LM Studio, vLLM, Text-Gen-WebUI hoặc bất kỳ endpoint chuẩn OpenAI nào.",
+            "endpoint": "http://localhost:8000/v1",
+            "api_key": "",
+            "selected_model": "default-model",
+            "models": []
+        }
+    }
+}
+
+def load_config() -> Dict[str, Any]:
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                for p_key, p_val in DEFAULT_CONFIG['providers'].items():
+                    if p_key not in data.get('providers', {}):
+                        if 'providers' not in data:
+                            data['providers'] = {}
+                        data['providers'][p_key] = p_val
+                return data
+        except Exception:
+            pass
+    save_config(DEFAULT_CONFIG)
+    return DEFAULT_CONFIG
+
+def save_config(config: Dict[str, Any]) -> bool:
+    try:
+        with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
+            json.dump(config, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception as e:
+        print(f"[-] Lỗi lưu model config: {e}")
+        return False
+
+def scan_agy_models() -> List[Dict[str, str]]:
+    """Quét danh sách mô hình từ agy models."""
+    models = []
+    try:
+        res = subprocess.run(['agy', 'models'], capture_output=True, text=True, encoding='utf-8', timeout=6)
+        if res.returncode == 0:
+            lines = res.stdout.strip().split('\n')
+            for line in lines:
+                parts = line.split('\t')
+                if len(parts) >= 2:
+                    m_id = parts[0].strip()
+                    m_name = parts[1].strip()
+                    if m_id and not m_id.startswith('Fetching'):
+                        models.append({'id': m_id, 'name': m_name})
+    except Exception as e:
+        print(f"[-] Quét AGY models error: {e}")
+    if not models:
+        models = DEFAULT_CONFIG['providers']['agy']['models']
+    return models
+
+def scan_ollama_models(endpoint: str = "http://localhost:11434") -> Dict[str, Any]:
+    """Quét Ollama đang chạy trên máy xem có những model nào."""
+    endpoint = endpoint.rstrip('/')
+    url = f"{endpoint}/api/tags"
+    try:
+        r = requests.get(url, timeout=2.5)
+        if r.status_code == 200:
+            data = r.json()
+            models_raw = data.get('models', [])
+            model_list = []
+            for m in models_raw:
+                name = m.get('name', '')
+                size_mb = round(m.get('size', 0) / (1024 * 1024), 1)
+                model_list.append({
+                    "id": name,
+                    "name": f"{name} ({size_mb} MB)",
+                    "size": size_mb,
+                    "modified_at": m.get('modified_at', '')
+                })
+            return {"online": True, "models": model_list}
+        return {"online": False, "models": [], "error": f"HTTP {r.status_code}"}
+    except Exception as e:
+        return {"online": False, "models": [], "error": str(e)}
+
+def set_active_model(provider: str, model_id: str, extra_settings: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Cập nhật Provider và Model đang kích hoạt cho cả Phidata và Smolagents."""
+    cfg = load_config()
+    if provider not in cfg.get('providers', {}):
+        return {"success": False, "error": f"Provider '{provider}' không hợp lệ"}
+
+    cfg['active_provider'] = provider
+    cfg['active_model'] = model_id
+    
+    if extra_settings:
+        p_cfg = cfg['providers'][provider]
+        for k, v in extra_settings.items():
+            p_cfg[k] = v
+        cfg['providers'][provider] = p_cfg
+
+    save_config(cfg)
+    print(f"[Providers-Manager] >>> ĐÃ ĐỔI MODEL: Provider={provider}, Model={model_id} (Đồng bộ Phidata & Smolagents)", flush=True)
+    return {"success": True, "active_provider": provider, "active_model": model_id}
+
+def get_current_model_info() -> Dict[str, Any]:
+    cfg = load_config()
+    cur_p = cfg.get('active_provider', 'agy')
+    cur_m = cfg.get('active_model', 'gemini-3.8-flash-high')
+    p_info = cfg.get('providers', {}).get(cur_p, {})
+    return {
+        "provider": cur_p,
+        "provider_name": p_info.get('name', cur_p),
+        "model": cur_m,
+        "endpoint": p_info.get('endpoint', ''),
+        "all_config": cfg
+    }
+
+def query_llm(prompt: str, system_prompt: Optional[str] = None) -> str:
+    """
+    Điểm truy vấn mô hình DUY NHẤT cho toàn bộ hệ thống Neito Agent.
+    Phidata và Smolagents gọi hàm này để đảm bảo luôn dùng CHUNG 1 model được Sếp chọn.
+    """
+    cfg = load_config()
+    provider = cfg.get('active_provider', 'agy')
+    model = cfg.get('active_model', 'gemini-3.8-flash-high')
+    p_cfg = cfg.get('providers', {}).get(provider, {})
+
+    full_prompt = prompt
+    if system_prompt:
+        full_prompt = f"System: {system_prompt}\n\nUser: {prompt}"
+
+    # 1. GOOGLE ANTIGRAVITY (AGY CLI)
+    if provider == 'agy':
+        cmd = ['agy', '--model', model, '--print', full_prompt]
+        try:
+            res = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', timeout=40)
+            if res.returncode == 0 and res.stdout.strip():
+                return res.stdout.strip()
+            err_msg = res.stderr.strip() if res.stderr else ''
+            print(f"[-] AGY CLI warning: {err_msg}")
+        except Exception as e:
+            print(f"[-] AGY CLI query error: {e}")
+
+    # 2. OLLAMA LOCAL
+    elif provider == 'ollama':
+        endpoint = p_cfg.get('endpoint', 'http://localhost:11434').rstrip('/')
+        url = f"{endpoint}/v1/chat/completions"
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt or "Bạn là trợ lý ảo Neito Agent trung thành và thông minh."},
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.7
+        }
+        try:
+            r = requests.post(url, json=payload, timeout=45)
+            if r.status_code == 200:
+                resp = r.json()
+                return resp['choices'][0]['message']['content'].strip()
+            print(f"[-] Ollama HTTP {r.status_code}: {r.text[:120]}")
+        except Exception as e:
+            print(f"[-] Ollama error: {e}")
+
+    # 3. OPENROUTER
+    elif provider == 'openrouter':
+        endpoint = p_cfg.get('endpoint', 'https://openrouter.ai/api/v1').rstrip('/')
+        api_key = p_cfg.get('api_key', '')
+        url = f"{endpoint}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://github.com/Neito112/Neito-Agent",
+            "X-Title": "Neito Agent"
+        }
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt or "Bạn là trợ lý ảo Neito Agent."},
+                {"role": "user", "content": prompt}
+            ]
+        }
+        try:
+            r = requests.post(url, headers=headers, json=payload, timeout=35)
+            if r.status_code == 200:
+                resp = r.json()
+                return resp['choices'][0]['message']['content'].strip()
+            print(f"[-] OpenRouter error {r.status_code}: {r.text[:120]}")
+        except Exception as e:
+            print(f"[-] OpenRouter call error: {e}")
+
+    # 4. NOUS PORTAL
+    elif provider == 'nous':
+        endpoint = p_cfg.get('endpoint', 'https://portal.nousresearch.com/v1').rstrip('/')
+        api_key = p_cfg.get('api_key', '')
+        url = f"{endpoint}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt or "Bạn là trợ lý ảo Neito Agent."},
+                {"role": "user", "content": prompt}
+            ]
+        }
+        try:
+            r = requests.post(url, headers=headers, json=payload, timeout=35)
+            if r.status_code == 200:
+                resp = r.json()
+                return resp['choices'][0]['message']['content'].strip()
+        except Exception as e:
+            print(f"[-] Nous Portal error: {e}")
+
+    # 5. GOOGLE GEMINI API KEY
+    elif provider == 'gemini':
+        api_key = p_cfg.get('api_key', '')
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+        headers = {"Content-Type": "application/json"}
+        payload = {
+            "contents": [{
+                "parts": [{"text": full_prompt}]
+            }]
+        }
+        try:
+            r = requests.post(url, headers=headers, json=payload, timeout=30)
+            if r.status_code == 200:
+                resp = r.json()
+                candidates = resp.get('candidates', [])
+                if candidates:
+                    return candidates[0]['content']['parts'][0]['text'].strip()
+        except Exception as e:
+            print(f"[-] Gemini API call error: {e}")
+
+    # 6. CUSTOM ENDPOINT (OpenAI-compatible)
+    elif provider == 'custom':
+        endpoint = p_cfg.get('endpoint', 'http://localhost:8000/v1').rstrip('/')
+        api_key = p_cfg.get('api_key', '')
+        url = f"{endpoint}/chat/completions"
+        headers = {"Content-Type": "application/json"}
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt or "Bạn là trợ lý ảo Neito Agent."},
+                {"role": "user", "content": prompt}
+            ]
+        }
+        try:
+            r = requests.post(url, headers=headers, json=payload, timeout=35)
+            if r.status_code == 200:
+                resp = r.json()
+                return resp['choices'][0]['message']['content'].strip()
+        except Exception as e:
+            print(f"[-] Custom endpoint error: {e}")
+
+    # Fallback dự phòng nếu provider gặp sự cố
+    try:
+        res = subprocess.run(['agy', '--print', prompt], capture_output=True, text=True, encoding='utf-8', timeout=25)
+        if res.returncode == 0 and res.stdout.strip():
+            return res.stdout.strip()
+    except Exception:
+        pass
+
+    return "Dạ em đã nhận được yêu cầu của Sếp! Em đang đồng bộ tri thức để hỗ trợ Sếp tốt nhất ạ! ✨"

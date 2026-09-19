@@ -2,6 +2,7 @@
 import json
 import os
 import sys
+import time
 import urllib.parse
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
@@ -12,6 +13,7 @@ if sys.stderr.encoding != 'utf-8':
 
 import yolo_world_advisor
 import protocols_manager
+import providers_manager
 from neito_brain import orchestrator
 from memory import get_all_memories, add_memory, delete_memory
 from smolagents_hand import get_action_logs, ACTION_LOGS
@@ -21,10 +23,12 @@ from foreground_watcher import (
     get_latest_switch_event,
     set_auto_switch
 )
+import speech_manager
 from speech_manager import (
     get_latest_speech,
     enqueue_speech,
-    generate_tts_bytes
+    generate_tts_bytes,
+    clear_speech_queue
 )
 
 CHARACTERS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'neito-agent', 'ui', 'assets', 'characters')
@@ -75,8 +79,54 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         global CURRENT_CHARACTER, YOLO_ACTIVE
+        content_type_header = self.headers.get('Content-Type', '')
         content_length = int(self.headers.get('Content-Length', 0))
-        body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else '{}'
+
+        if self.path == '/api/voice/upload':
+            voices_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voices')
+            os.makedirs(voices_dir, exist_ok=True)
+            import cgi
+            if 'multipart/form-data' in content_type_header:
+                environ = {'REQUEST_METHOD': 'POST'}
+                form = cgi.FieldStorage(fp=self.rfile, headers=self.headers, environ=environ)
+                file_item = form['file'] if 'file' in form else None
+                if file_item and file_item.filename:
+                    safe_name = os.path.basename(file_item.filename)
+                    save_path = os.path.join(voices_dir, safe_name)
+                    with open(save_path, 'wb') as f:
+                        f.write(file_item.file.read())
+                    profile = {
+                        'id': 'upload_' + safe_name.split('.')[0],
+                        'name': safe_name,
+                        'file': safe_name,
+                        'type': 'uploaded',
+                        'created_at': time.time()
+                    }
+                    profile_file = os.path.join(voices_dir, safe_name.rsplit('.', 1)[0] + '.json')
+                    with open(profile_file, 'w', encoding='utf-8') as f:
+                        json.dump(profile, f, ensure_ascii=False, indent=2)
+                    print(f'[Voice] Đã lưu giọng mẫu: {safe_name}', flush=True)
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({
+                        'success': True,
+                        'message': f'Đã lưu file giọng mẫu: {safe_name}'
+                    }, ensure_ascii=False).encode('utf-8'))
+                    return
+            self.send_response(400)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': False, 'error': 'Không nhận được file'}).encode('utf-8'))
+            return
+
+        raw_bytes = self.rfile.read(content_length) if content_length > 0 else b'{}'
+        try:
+            body = raw_bytes.decode('utf-8')
+        except UnicodeDecodeError:
+            body = raw_bytes.decode('utf-8', errors='replace')
         try:
             data = json.loads(body)
         except Exception:
@@ -240,6 +290,56 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
 
+        elif self.path == '/api/voice/generate':
+            desc = data.get('description', '')
+            voices_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voices')
+            os.makedirs(voices_dir, exist_ok=True)
+            # Tạo voice profile từ mô tả — placeholder cho TTS model nâng cao
+            import hashlib
+            voice_id = 'voice_' + hashlib.md5(desc.encode()).hexdigest()[:8]
+            profile = {
+                'id': voice_id,
+                'name': desc[:60],
+                'description': desc,
+                'type': 'generated',
+                'created_at': time.time()
+            }
+            profile_file = os.path.join(voices_dir, voice_id + '.json')
+            with open(profile_file, 'w', encoding='utf-8') as f:
+                json.dump(profile, f, ensure_ascii=False, indent=2)
+            print(f'[Voice] Đã tạo voice profile: {voice_id} — "{desc[:40]}..."', flush=True)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': True,
+                'message': f'Đã tạo voice profile: {desc[:40]}',
+                'voice': profile
+            }, ensure_ascii=False).encode('utf-8'))
+
+        elif self.path == '/api/providers/select':
+            provider = data.get('provider', 'agy')
+            model_id = data.get('model', '')
+            extra_settings = data.get('settings', None)
+            res = providers_manager.set_active_model(provider, model_id, extra_settings)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(res, ensure_ascii=False).encode('utf-8'))
+
+        elif self.path == '/api/providers/test':
+            prompt = data.get('prompt', 'Xin chào, trả lời ngắn gọn trong 1 câu: Bạn là ai?')
+            t0 = time.time()
+            reply = providers_manager.query_llm(prompt)
+            latency = round((time.time() - t0) * 1000)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True, 'reply': reply, 'latency_ms': latency}, ensure_ascii=False).encode('utf-8'))
+
         else:
             self.send_response(404)
             self.end_headers()
@@ -342,6 +442,35 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
                 except Exception:
                     pass
             self.wfile.write(json.dumps({'character': char_name, 'soul': soul_content}, ensure_ascii=False).encode('utf-8'))
+
+        elif self.path == '/api/voice/list':
+            voices_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voices')
+            voices = []
+            if os.path.exists(voices_dir):
+                for fname in sorted(os.listdir(voices_dir)):
+                    if fname.endswith('.json'):
+                        try:
+                            with open(os.path.join(voices_dir, fname), 'r', encoding='utf-8') as f:
+                                profile = json.load(f)
+                                voices.append(profile)
+                        except Exception:
+                            pass
+            self.wfile.write(json.dumps({'voices': voices}, ensure_ascii=False).encode('utf-8'))
+
+        elif self.path == '/api/providers':
+            info = providers_manager.get_current_model_info()
+            self.wfile.write(json.dumps(info, ensure_ascii=False).encode('utf-8'))
+
+        elif self.path == '/api/providers/agy/scan':
+            models = providers_manager.scan_agy_models()
+            self.wfile.write(json.dumps({'models': models}, ensure_ascii=False).encode('utf-8'))
+
+        elif self.path.startswith('/api/providers/ollama/scan'):
+            parsed = urllib.parse.urlparse(self.path)
+            qs = urllib.parse.parse_qs(parsed.query)
+            endpoint = qs.get('endpoint', ['http://localhost:11434'])[0]
+            res = providers_manager.scan_ollama_models(endpoint)
+            self.wfile.write(json.dumps(res, ensure_ascii=False).encode('utf-8'))
 
         else:
             self.wfile.write(json.dumps({'error': 'Not found'}).encode('utf-8'))
