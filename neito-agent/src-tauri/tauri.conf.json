@@ -5,69 +5,18 @@
   "identifier": "com.neito.neito-agent",
   "build": {
     "beforeDevCommand": "npm run dev",
-    "devUrl": "http://localhost:1420",
+    "devUrl": "http://127.0.0.1:1420",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },
   "app": {
     "windows": [
-      {
-        "label": "main",
-        "title": "Neito Agent",
-        "url": "index.html",
-        "width": 340,
-        "height": 460,
-        "minWidth": 280,
-        "minHeight": 220,
-        "transparent": true,
-        "decorations": false,
-        "alwaysOnTop": true,
-        "resizable": false,
-        "shadow": false,
-        "skipTaskbar": true,
-        "visible": true
-      },
-      {
-        "label": "dashboard",
-        "title": "Neito Agent - Tactical Dashboard",
-        "url": "dashboard.html",
-        "width": 1000,
-        "height": 720,
-        "minWidth": 760,
-        "minHeight": 520,
-        "decorations": false,
-        "resizable": true,
-        "visible": false,
-        "center": true
-      },
-      {
-        "label": "ghost",
-        "title": "Ghost Pointer",
-        "url": "ghost.html",
-        "width": 80,
-        "height": 80,
-        "transparent": true,
-        "decorations": false,
-        "alwaysOnTop": true,
-        "resizable": false,
-        "visible": false,
-        "skipTaskbar": true
-      }
+      {"label":"main","title":"Neito Agent","url":"index.html","width":340,"height":460,"minWidth":280,"minHeight":220,"transparent":true,"decorations":false,"alwaysOnTop":true,"resizable":false,"shadow":false,"skipTaskbar":true,"visible":true},
+      {"label":"dashboard","title":"Neito Agent - Tactical Dashboard","url":"dashboard.html","width":1000,"height":720,"minWidth":760,"minHeight":520,"decorations":false,"resizable":true,"visible":false,"center":true},
+      {"label":"ghost","title":"Ghost Pointer","url":"ghost.html","width":80,"height":80,"transparent":true,"decorations":false,"alwaysOnTop":true,"resizable":false,"visible":false,"skipTaskbar":true}
     ],
-    "security": {
-      "csp": null
-    },
-    "withGlobalTauri": true
+    "security":{"csp":null},
+    "withGlobalTauri":true
   },
-  "bundle": {
-    "active": true,
-    "targets": "all",
-    "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ]
-  }
+  "bundle":{"active":true,"targets":"all","icon":["icons/32x32.png","icons/128x128.png","icons/128x128@2x.png","icons/icon.icns","icons/icon.ico"]}
 }

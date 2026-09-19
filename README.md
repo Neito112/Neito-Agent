@@ -1,43 +1,40 @@
-@echo off
-title Neito Agent Launcher
-cd /d "%~dp0"
+# Neito Agent
 
-if not exist logs mkdir logs
+Neito Agent is a Windows-first desktop companion with a local Python brain and a Tauri desktop UI.
 
-REM 1) Ensure Python virtual environment exists
-if not exist "venv\Scripts\activate.bat" (
-    echo [1/4] Creating Python virtual environment...
-    python -m venv venv
-)
+## One-click local start
 
-REM 2) Install Python requirements if needed
-call "venv\Scripts\activate.bat"
-python -m pip install --upgrade pip
+Run `start_app.bat` from the repository root. The launcher:
+
+1. Creates the local `venv` if needed.
+2. Installs Python dependencies from `requirements.txt`.
+3. Installs frontend dependencies in `neito-agent/node_modules`.
+4. Checks that Python, Node.js/npm, and Rust/Cargo are available.
+5. Starts the Brain Server at `127.0.0.1:4242`.
+6. Starts the Tauri UI from the project directory.
+
+All runtime files stay inside this project folder (`venv`, `node_modules`, `logs`, local database and downloaded model cache).
+
+## Required runtimes
+
+The launcher can install project packages automatically, but it cannot reliably install the runtimes themselves. Install these once if missing:
+
+- Python 3.10+
+- Node.js 18+
+- Rust and Cargo via [rustup](https://rustup.rs/)
+- Microsoft C++ Build Tools for Tauri on Windows
+
+After installation, run `start_app.bat` again.
+
+## Manual commands
+
+```cmd
+python -m venv venv
+venv\Scripts\activate
 python -m pip install -r requirements.txt
+cd neito-agent
+npm install
+npm run tauri:dev
+```
 
-REM 3) Ensure Tauri frontend dependencies are installed
-cd /d "%~dp0neito-agent"
-if not exist "node_modules" (
-    echo [2/4] Installing frontend dependencies for Tauri app...
-    call npm install
-)
-
-REM 4) Start backend + desktop app
-cd /d "%~dp0"
-
-echo ===================================================
-echo     KHOI DONG NEITO AGENT DESKTOP COMPANION
-echo ===================================================
-
-echo [3/4] Dang chay Brain Server :4242 (Phidata + Smolagents + Mem0)...
-start "Neito Brain" cmd /c "call venv\Scripts\activate.bat && python -u brain.py > logs\brain.log 2>&1"
-
-REM Cho 2 giay de Brain Server san sang lang nghe tren cong 4242
-ping -n 3 127.0.0.1 >nul
-
-echo [4/4] Dang khoi dong Desktop Overlay & System Tray...
-set PATH=%USERPROFILE%\.cargo\bin;%PATH%
-cd /d "%~dp0neito-agent\src-tauri"
-cargo run
-
-pause
+The backend log is written to `logs\brain.log`.
