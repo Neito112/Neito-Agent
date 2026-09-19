@@ -1,25 +1,19 @@
 # -*- coding: utf-8 -*-
-"""
-Adaptive Vision Engine for Neito Agent
-- Tầng 1: YOLO11n - Quét màn hình tốc độ cao, nhận diện UI, mục tiêu, thanh máu, người chơi.
-- Tầng 2: YOLO-World - Nhận diện Open-Vocabulary (zero-shot) theo danh mục lớp (yolo_classes) của Giao thức.
-- Tự động fallback sang Heuristic Screen Watcher mượt mà nếu máy chưa cài đặt nặng PyTorch/Ultralytics.
-"""
+"""Vision pipeline: YOLO11n first, YOLO-World only for unknown situations."""
 
-import time
 import os
-import sys
-import threading
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Optional
+
 from mss import mss
 from PIL import Image
 
-HAS_ULTRALYTICS = False
 try:
     from ultralytics import YOLO
     HAS_ULTRALYTICS = True
 except Exception:
+    YOLO = None
     HAS_ULTRALYTICS = False
+
 
 class AdaptiveVisionEngine:
     def __init__(self):
@@ -28,108 +22,132 @@ class AdaptiveVisionEngine:
         self.yolo11n_model = None
         self.yolo_world_model = None
         self.active_classes: List[str] = []
+        self.active_protocol_id = "general"
         self.fps = 2
         self.is_running = False
         self._init_models()
 
+    def _model_path(self, default_name: str) -> str:
+        configured = os.environ.get("NEITO_YOLO11_MODEL", "").strip()
+        if default_name == "yolo11n.pt" and configured:
+            return configured
+        return default_name
+
     def _init_models(self):
-        """Khởi tạo mô hình YOLO11n & YOLO-World nếu có thư viện ultralytics."""
-        if self.has_neural:
-            try:
-                print("[Vision-Engine] Đang nạp mô hình YOLO11n & YOLO-World...")
-                # Nạp YOLO11n làm bộ quét tổng thể
-                self.yolo11n_model = YOLO('yolo11n.pt')
-                # Nạp YOLO-World làm bộ nhận diện Open-Vocabulary linh hoạt
-                self.yolo_world_model = YOLO('yolov8s-world.pt')
-                print("[Vision-Engine] [OK] Đã nạp thành công bộ đôi YOLO11n + YOLO-World!")
-            except Exception as e:
-                print(f"[Vision-Engine] Cảnh báo khi nạp mô hình Neural: {e}. Chuyển sang Adaptive Vision Mode.")
-                self.has_neural = False
-        else:
-            print("[Vision-Engine] Chế độ Adaptive Vision sẵn sàng. (Cài 'pip install ultralytics' để bật Neural GPU Inference)")
+        if not self.has_neural:
+            print("[Vision] YOLO11n unavailable; local heuristic mode enabled.", flush=True)
+            return
+        try:
+            yolo11_path = self._model_path("yolo11n.pt")
+            self.yolo11n_model = YOLO(yolo11_path)
+            # World is deliberately lazy: it is loaded only after YOLO11n misses.
+            print(f"[Vision] YOLO11n primary model ready: {yolo11_path}", flush=True)
+        except Exception as exc:
+            self.has_neural = False
+            print(f"[Vision] YOLO11n load failed; local fallback enabled: {exc}", flush=True)
+
+    def _ensure_world_model(self) -> bool:
+        if self.yolo_world_model is not None:
+            return True
+        if not HAS_ULTRALYTICS:
+            return False
+        try:
+            self.yolo_world_model = YOLO("yolov8s-world.pt")
+            self.yolo_world_model.set_classes(self.active_classes)
+            print("[Vision] YOLO-World loaded for unknown-situation discovery.", flush=True)
+            return True
+        except Exception as exc:
+            print(f"[Vision] YOLO-World fallback unavailable: {exc}", flush=True)
+            return False
+
+    def set_active_protocol(self, protocol_id: str, classes: Optional[List[str]] = None):
+        self.active_protocol_id = protocol_id or "general"
+        self.set_active_classes(classes or [])
 
     def set_active_classes(self, classes: List[str]):
-        """
-        Nạp động danh mục nhãn (Open-Vocabulary classes) cho YOLO-World.
-        Giúp mô hình nhận diện tức thì các vật thể đặc thù của Game/App mà không cần train lại.
-        """
-        self.active_classes = list(classes)
-        if self.has_neural and self.yolo_world_model:
+        self.active_classes = list(dict.fromkeys(classes))
+        if self.yolo_world_model is not None:
             try:
                 self.yolo_world_model.set_classes(self.active_classes)
-                print(f"[Vision-Engine] Đã nạp {len(self.active_classes)} nhãn zero-shot cho YOLO-World: {', '.join(self.active_classes)}")
-            except Exception as e:
-                print(f"[-] Lỗi set_classes YOLO-World: {e}")
-        else:
-            print(f"[Vision-Engine] [Adaptive] Đã cập nhật mục tiêu quan sát: {', '.join(self.active_classes)}")
+            except Exception as exc:
+                print(f"[Vision] Could not update YOLO-World classes: {exc}", flush=True)
 
     def capture_screen(self) -> Optional[Image.Image]:
-        """Chụp ảnh toàn màn hình hoặc monitor chính."""
         try:
-            # Chụp monitor 1
-            monitor = self.sct.monitors[1] if len(self.sct.monitors) > 1 else self.sct.monitors[0]
-            sct_img = self.sct.shot()
-            if os.path.exists(sct_img):
-                img = Image.open(sct_img)
-                return img
+            shot_path = self.sct.shot(mon=-1)
+            if shot_path and os.path.exists(shot_path):
+                return Image.open(shot_path).convert("RGB")
         except Exception:
             pass
         return None
 
-    def detect(self, img: Optional[Image.Image] = None) -> List[Dict]:
-        """
-        Thực hiện phân tích màn hình qua YOLO11n và YOLO-World.
-        Trả về danh sách các vật thể phát hiện kèm độ tin cậy và tọa độ.
-        """
-        if img is None:
-            img = self.capture_screen()
+    @staticmethod
+    def _results_to_detections(results, engine: str) -> List[Dict]:
+        detections: List[Dict] = []
+        for result in results or []:
+            names = getattr(result, "names", {}) or {}
+            for box in getattr(result, "boxes", []) or []:
+                cls_id = int(box.cls[0])
+                detections.append({
+                    "class": str(names.get(cls_id, f"class_{cls_id}")),
+                    "class_id": cls_id,
+                    "confidence": float(box.conf[0]),
+                    "box": [float(x) for x in box.xyxy[0]],
+                    "engine": engine,
+                    "protocol_id": None,
+                })
+        return detections
+
+    def detect_primary(self, img: Optional[Image.Image] = None) -> List[Dict]:
+        """Run the always-on local YOLO11n/custom model first."""
+        img = img or self.capture_screen()
         if img is None:
             return []
-
-        detections = []
-
-        if self.has_neural and self.yolo_world_model:
+        if self.yolo11n_model is not None:
             try:
-                results = self.yolo_world_model.predict(img, conf=0.25, verbose=False)
-                for r in results:
-                    for box in r.boxes:
-                        cls_id = int(box.cls[0])
-                        cls_name = self.active_classes[cls_id] if cls_id < len(self.active_classes) else f"class_{cls_id}"
-                        detections.append({
-                            "class": cls_name,
-                            "confidence": float(box.conf[0]),
-                            "box": [float(x) for x in box.xyxy[0]],
-                            "engine": "yolo-world"
-                        })
-            except Exception as e:
-                # print(f"[-] YOLO-World inference error: {e}")
-                pass
-        else:
-            # Adaptive heuristic tracking khi chạy portable
-            # Tạo event mô phỏng nhận diện dựa trên nhãn đang active
-            if self.active_classes:
-                detections.append({
-                    "class": self.active_classes[0],
-                    "confidence": 0.85,
-                    "box": [100, 100, 300, 300],
-                    "engine": "adaptive-yolo-sim"
-                })
+                detections = self._results_to_detections(
+                    self.yolo11n_model.predict(img, conf=0.25, verbose=False), "yolo11n-local"
+                )
+                for item in detections:
+                    item["protocol_id"] = self.active_protocol_id
+                return detections
+            except Exception as exc:
+                print(f"[Vision] YOLO11n inference failed: {exc}", flush=True)
+        return []
 
-        return detections
+    def discover_unknown(self, img: Optional[Image.Image] = None) -> List[Dict]:
+        """Use YOLO-World only after the primary local model has no match."""
+        img = img or self.capture_screen()
+        if img is None or not self._ensure_world_model():
+            return []
+        try:
+            return self._results_to_detections(
+                self.yolo_world_model.predict(img, conf=0.25, verbose=False), "yolo-world-fallback"
+            )
+        except Exception as exc:
+            print(f"[Vision] YOLO-World discovery failed: {exc}", flush=True)
+            return []
+
+    def detect(self, img: Optional[Image.Image] = None) -> List[Dict]:
+        """Compatibility API: return primary YOLO11n detections only."""
+        return self.detect_primary(img)
 
     def get_status(self) -> Dict:
         return {
-            "has_neural": self.has_neural,
-            "bounding_engine": "YOLO11n (2.6M params, mAP50-95 39.5%)" if self.has_neural else "YOLO11n (Adaptive Sim)",
-            "open_vocabulary_engine": "YOLOv8s-World (Open-Vocabulary Zero-Shot)" if self.has_neural else "YOLO-World (Adaptive Sim)",
-            "engine_mode": "YOLO11n + YOLO-World (Neural GPU)" if self.has_neural else "YOLO11n + YOLO-World (Adaptive CPU)",
+            "has_neural": self.yolo11n_model is not None,
+            "primary_engine": "YOLO11n/custom local model" if self.yolo11n_model else "local heuristic fallback",
+            "fallback_engine": "YOLO-World (unknown situations only)",
+            "engine_mode": "YOLO11n-first with YOLO-World fallback",
+            "active_protocol_id": self.active_protocol_id,
             "active_classes_count": len(self.active_classes),
             "active_classes": list(self.active_classes),
-            "backend": "ultralytics (PyTorch CUDA)" if self.has_neural else "adaptive-heuristic (CPU)",
-            "fps": self.fps
+            "backend": "ultralytics local" if self.yolo11n_model else "local metadata/heuristic",
+            "fps": self.fps,
         }
 
+
 _vision_engine_instance = None
+
 
 def get_vision_engine() -> AdaptiveVisionEngine:
     global _vision_engine_instance
