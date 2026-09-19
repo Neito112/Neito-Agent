@@ -10,3 +10,7 @@ requests>=2.32.0
 # Computer Vision & Screen Capture
 mss>=10.0.0
 Pillow>=10.0.0
+ultralytics>=8.3.0
+
+# Optional compatibility / desktop-related deps
+# install via pip if needed on Windows systems
