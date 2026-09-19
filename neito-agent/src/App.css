@@ -1,15 +1,15 @@
 :root {
   --bg-deep: #050b17;
-  --bg-panel: rgba(9, 17, 29, 0.88);
-  --bg-panel-strong: rgba(12, 20, 34, 0.95);
-  --panel-border: rgba(80, 190, 255, 0.44);
+  --bg-panel: rgba(10, 18, 30, 0.82);
+  --panel-border: rgba(92, 200, 255, 0.5);
+  --panel-glow: rgba(0, 242, 254, 0.18);
   --text: #ebf8ff;
-  --text-soft: #c3d6e8;
+  --text-soft: #d5e9f5;
   --primary: #00f2fe;
   --primary-strong: #4facfe;
   --danger: #ff5d8f;
   --success: #34d399;
-  --shadow: rgba(0, 0, 0, 0.42);
+  --warning: #fbbf24;
 }
 
 * { box-sizing: border-box; }
@@ -29,7 +29,6 @@ body {
 }
 
 button, input {
-  box-sizing: border-box;
   font: inherit;
 }
 
@@ -58,11 +57,22 @@ button {
 
 .speech-bubble,
 .command-bar {
+  position: relative;
   border: 1px solid var(--panel-border);
-  background: rgba(11, 17, 29, 0.82);
+  background: rgba(9, 17, 29, 0.82);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42), 0 0 18px rgba(0, 242, 254, 0.14);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+  overflow: hidden;
+}
+
+.speech-bubble::before,
+.command-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255,255,255,0.06), transparent 32%, transparent 68%, rgba(255,255,255,0.03));
+  pointer-events: none;
 }
 
 .speech-bubble {
@@ -84,39 +94,61 @@ button {
 }
 
 .speech-meta {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   margin-bottom: 6px;
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.7px;
-  color: var(--primary);
   text-transform: uppercase;
 }
 
-.speech-text {
-  overflow-wrap: anywhere;
-  color: var(--text-soft);
+.speech-brand {
+  color: var(--primary);
 }
 
-.status-label {
-  color: #fbbf24;
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: var(--warning);
 }
 
-.status-label.online {
+.status-pill.online {
   color: var(--success);
 }
 
-.status-label.offline {
+.status-pill.offline {
   color: var(--danger);
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.speech-text {
+  position: relative;
+  z-index: 1;
+  overflow-wrap: anywhere;
+  color: var(--text-soft);
 }
 
 .command-bar {
   position: absolute;
   right: 0;
-  bottom: 80px;
+  bottom: 84px;
   display: flex;
   gap: 8px;
   width: min(340px, calc(100vw - 24px));
@@ -135,6 +167,8 @@ button {
 }
 
 .command-input {
+  position: relative;
+  z-index: 1;
   flex: 1;
   min-width: 0;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -156,6 +190,8 @@ button {
 }
 
 .action-btn {
+  position: relative;
+  z-index: 1;
   min-width: 58px;
   display: inline-flex;
   align-items: center;

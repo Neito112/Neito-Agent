@@ -7,7 +7,7 @@ const BACKEND = "http://127.0.0.1:4242";
 
 function App() {
   const [isOpen, setIsOpen] = useState(false);
-  const [speech, setSpeech] = useState("Khởi động Neito Agent...");
+  const [speech, setSpeech] = useState("Neito Agent đang sẵn sàng.");
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -40,8 +40,8 @@ function App() {
     void checkServer().then((online) => {
       showSpeech(
         online
-          ? "Sếp ơi, Neito Agent đã sẵn sàng!"
-          : "Chưa kết nối được Brain Server. Hãy chạy start_app.bat trước khi dùng."
+          ? "Sếp ơi, Neito Agent đã sẵn sàng."
+          : "Brain Server chưa chạy. Hãy khởi động lại Neito bằng start_app.bat."
       );
     });
 
@@ -60,7 +60,7 @@ function App() {
 
     setIsSending(true);
     setInputValue("");
-    showSpeech("🤖 Đang phân tích chiến lược...");
+    showSpeech("Đang xử lý yêu cầu...");
 
     try {
       const response = await fetch(`${BACKEND}/api/ask`, {
@@ -70,17 +70,20 @@ function App() {
         signal: AbortSignal.timeout(60000),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-      const data = (await response.json()) as { answer?: string; reply?: string; message?: string };
-      const reply = data.answer ?? data.reply ?? data.message ?? "Neito đã ghi nhận yêu cầu của Sếp.";
+      const data = (await response.json()) as {
+        answer?: string;
+        reply?: string;
+        message?: string;
+      };
+
+      const reply = data.answer ?? data.reply ?? data.message ?? "Neito đã nhận yêu cầu.";
       setServerState("online");
       showSpeech(reply);
     } catch {
       setServerState("offline");
-      showSpeech("Không thể kết nối tới Brain Server. Kiểm tra logs/brain.log hoặc chạy lại app.");
+      showSpeech("Không thể kết nối tới Brain Server. Vui lòng kiểm tra lại backend.");
     } finally {
       setIsSending(false);
     }
@@ -93,8 +96,11 @@ function App() {
     <main className="companion-widget" data-tauri-drag-region>
       <section className={`speech-bubble ${isSpeaking ? "active" : ""}`} aria-live="polite">
         <div className="speech-meta">
-          <span>🤖 Neito Agent</span>
-          <span className={`status-label ${serverState}`}>{stateLabel}</span>
+          <span className="speech-brand">Neito Agent</span>
+          <span className={`status-pill ${serverState}`}>
+            <span className="status-dot" aria-hidden="true" />
+            {stateLabel}
+          </span>
         </div>
         <div className="speech-text">{speech}</div>
       </section>
