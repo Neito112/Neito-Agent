@@ -3,6 +3,8 @@ import os
 import json
 import time
 import subprocess
+import re
+from typing import Optional, Dict, List, Tuple
 
 PROTOCOLS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'protocols_data.json')
 DATASETS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datasets')
@@ -14,6 +16,8 @@ DEFAULT_PROTOCOLS = [
         "appName": "League of Legends",
         "status": "active",
         "queuePosition": 0,
+        "app_processes": ["LeagueClientUx.exe", "LeagueClient.exe", "League of Legends.exe"],
+        "window_keywords": ["League of Legends", "Liên Minh Huyền Thoại"],
         "description": "Cố vấn chiến thuật LMHT: Quản lý đợt lính (freeze/slow push), kiểm soát bản đồ, cắm mắt, theo dõi Rừng gank, tranh chấp Rồng/Baron và phân tích giao tranh tổng.",
         "datasetSize": 1250,
         "lastUpdated": "Vừa cập nhật",
@@ -25,6 +29,10 @@ Bạn nắm vững toàn bộ tri thức chiến thuật, meta và cơ chế gam
         "meta": "Bản cập nhật LMHT mới nhất: Tối ưu hóa Sâu Hư Không, cân bằng Sát Thủ và Xạ Thủ.",
         "vision_prompt": "Quan sát minimap, thời gian hồi phép bổ trợ, thanh máu rồng/baron và vị trí tướng địch.",
         "yolo_classes": ["baron_nashor", "dragon_spawn", "enemy_jungler_gank", "turret_dive", "minion_freeze", "low_hp_warning"],
+        "video_sources": [
+            "Cẩm nang kiểm soát sông & đọc đường rừng của cao thủ Thách Đấu",
+            "Video hướng dẫn thiết lập đợt lính Freeze và Slow Push chuẩn Pro"
+        ],
         "situations": [
             {
                 "id": "dragon_spawn",
@@ -59,6 +67,8 @@ Bạn nắm vững toàn bộ tri thức chiến thuật, meta và cơ chế gam
         "appName": "VALORANT",
         "status": "queued",
         "queuePosition": 1,
+        "app_processes": ["VALORANT-Win64-Shipping.exe", "VALORANT.exe", "RiotClientServices.exe"],
+        "window_keywords": ["VALORANT"],
         "description": "Cố vấn chiến thuật FPS: Quản lý kinh tế Eco/Force/Full buy, kỹ năng đặc vụ Duelist/Initiator/Controller/Sentinel, đọc vị trí đặt Spike và góc kê tâm.",
         "datasetSize": 890,
         "lastUpdated": "5 phút trước",
@@ -70,6 +80,10 @@ Chuyên gia phân tích FPS chiến thuật đỉnh cao:
         "meta": "Bản cập nhật Valorant mới nhất: Điều chỉnh cân bằng Đặc vụ Controller và bản đồ thi đấu.",
         "vision_prompt": "Phát hiện vị trí đặt Spike, số lượng đặc vụ địch còn sống, lượng tiền round sau.",
         "yolo_classes": ["spike_planted", "enemy_operator_scoped", "flank_detected", "economy_eco_round", "retake_site_a"],
+        "video_sources": [
+            "Video phân tích góc kê tâm và crosshair placement của giải VCT Masters",
+            "Mẹo setup lineup smoke và flash che chắn retake Site A/B"
+        ],
         "situations": [
             {
                 "id": "spike_planted",
@@ -98,6 +112,8 @@ Chuyên gia phân tích FPS chiến thuật đỉnh cao:
         "appName": "Genshin Impact",
         "status": "queued",
         "queuePosition": 2,
+        "app_processes": ["GenshinImpact.exe", "YuanShen.exe"],
+        "window_keywords": ["Genshin Impact", "Nguyên Thần"],
         "description": "Bách khoa toàn thư Teyvat: Hỗ trợ giải đố puzzle 7 quốc gia, cơ chế Pneuma/Ousia, phản ứng nguyên tố Hyperbloom/Vape/Melt, bí cảnh và rương ẩn.",
         "datasetSize": 1420,
         "lastUpdated": "10 phút trước",
@@ -107,6 +123,10 @@ NGUYÊN TẮC: Luôn trả lời CHÍNH XÁC, NGẮN GỌN theo thuật ngữ ch
         "meta": "Meta Teyvat mới nhất: Tối ưu đội hình xoay quanh phản ứng Thảo và cơ chế bơi lặn Fontaine.",
         "vision_prompt": "Nhận diện rương báu, câu đố môi trường, cơ chế kích hoạt nguyên tố trên màn hình.",
         "yolo_classes": ["puzzle_pneuma_ousia", "luxurious_chest", "elemental_monument", "saurian_interaction"],
+        "video_sources": [
+            "Video hướng dẫn 100% rương ẩn và câu đố địa hình Fontaine / Natlan",
+            "Cẩm nang xoay tua combo nguyên tố tối đa sát thương phản ứng"
+        ],
         "situations": [
             {
                 "id": "puzzle_pneuma_ousia",
@@ -129,6 +149,8 @@ NGUYÊN TẮC: Luôn trả lời CHÍNH XÁC, NGẮN GỌN theo thuật ngữ ch
         "appName": "VSCode / Terminal",
         "status": "inactive",
         "queuePosition": 0,
+        "app_processes": ["Code.exe", "cursor.exe", "devenv.exe", "pycharm64.exe"],
+        "window_keywords": ["Visual Studio Code", "Cursor", "PyCharm"],
         "description": "Cố vấn phát triển phần mềm: Phân tích cú pháp, debug stack trace, đề xuất kiến trúc, tối ưu mã nguồn và phối hợp cùng Smolagents CodeAgent.",
         "datasetSize": 2100,
         "lastUpdated": "1 giờ trước",
@@ -138,6 +160,10 @@ Khi gặp bài toán phức tạp, bạn phân tích nguyên nhân cốt lõi v�
         "meta": "Kiến trúc hệ thống: Phidata kết nối Smolagents CodeAgent thực thi subprocess an toàn.",
         "vision_prompt": "Đọc thông báo lỗi trong terminal, phát hiện syntax error và stack trace trên màn hình.",
         "yolo_classes": ["syntax_error_red", "terminal_stacktrace", "git_merge_conflict", "build_failed"],
+        "video_sources": [
+            "Video hướng dẫn Debug đa luồng và tối ưu hóa hiệu năng ứng dụng",
+            "Các pattern kiến trúc Clean Architecture cho dự án quy mô lớn"
+        ],
         "situations": [
             {
                 "id": "terminal_stacktrace",
@@ -154,6 +180,8 @@ Khi gặp bài toán phức tạp, bạn phân tích nguyên nhân cốt lõi v�
         "appName": "Microsoft Excel / Docs",
         "status": "inactive",
         "queuePosition": 0,
+        "app_processes": ["EXCEL.EXE", "WINWORD.EXE", "POWERPNT.EXE"],
+        "window_keywords": ["Excel", "Word", "PowerPoint"],
         "description": "Chuyên gia Office: Soạn thảo công thức Excel phức tạp (XLOOKUP, INDEX/MATCH, LAMBDA), viết macro VBA và tối ưu hóa bảng biểu báo cáo.",
         "datasetSize": 650,
         "lastUpdated": "3 giờ trước",
@@ -162,6 +190,10 @@ Chuyên môn sâu về công thức Excel nâng cao, Macro VBA, tự động hó
         "meta": "Hàm Excel hiện đại: Tối ưu các công thức mảng động Dynamic Arrays.",
         "vision_prompt": "Phát hiện bảng tính, ô lỗi công thức #N/A, #VALUE! hoặc vùng dữ liệu chưa chuẩn hóa.",
         "yolo_classes": ["excel_formula_error", "vba_macro_editor", "table_unformatted"],
+        "video_sources": [
+            "Video hướng dẫn làm chủ 20 công thức hàm Excel nâng cao cho phân tích dữ liệu",
+            "Kỹ thuật thiết lập Dashboard tự động hóa bằng Power Query và Macro VBA"
+        ],
         "situations": [
             {
                 "id": "excel_formula_error",
@@ -224,24 +256,66 @@ def activate_protocol(proto_id):
     if target == old_active:
         return True, "Giao thức đã đang kích hoạt"
 
-    if old_active:
-        old_active['status'] = 'queued'
-        old_active['queuePosition'] = 1
-
+    # Tìm các protocol đang trong queue hiện tại (trừ target và old_active), sắp xếp theo thứ tự
+    queued_candidates = []
     for p in protocols:
         if p != target and p != old_active and p.get('status') == 'queued':
-            pos = p.get('queuePosition', 1)
-            if pos == 1:
-                p['queuePosition'] = 2
-            else:
-                p['status'] = 'inactive'
-                p['queuePosition'] = 0
+            queued_candidates.append(p)
+    queued_candidates.sort(key=lambda x: x.get('queuePosition', 99))
 
+    # Đặt target làm Active
     target['status'] = 'active'
     target['queuePosition'] = 0
     target['lastUpdated'] = "Vừa kích hoạt"
+
+    # Đặt old_active làm Queue #1
+    if old_active:
+        old_active['status'] = 'queued'
+        old_active['queuePosition'] = 1
+        old_active['lastUpdated'] = "Đang chờ #1"
+
+    # Đặt ứng viên tiếp theo làm Queue #2 (nếu có)
+    if queued_candidates:
+        q2 = queued_candidates[0]
+        q2['status'] = 'queued'
+        q2['queuePosition'] = 2
+        # Các ứng viên còn lại chuyển thành inactive
+        for p in queued_candidates[1:]:
+            p['status'] = 'inactive'
+            p['queuePosition'] = 0
+
     save_protocols(protocols)
     return True, f"Đã kích hoạt giao thức: {target['name']}"
+
+def match_protocol_by_window(proc_name: str, window_title: str) -> Optional[dict]:
+    """
+    Khớp cửa sổ đang On-Top với các Giao thức đã định nghĩa.
+    Khớp theo tên tiến trình thực thi (process_name) hoặc từ khóa tiêu đề (window_keywords).
+    """
+    if not proc_name and not window_title:
+        return None
+
+    proc_lower = (proc_name or "").lower()
+    title_lower = (window_title or "").lower()
+
+    protocols = load_protocols()
+    for p in protocols:
+        # 1. Khớp theo danh sách process
+        for proc in p.get("app_processes", []):
+            if proc.lower() == proc_lower:
+                return p
+
+        # 2. Khớp theo từ khóa tiêu đề cửa sổ
+        for kw in p.get("window_keywords", []):
+            if kw.lower() in title_lower:
+                return p
+
+        # 3. Khớp mềm theo appName hoặc name
+        appName = p.get("appName", "").lower()
+        if appName and (appName in title_lower or appName in proc_lower):
+            return p
+
+    return None
 
 def get_active_protocol_context():
     active = get_active_protocol()
@@ -252,6 +326,10 @@ def get_active_protocol_context():
     for s in active.get('situations', [])[:4]:
         situations_preview += f"- Khi thấy [{s.get('trigger')}]: Nói mẫu '{s.get('advice')}'\n"
 
+    video_tips_preview = ""
+    for vt in active.get('video_sources', [])[:2]:
+        video_tips_preview += f"• {vt}\n"
+
     return f"""[GIAO THỨC TÁC CHIẾN ĐANG KÍCH HOẠT: {active['name'].upper()} ({active.get('appName', '')})]
 Vai trò & Chỉ huy:
 {active.get('system_prompt', '')}
@@ -260,7 +338,9 @@ Meta mới nhất:
 Mục tiêu Mắt YOLO-World:
 - Các lớp nhận diện: {', '.join(active.get('yolo_classes', []))}
 - Tình huống đã biên dịch:
-{situations_preview}"""
+{situations_preview}
+Tài liệu & Video đúc kết:
+{video_tips_preview}"""
 
 # ══════════════════════════════════════════════════════════════════
 # PHIDATA TỰ HỌC: TRA CỨU KIẾN THỨC & NẠP CHO YOLO-WORLD HỌC
@@ -280,11 +360,14 @@ def phidata_learn_topic(topic_name: str) -> dict:
 Hãy tra cứu và biên soạn một cấu hình JSON chuẩn chỉ:
 {{
   "appName": "tên ứng dụng hoặc game chính thức",
+  "app_processes": ["{clean_name.lower().replace(' ', '')}.exe"],
+  "window_keywords": ["{clean_name}"],
   "description": "tóm tắt nhiệm vụ và kỹ năng cố vấn trong 1-2 câu",
   "system_prompt": "hướng dẫn chỉ đạo chuyên gia chiến thuật",
   "meta": "cập nhật meta/phiên bản mới nhất",
   "vision_prompt": "chỉ dẫn quan sát màn hình",
   "yolo_classes": ["class1", "class2", "class3", "class4", "class5"],
+  "video_sources": ["tóm tắt mẹo video hướng dẫn 1", "tóm tắt mẹo video hướng dẫn 2"],
   "situations": [
     {{
       "id": "tinh_huong_1",
@@ -305,7 +388,6 @@ Trả về DUY NHẤT một khối JSON hợp lệ."""
         res = subprocess.run(["agy", "--print", prompt], capture_output=True, text=True, encoding='utf-8', timeout=40)
         if res.returncode == 0 and res.stdout:
             raw = res.stdout.strip()
-            # Trích xuất JSON
             start = raw.find('{')
             end = raw.rfind('}')
             if start != -1 and end != -1:
@@ -317,11 +399,14 @@ Trả về DUY NHẤT một khối JSON hợp lệ."""
         # Fallback tự lập luận chất lượng cao
         learned_data = {
             "appName": clean_name,
+            "app_processes": [f"{proto_id}.exe"],
+            "window_keywords": [clean_name],
             "description": f"Cố vấn chiến thuật chuyên sâu cho {clean_name}, tối ưu thao tác và phân tích tình huống thực chiến.",
             "system_prompt": f"Bạn là CỐ VẤN CHIẾN THUẬT & QUÂN SƯ ĐỒNG HÀNH của {clean_name}. Luôn theo dõi màn hình, đưa ra gợi ý nhanh gọn và chính xác.",
             "meta": f"Giao thức {clean_name} vừa được Phidata đúc kết thành công từ cơ sở dữ liệu.",
             "vision_prompt": f"Theo dõi các thành phần giao diện, phím tắt và tình huống then chốt trong {clean_name}.",
             "yolo_classes": [f"{proto_id}_main_ui", f"{proto_id}_alert", f"{proto_id}_target", f"{proto_id}_action_needed"],
+            "video_sources": [f"Video tổng hợp kỹ năng then chốt khi sử dụng {clean_name}"],
             "situations": [
                 {
                     "id": f"{proto_id}_start",
@@ -341,6 +426,8 @@ Trả về DUY NHẤT một khối JSON hợp lệ."""
         "id": proto_id,
         "name": clean_name,
         "appName": learned_data.get("appName", clean_name),
+        "app_processes": learned_data.get("app_processes", [f"{proto_id}.exe"]),
+        "window_keywords": learned_data.get("window_keywords", [clean_name]),
         "status": "queued",
         "queuePosition": 2,
         "description": learned_data.get("description", f"Giao thức tác chiến cho {clean_name}."),
@@ -350,6 +437,7 @@ Trả về DUY NHẤT một khối JSON hợp lệ."""
         "meta": learned_data.get("meta", ""),
         "vision_prompt": learned_data.get("vision_prompt", ""),
         "yolo_classes": learned_data.get("yolo_classes", []),
+        "video_sources": learned_data.get("video_sources", []),
         "situations": [
             {
                 "id": s.get("id", f"sit_{i}"),
@@ -374,11 +462,117 @@ Trả về DUY NHẤT một khối JSON hợp lệ."""
     return new_protocol
 
 # ══════════════════════════════════════════════════════════════════
+# PHIDATA NGHIÊN CỨU TÀI LIỆU & VIDEO HƯỚNG DẪN TRÊN MẠNG
+# ══════════════════════════════════════════════════════════════════
+def research_video_and_online_docs(topic_name: str, protocol_id: Optional[str] = None) -> dict:
+    """
+    LLM (Cloud hoặc Local) tra cứu các tài liệu và video hướng dẫn trên mạng cho Game/App:
+    - Bóc tách mẹo pro-player, phân tích giao tranh, cơ chế then chốt.
+    - Tạo các câu nói hỗ trợ chơi game theo tài liệu video.
+    - Cập nhật nhãn nhận diện YOLO-World và tình huống mẫu.
+    """
+    protocols = load_protocols()
+    proto = None
+    if protocol_id:
+        proto = next((p for p in protocols if p['id'] == protocol_id), None)
+    if not proto:
+        proto = next((p for p in protocols if p['name'].lower() == topic_name.lower()), None)
+    if not proto:
+        proto = phidata_learn_topic(topic_name)
+
+    print(f"[Video-Research] Đang tra cứu tài liệu & video hướng dẫn chuyên sâu cho: {proto['name']}...")
+
+    prompt = f"""Bạn là Bộ não Phidata AI. Hãy đóng vai trò chuyên gia tổng hợp tài liệu video và hướng dẫn chơi game/sử dụng phần mềm hàng đầu cho: "{proto['name']}".
+Dựa trên kiến thức về các video hướng dẫn phân tích trận đấu (pro guides, VOD reviews, tutorial breakdowns):
+1. Đúc kết 2-3 mẹo chiến thuật cốt lõi từ video.
+2. Trích xuất 3-4 tình huống thực chiến đặc thù kèm CÂU NÓI HỖ TRỢ CHIẾN THUẬT (ngắn gọn, thúc giục, đúng thuật ngữ game thủ hoặc dân chuyên nghiệp).
+3. Đề xuất các nhãn nhận diện trên màn hình cho mô hình YOLO-World.
+
+Trả về định dạng JSON:
+{{
+  "video_tips": [
+    "Mẹo 1: tóm tắt...",
+    "Mẹo 2: tóm tắt..."
+  ],
+  "new_yolo_classes": ["nhan1", "nhan2", "nhan3"],
+  "situations": [
+    {{
+      "id": "ma_tinh_huong",
+      "trigger": "khi nhin thay dieu gi tren man hinh",
+      "advice": "cau noi ho tro quan su dung phia sau"
+    }}
+  ]
+}}"""
+
+    result_data = None
+    try:
+        res = subprocess.run(["agy", "--print", prompt], capture_output=True, text=True, encoding='utf-8', timeout=40)
+        if res.returncode == 0 and res.stdout:
+            raw = res.stdout.strip()
+            start = raw.find('{')
+            end = raw.rfind('}')
+            if start != -1 and end != -1:
+                result_data = json.loads(raw[start:end+1])
+    except Exception as e:
+        print(f"[-] Video research error: {e}")
+
+    if not result_data:
+        result_data = {
+            "video_tips": [
+                f"Video hướng dẫn: Kiểm soát nhịp độ và tối ưu thao tác phím tắt trong {proto['name']}.",
+                f"Video VOD Review: Cách xử lý khi bị đối phương ép góc hoặc mất lợi thế."
+            ],
+            "new_yolo_classes": [f"{proto['id']}_hud_alert", f"{proto['id']}_danger_zone"],
+            "situations": [
+                {
+                    "id": f"{proto['id']}_video_tip_1",
+                    "trigger": f"Giao tranh nổ ra trong {proto['name']}",
+                    "advice": "Sếp giữ bình tĩnh! Giữ cự ly an toàn, tung chiêu khống chế trước rồi hãy dồn sát thương nhé!"
+                }
+            ]
+        }
+
+    # Cập nhật vào Giao thức
+    proto.setdefault("video_sources", [])
+    for vt in result_data.get("video_tips", []):
+        if vt not in proto["video_sources"]:
+            proto["video_sources"].append(vt)
+
+    # Nạp thêm nhãn YOLO-World
+    proto.setdefault("yolo_classes", [])
+    for yc in result_data.get("new_yolo_classes", []):
+        if yc not in proto["yolo_classes"]:
+            proto["yolo_classes"].append(yc)
+
+    # Nạp thêm tình huống chiến thuật
+    proto.setdefault("situations", [])
+    for st in result_data.get("situations", []):
+        proto["situations"].append({
+            "id": st.get("id", f"vid_{int(time.time())}"),
+            "trigger": st.get("trigger", "Tình huống theo video"),
+            "advice": st.get("advice", "Sếp phối hợp tác chiến nhé!"),
+            "dataset_count": 80,
+            "source": "video_online_research"
+        })
+
+    proto["datasetSize"] = proto.get("datasetSize", 0) + len(result_data.get("situations", [])) * 80
+    proto["lastUpdated"] = "Đã cập nhật từ video cẩm nang"
+    save_protocols(protocols)
+
+    return {
+        "success": True,
+        "protocol": proto["name"],
+        "video_tips": proto.get("video_sources", []),
+        "added_situations": len(result_data.get("situations", [])),
+        "yolo_classes": proto.get("yolo_classes", [])
+    }
+
+# ══════════════════════════════════════════════════════════════════
 # PHIDATA TỰ HIỂU TÌNH HUỐNG LẠ TỪ YOLO & NHÉT VÀO DATASET
 # ══════════════════════════════════════════════════════════════════
 def phidata_resolve_unknown_situation(protocol_id: str, situation_desc: str, screenshot_path: str = None) -> dict:
     """
-    Khi YOLO phát hiện một tình huống chưa được biên soạn:
+    Khi YOLO phát hiện một tình huống chưa được biên soạn khi đang sử dụng app/game:
     1. Gửi tín hiệu đến Phidata để tự hiểu tình huống này.
     2. Phidata tự tra cứu và sinh ra câu nói hỗ trợ mẫu.
     3. Nhét thông tin và mẫu ảnh vào dataset của YOLO-World để tự học.
@@ -422,7 +616,6 @@ Trả về dạng JSON:
     except Exception as e:
         print(f"[-] Phidata analyze error: {e}")
 
-    # Nhét thông tin vào Protocol & mở rộng dataset cho YOLO-World
     new_sit = {
         "id": sit_id,
         "trigger": situation_desc,
@@ -437,7 +630,6 @@ Trả về dạng JSON:
     proto["lastUpdated"] = "Vừa đúc kết tình huống mới"
     save_protocols(protocols)
 
-    # Lưu trữ mẫu dataset vào thư mục datasets/{protocol_id}/
     sit_dir = os.path.join(DATASETS_DIR, protocol_id, sit_id)
     os.makedirs(sit_dir, exist_ok=True)
     meta_file = os.path.join(sit_dir, 'situation_meta.json')

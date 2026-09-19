@@ -1,18 +1,26 @@
-import yolo_world_advisor
-import protocols_manager
+﻿# -*- coding: utf-8 -*-
 import json
 import os
 import sys
+import urllib.parse
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
 if sys.stdout.encoding != 'utf-8':
     sys.stdout.reconfigure(encoding='utf-8')
 if sys.stderr.encoding != 'utf-8':
     sys.stderr.reconfigure(encoding='utf-8')
 
-from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+import yolo_world_advisor
+import protocols_manager
 from neito_brain import orchestrator
 from memory import get_all_memories, add_memory, delete_memory
 from smolagents_hand import get_action_logs, ACTION_LOGS
+from foreground_watcher import (
+    start_foreground_watcher,
+    get_current_foreground,
+    get_latest_switch_event,
+    set_auto_switch
+)
 
 CHARACTERS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'neito-agent', 'ui', 'assets', 'characters')
 CURRENT_CHARACTER = 'panda'
@@ -61,7 +69,7 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_POST(self):
-        global CURRENT_CHARACTER
+        global CURRENT_CHARACTER, YOLO_ACTIVE
         content_length = int(self.headers.get('Content-Length', 0))
         body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else '{}'
         try:
@@ -90,7 +98,6 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
 
         elif self.path == '/api/yolo':
-            global YOLO_ACTIVE
             YOLO_ACTIVE = data.get('active', not YOLO_ACTIVE)
             if YOLO_ACTIVE:
                 yolo_world_advisor.start_advisor()
@@ -110,6 +117,16 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(json.dumps({'success': True, 'protocol': learned_proto}, ensure_ascii=False).encode('utf-8'))
+
+        elif self.path == '/api/protocol/research_video':
+            topic = data.get('topic') or data.get('name') or 'Liên Minh Huyền Thoại'
+            proto_id = data.get('protocol_id')
+            res = protocols_manager.research_video_and_online_docs(topic, proto_id)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True, 'result': res}, ensure_ascii=False).encode('utf-8'))
 
         elif self.path == '/api/protocol/situation/resolve':
             proto_id = data.get('protocol_id') or 'lol'
@@ -134,23 +151,21 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
             name = data.get('name', 'Giao thức mới')
             app_name = data.get('appName', '')
             desc = data.get('description', '')
-            ok, p = protocols_manager.create_protocol(name, app_name, desc)
+            ok, p = protocols_manager.phidata_learn_topic(name)
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            self.wfile.write(json.dumps({'success': ok, 'protocol': p}, ensure_ascii=False).encode('utf-8'))
+            self.wfile.write(json.dumps({'success': True, 'protocol': p}, ensure_ascii=False).encode('utf-8'))
 
-        elif self.path == '/api/advisor/latest':
-            evt = yolo_world_advisor.get_latest_event()
-            self.wfile.write(json.dumps({'event': evt}, ensure_ascii=False).encode('utf-8'))
-
-        elif self.path == '/api/protocols':
-            data = {
-                'protocols': protocols_manager.get_all_protocols(),
-                'active': protocols_manager.get_active_protocol()
-            }
-            self.wfile.write(json.dumps(data, ensure_ascii=False).encode('utf-8'))
+        elif self.path == '/api/foreground/toggle':
+            enabled = data.get('enabled', True)
+            new_val = set_auto_switch(enabled)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True, 'auto_switch': new_val}).encode('utf-8'))
 
         elif self.path == '/api/character':
             CURRENT_CHARACTER = data.get('character', CURRENT_CHARACTER)
@@ -189,7 +204,7 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
                 with open(soul_file, 'w', encoding='utf-8') as f:
                     f.write(content)
                 ok = True
-            except Exception as e:
+            except Exception:
                 ok = False
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
@@ -210,7 +225,7 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
     def do_GET(self):
-        global CURRENT_CHARACTER
+        global CURRENT_CHARACTER, YOLO_ACTIVE
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -220,60 +235,32 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
             status_info = {
                 'status': 'online',
                 'agent': 'Neito-Agent Tactical Companion',
-                'brain': 'Phidata Orchestrator',
+                'brain': 'Phidata Orchestrator (Cloud + Local)',
                 'hands': 'Smolagents CodeAgent',
                 'memory': 'Mem0 Persistent SQLite',
                 'current_character': CURRENT_CHARACTER,
                 'yolo_active': YOLO_ACTIVE,
-                'active_protocol': protocols_manager.get_active_protocol()
+                'active_protocol': protocols_manager.get_active_protocol(),
+                'foreground': get_current_foreground(),
+                'advisor_status': yolo_world_advisor.get_advisor_status()
             }
             self.wfile.write(json.dumps(status_info, ensure_ascii=False).encode('utf-8'))
 
         elif self.path == '/api/yolo':
             self.wfile.write(json.dumps({'active': YOLO_ACTIVE}).encode('utf-8'))
 
-        elif self.path == '/api/protocol/learn':
-            topic = data.get('topic') or data.get('name') or 'Dota 2'
-            learned_proto = protocols_manager.phidata_learn_topic(topic)
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps({'success': True, 'protocol': learned_proto}, ensure_ascii=False).encode('utf-8'))
-
-        elif self.path == '/api/protocol/situation/resolve':
-            proto_id = data.get('protocol_id') or 'lol'
-            sit_desc = data.get('situation') or 'Phát hiện mục tiêu lạ'
-            res = yolo_world_advisor.simulate_new_situation(proto_id, sit_desc)
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps({'success': True, 'result': res}, ensure_ascii=False).encode('utf-8'))
-
-        elif self.path == '/api/protocol/activate':
-            proto_id = data.get('id') or data.get('protocol')
-            ok, msg = protocols_manager.activate_protocol(proto_id)
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps({'success': ok, 'message': msg, 'active': protocols_manager.get_active_protocol()}, ensure_ascii=False).encode('utf-8'))
-
-        elif self.path == '/api/protocol/create':
-            name = data.get('name', 'Giao thức mới')
-            app_name = data.get('appName', '')
-            desc = data.get('description', '')
-            ok, p = protocols_manager.create_protocol(name, app_name, desc)
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps({'success': ok, 'protocol': p}, ensure_ascii=False).encode('utf-8'))
-
         elif self.path == '/api/advisor/latest':
             evt = yolo_world_advisor.get_latest_event()
             self.wfile.write(json.dumps({'event': evt}, ensure_ascii=False).encode('utf-8'))
+
+        elif self.path == '/api/vision/status':
+            st = yolo_world_advisor.get_advisor_status()
+            self.wfile.write(json.dumps(st, ensure_ascii=False).encode('utf-8'))
+
+        elif self.path == '/api/foreground':
+            fg = get_current_foreground()
+            evt = get_latest_switch_event()
+            self.wfile.write(json.dumps({'foreground': fg, 'latest_switch': evt}, ensure_ascii=False).encode('utf-8'))
 
         elif self.path == '/api/protocols':
             data = {
@@ -298,7 +285,6 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({'characters': chars, 'current': CURRENT_CHARACTER}, ensure_ascii=False).encode('utf-8'))
 
         elif self.path.startswith('/api/soul'):
-            import urllib.parse
             parsed = urllib.parse.urlparse(self.path)
             qs = urllib.parse.parse_qs(parsed.query)
             char_name = qs.get('char', [CURRENT_CHARACTER])[0]
@@ -319,12 +305,17 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
         pass
 
 def run_server():
+    # 1. Khởi chạy bộ giám sát cửa sổ tiền cảnh On-Top
+    start_foreground_watcher()
+
+    # 2. Khởi chạy HTTP Server
     server_address = ('127.0.0.1', 4242)
     httpd = ThreadingHTTPServer(server_address, BrainHTTPHandler)
-    print('=' * 60, flush=True)
-    print('  NEITO AGENT BRAIN SERVER (PHIDATA + SMOLAGENTS + MEM0)', flush=True)
+    print('=' * 65, flush=True)
+    print('  NEITO AGENT BRAIN SERVER (PHIDATA + SMOLAGENTS + YOLO-WORLD)', flush=True)
+    print('  Foreground On-Top Auto-Switch: ENABLED', flush=True)
     print('  Dang lang nghe tai: http://127.0.0.1:4242', flush=True)
-    print('=' * 60, flush=True)
+    print('=' * 65, flush=True)
     httpd.serve_forever()
 
 if __name__ == '__main__':

@@ -284,8 +284,29 @@
       <!-- ══ TAB PROTOCOLS: GIAO THỨC TÁC CHIẾN (1 ACTIVE, 2 QUEUED) ══ -->
       <div id="tab-protocols" class="tab-panel">
         <div class="panel-header">
-          <div class="panel-title">📚 Giao Thức Tác Chiến (Protocols)</div>
-          <div class="panel-desc">Mỗi ứng dụng / game sở hữu bộ tri thức và chiến thuật chuyên sâu riêng biệt (Cơ chế chuẩn: 1 Active, 2 Queued)</div>
+          <div class="panel-title">📚 Giao Thức Tác Chiến & Quân Sư YOLO-World</div>
+          <div class="panel-desc">Tự động kích hoạt Giao thức theo App/Game đang ON TOP (Cơ chế: 1 Active, 2 Queued)</div>
+        </div>
+
+        <!-- LIVE ON-TOP FOREGROUND APP TRACKER -->
+        <div class="card" style="border-color: rgba(168, 85, 247, 0.45); background: rgba(168, 85, 247, 0.07); padding: 12px 16px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 10px; height: 10px; border-radius: 50%; background: #a855f7; box-shadow: 0 0 10px #a855f7; animation: pulseDot 1s infinite alternate;"></div>
+              <div>
+                <div style="font-size: 10.5px; color: #c084fc; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">🖥️ Cửa Sổ Tiền Cảnh Đang Mở (ON-TOP):</div>
+                <div style="font-size: 13px; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                  <span id="ontop-proc-name">Đang quét tiến trình...</span>
+                  <span id="ontop-win-title" style="color: #94a3b8; font-size: 11px; font-weight: 400; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
+                  <span id="ontop-matched-badge" style="background: rgba(16,185,129,0.2); border: 1px solid #10b981; color: #10b981; font-size: 10px; padding: 1px 7px; border-radius: 999px; display: none;"></span>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 11px; color: #cbd5e1;">⚡ Tự động kích hoạt:</span>
+              <button id="btn-toggle-autoswitch" class="btn btn-sm btn-primary" onclick="toggleAutoSwitch()" style="font-size: 10.5px; padding: 4px 10px;">Đang BẬT</button>
+            </div>
+          </div>
         </div>
 
         <!-- Active Protocol Banner -->
@@ -390,12 +411,25 @@
           <div class="panel-desc">Cấu hình tính năng quét màn hình thời gian thực để hỗ trợ Sếp làm việc</div>
         </div>
 
-        <div class="card">
-          <div class="card-title"><span>Trạng thái Mắt YOLO</span></div>
-          <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0;">
+        <div class="card" style="border-color: rgba(16, 185, 129, 0.45); background: rgba(16, 185, 129, 0.05);">
+          <div class="card-title">
+            <span style="color: #10b981;">👁️ Động Cơ Thị Giác Kép: YOLO11n + YOLO-World</span>
+          </div>
+          <p class="panel-desc" style="margin-bottom: 12px;">Kết hợp hai tầng mô hình thị giác AI tối tân nhất:</p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px 12px; font-size: 11.5px;">
+              <div style="color: #38bdf8; font-weight: 700; margin-bottom: 4px;">⚡ TẦNG 1: YOLO11n</div>
+              <div style="color: #cbd5e1; font-size: 11px;">Quét màn hình siêu tốc (60FPS), bóc tách bounding-box, khung giao diện HUD, minimap và đối tượng di chuyển.</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px 12px; font-size: 11.5px;">
+              <div style="color: #10b981; font-weight: 700; margin-bottom: 4px;">🌐 TẦNG 2: YOLO-World</div>
+              <div style="color: #cbd5e1; font-size: 11px;">Nhận diện Open-Vocabulary Zero-Shot! Tự động nạp danh sách nhãn theo Giao thức đang On-Top mà không cần train lại.</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 6px;">
             <div>
-              <strong>Chế độ Screen Watch</strong>
-              <div class="panel-desc">Tự động quan sát cửa sổ ứng dụng đang mở (VSCode, CAD, Trình duyệt)</div>
+              <strong>Chế độ Screen Watch thời gian thực</strong>
+              <div class="panel-desc">Tự động quan sát cửa sổ ứng dụng đang mở (Game, VSCode, CAD, Trình duyệt)</div>
             </div>
             <button class="btn btn-primary" id="btn-toggle-yolo" onclick="toggleYolo()">Bật Quan Sát</button>
           </div>
@@ -816,6 +850,9 @@ async function loadYoloState() {
 // Tự động nạp khi khởi động
 
 // ─── QUẢN LÝ GIAO THỨC TÁC CHIẾN (PROTOCOLS & YOLO-WORLD) ───
+// ─── QUẢN LÝ GIAO THỨC TÁC CHIẾN (PROTOCOLS & YOLO-WORLD & VIDEO RESEARCH) ───
+let autoSwitchEnabled = true;
+
 async function loadProtocols() {
   try {
     const res = await fetch(BACKEND + '/api/protocols');
@@ -836,6 +873,15 @@ async function loadProtocols() {
           🏷️ ${c}
         </span>
       `).join('') || '<span style="color: #64748b; font-size: 11px;">Chưa có nhãn</span>';
+
+      // Render video tips
+      const videoTips = active.video_sources || [];
+      const videoBox = document.getElementById('active-proto-video-tips');
+      if (videoBox) {
+        videoBox.innerHTML = videoTips.map(v => `
+          <div style="color: #e2e8f0; font-size: 11px; margin-bottom: 3px;">• 📺 ${v}</div>
+        `).join('') || '<div style="color: #64748b; font-size: 11px;">Chưa có video cẩm nang. Bấm nút bên dưới để Phidata tự động tra cứu.</div>';
+      }
 
       // Render situations with military advisor advice
       const sitEl = document.getElementById('active-proto-situations');
@@ -864,12 +910,16 @@ async function loadProtocols() {
 
       let badgeHtml = '';
       if (isActive) {
-        badgeHtml = '<span style="background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid #10b981; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;">ACTIVE</span>';
+        badgeHtml = '<span style="background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid #10b981; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;">ACTIVE (ON-TOP)</span>';
       } else if (isQueued) {
         badgeHtml = `<span style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid #f59e0b; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;">QUEUE #${p.queuePosition || 1}</span>`;
       } else {
         badgeHtml = '<span style="background: rgba(255,255,255,0.06); color: #94a3b8; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px;">INACTIVE</span>';
       }
+
+      const procBadge = (p.app_processes && p.app_processes.length) 
+        ? `<span style="color: #a855f7; font-size: 10.5px; font-weight: 500;">🖥️ ${p.app_processes.join(', ')}</span>`
+        : '';
 
       item.innerHTML = `
         <div style="flex: 1;">
@@ -879,14 +929,16 @@ async function loadProtocols() {
             ${badgeHtml}
           </div>
           <div style="font-size: 11.5px; color: #94a3b8; line-height: 1.4; margin-bottom: 6px;">${p.description}</div>
-          <div style="display: flex; gap: 16px; font-size: 10.5px; color: #64748b;">
+          <div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 10.5px; color: #64748b; margin-bottom: 4px;">
+            ${procBadge}
             <span>🏷️ Nhãn YOLO: <strong>${(p.yolo_classes || []).length}</strong></span>
             <span>⚡ Tình huống: <strong>${(p.situations || []).length}</strong></span>
+            <span>🎥 Video: <strong>${(p.video_sources || []).length}</strong></span>
             <span>🗂️ Dataset: <strong>${p.datasetSize || 0}</strong> mẫu</span>
-            <span>🕒 Cập nhật: ${p.lastUpdated || 'Vừa xong'}</span>
           </div>
         </div>
-        <div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button class="btn btn-sm" onclick="researchVideo('${p.name}', '${p.id}')" title="Tra cứu video và cẩm nang trên mạng">🎥 Video Mạng</button>
           ${!isActive ? `<button class="btn btn-sm btn-primary" onclick="activateProtocol('${p.id}')">▶ Kích hoạt</button>` : `<button class="btn btn-sm" disabled style="opacity: 0.6;">✓ Đang dùng</button>`}
         </div>
       `;
@@ -894,6 +946,80 @@ async function loadProtocols() {
     });
   } catch(e) {
     showToast('Lỗi khi tải danh sách Giao thức tác chiến.');
+  }
+}
+
+// ─── THEO DÕI CỬA SỔ ON-TOP THỜI GIAN THỰC ───
+let lastActiveProtoId = null;
+async function pollForeground() {
+  try {
+    const res = await fetch(BACKEND + '/api/foreground');
+    if (!res.ok) return;
+    const data = await res.json();
+    const fg = data.foreground;
+    if (fg) {
+      const procEl = document.getElementById('ontop-proc-name');
+      const titleEl = document.getElementById('ontop-win-title');
+      const badgeEl = document.getElementById('ontop-matched-badge');
+
+      if (procEl) {
+        procEl.textContent = fg.process_name ? `⚡ ${fg.process_name}` : 'Đang ở Desktop';
+      }
+      if (titleEl) {
+        titleEl.textContent = fg.title ? `("${fg.title.substring(0, 45)}")` : '';
+      }
+      if (badgeEl) {
+        if (fg.matched_protocol) {
+          badgeEl.style.display = 'inline-block';
+          badgeEl.textContent = `Khớp Giao thức: ${fg.matched_protocol}`;
+        } else {
+          badgeEl.style.display = 'none';
+        }
+      }
+    }
+
+    // Nếu có sự kiện chuyển đổi giao thức mới
+    if (data.latest_switch && data.latest_switch.protocol_id !== lastActiveProtoId) {
+      lastActiveProtoId = data.latest_switch.protocol_id;
+      loadProtocols();
+    }
+  } catch(e) {}
+}
+
+async function toggleAutoSwitch() {
+  autoSwitchEnabled = !autoSwitchEnabled;
+  const btn = document.getElementById('btn-toggle-autoswitch');
+  if (btn) {
+    btn.textContent = autoSwitchEnabled ? 'Đang BẬT' : 'Đã TẮT';
+    btn.className = autoSwitchEnabled ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-danger';
+  }
+  try {
+    await fetch(BACKEND + '/api/foreground/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: autoSwitchEnabled })
+    });
+    showToast(autoSwitchEnabled ? 'Đã BẬT tự động kích hoạt Giao thức theo App On-Top!' : 'Đã TẮT tự động kích hoạt theo App On-Top.');
+  } catch(e) {}
+}
+
+async function researchVideo(topic, protoId) {
+  showToast(`Phidata đang tra cứu video & cẩm nang mạng cho: ${topic}...`);
+  try {
+    const res = await fetch(BACKEND + '/api/protocol/research_video', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic, protocol_id: protoId })
+    });
+    if (res.ok) {
+      const d = await res.json();
+      showToast(`Đã đúc kết cẩm nang video & nạp nhãn YOLO cho: ${topic}!`);
+      loadProtocols();
+    } else {
+      showToast('Lỗi khi tra cứu cẩm nang video.');
+    }
+  } catch(e) {
+    showToast('Lỗi kết nối máy chủ.');
   }
 }
 
