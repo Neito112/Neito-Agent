@@ -22,7 +22,7 @@
     ],
     "description": "Trợ lý máy tính thông minh: Lắng nghe mệnh lệnh, hỗ trợ giải đáp thắc mắc, ghi nhớ thói quen và đồng hành cùng Sếp.",
     "datasetSize": 3500,
-    "lastUpdated": "Vừa kích hoạt",
+    "lastUpdated": "Đang chờ #1",
     "system_prompt": "Bạn là Neito - Trợ lý Tác chiến & Bạn đồng hành thông minh trên Desktop.\nBạn luôn sẵn sàng giải đáp thắc mắc, trò chuyện, hướng dẫn thực thi công việc và đồng hành cùng Sếp chu đáo nhất.\nPhong cách: Tận tụy, ngắn gọn, xưng hô Sếp - Em, luôn tạo cảm giác tin cậy và ấm áp.",
     "meta": "Hệ thống hỗ trợ toàn năng đa nhiệm.",
     "vision_prompt": "Quan sát màn hình desktop, nhận diện nhu cầu làm việc và hỗ trợ Sếp.",
@@ -47,8 +47,8 @@
     "name": "Liên Minh Huyền Thoại",
     "appName": "League of Legends",
     "category": "game",
-    "status": "queued",
-    "queuePosition": 2,
+    "status": "inactive",
+    "queuePosition": 0,
     "app_processes": [
       "LeagueClientUx.exe",
       "LeagueClient.exe",
@@ -295,8 +295,8 @@
     "name": "Tâm Lý Học & Giao Tiếp Khéo Léo",
     "appName": "Chủ Đề: Tâm Lý & Ứng Xử",
     "category": "topic",
-    "status": "queued",
-    "queuePosition": 1,
+    "status": "inactive",
+    "queuePosition": 0,
     "app_processes": [],
     "window_keywords": [
       "Tâm lý",
@@ -458,6 +458,69 @@
         "trigger": "Áp lực dồn dập",
         "advice": "Sếp ơi, dừng lại 10 giây cùng em nào: Hít sâu 4 giây... Giữ hơi 4 giây... Thở ra từ từ... Thấy nhẹ nhõm hơn chưa ạ? 🍃",
         "dataset_count": 820
+      }
+    ],
+    "unlearned_situations": []
+  },
+  {
+    "id": "windowsterminal",
+    "name": "Windowsterminal",
+    "appName": "Windows Terminal",
+    "app_processes": [
+      "WindowsTerminal.exe",
+      "wt.exe"
+    ],
+    "window_keywords": [
+      "Windows Terminal",
+      "Terminal",
+      "PowerShell",
+      "Command Prompt",
+      "WSL",
+      "Windowsterminal"
+    ],
+    "status": "inactive",
+    "queuePosition": 0,
+    "description": "Cố vấn tác chiến dòng lệnh trên Windows Terminal, tối ưu hóa phân chia cửa sổ, phát hiện lỗi cú pháp và cảnh báo các thao tác nguy hiểm.",
+    "datasetSize": 150,
+    "lastUpdated": "Vừa kích hoạt",
+    "system_prompt": "Bạn là Cố vấn tác chiến CLI thông minh của Bộ não Phidata AI. Nhiệm vụ của bạn là giám sát màn hình Windows Terminal, nhận diện shell đang hoạt động (PowerShell, CMD, WSL/Linux), cảnh báo ngay khi phát hiện lệnh phá hủy dữ liệu, đề xuất cờ lệnh tối ưu và hỗ trợ điều hướng đa màn hình (panes/tabs) tức thì cho Sếp.",
+    "meta": "Windows Terminal v1.19+ / v1.20 Preview, tích hợp PowerShell 7, WSL2, Git Bash, hỗ trợ Quake Mode (Win + `) và Command Palette (Ctrl + Shift + P)",
+    "vision_prompt": "Quan sát vùng hiển thị của Windows Terminal: phát hiện thanh tab, phân chia khung (split panes), dấu nhắc lệnh (prompt), khối văn bản báo lỗi màu đỏ, tiến trình đang build/chạy và trạng thái con trỏ.",
+    "yolo_classes": [
+      "terminal_tab",
+      "command_prompt",
+      "error_output",
+      "active_cursor",
+      "split_pane"
+    ],
+    "video_sources": [
+      "Kỹ thuật đa nhiệm Terminal: Dùng Alt+Shift+D để tự động chia pane, Alt+Phím mũi tên để chuyển khung, và Ctrl+Shift+W để đóng nhanh pane hiện tại.",
+      "Bí kíp cứu hộ CLI: Bật Quake Mode bằng Win+` để mở nhanh terminal nổi từ bất kỳ ứng dụng nào và cấu hình phím tắt Command Palette để tăng 200% hiệu suất."
+    ],
+    "situations": [
+      {
+        "id": "command_syntax_error",
+        "trigger": "Xuất hiện khối thông báo lỗi chữ đỏ, ngoại lệ PowerShell hoặc 'command not found'",
+        "advice": "Sếp ơi, lệnh vừa chạy gặp lỗi cú pháp hoặc thiếu package; Sếp kiểm tra lại biến môi trường hoặc chạy với quyền Admin nhé!",
+        "dataset_count": 50
+      },
+      {
+        "id": "dangerous_command_warning",
+        "trigger": "Người dùng vừa nhập các lệnh có tính hủy diệt như rm -rf, Remove-Item -Recurse, format, diskpart hoặc DROP DATABASE nhưng chưa nhấn Enter",
+        "advice": "Cảnh báo nguy hiểm Sếp ơi! Lệnh này có thể xóa sạch dữ liệu hệ thống, Sếp kiểm tra kỹ đường dẫn đích trước khi bấm Enter nhé!",
+        "dataset_count": 50
+      },
+      {
+        "id": "process_hanging_detected",
+        "trigger": "Dòng lệnh chạy kéo dài không xuất ra log mới, không trả lại dấu nhắc lệnh sau thời gian dài",
+        "advice": "Tiến trình có vẻ đang bị nghẽn hoặc chờ tương tác ẩn, Sếp nhấn Ctrl + C để hủy lệnh hoặc mở pane mới (Alt + Shift + D) để kiểm tra log nhé!",
+        "dataset_count": 50
+      },
+      {
+        "id": "multitask_split_screen",
+        "trigger": "Người dùng mở nhiều tab cùng lúc để theo dõi log và gõ lệnh",
+        "advice": "Sếp muốn quan sát song song thì bấm Alt + Shift + Plus (+) hoặc Alt + Shift + Minus (-) để chia đôi màn hình tiện theo dõi hơn nhé!",
+        "dataset_count": 50
       }
     ],
     "unlearned_situations": []

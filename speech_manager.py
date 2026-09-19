@@ -92,13 +92,13 @@ def normalize_for_vietnamese_speech(raw: str) -> str:
 # ─── 3. SINH AUDIO TTS TIẾNG VIỆT TRỰC TIẾP (GOOGLE TTS) ────────────────────
 _tts_cache: Dict[str, bytes] = {}
 
-def generate_tts_bytes(text: str) -> Optional[bytes]:
+def generate_tts_bytes(text: str, voice: Optional[str] = None) -> Optional[bytes]:
     """Sinh bytes âm thanh MP3 từ Google TTS chuẩn tiếng Việt (0 token)."""
     clean = normalize_for_vietnamese_speech(text)
     if not clean:
         return None
     
-    cache_key = norm_said(clean)
+    cache_key = f"{voice or 'default'}_{norm_said(clean)}"
     if cache_key in _tts_cache:
         return _tts_cache[cache_key]
     

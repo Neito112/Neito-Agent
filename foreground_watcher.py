@@ -29,6 +29,7 @@ IGNORED_PROCESSES = {
     "cmd.exe", "powershell.exe", "taskmgr.exe", "applicationframehost.exe",
     "shellexperiencehost.exe", "textinputhost.exe", "antigravity.exe",
     "conhost.exe", "runtimebroker.exe", "lively.exe", "neito-agent.exe",
+    "msedgewebview2.exe", "webview2.exe",
     "python.exe", "pythonw.exe", "lockapp.exe", "startmenuexperiencehost.exe",
     "ctfmon.exe", "dwm.exe"
 }

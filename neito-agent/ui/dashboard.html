@@ -217,6 +217,63 @@
   ::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.65); }
   ::-webkit-scrollbar-corner { background: transparent; }
   * { scrollbar-width: thin; scrollbar-color: rgba(56,189,248,0.35) rgba(255,255,255,0.03); }
+
+  /* Protocol Accordion - Compact Single-Line */
+  .proto-accordion-item {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    margin-bottom: 6px;
+  }
+  .proto-accordion-item:hover {
+    border-color: rgba(56, 189, 248, 0.35);
+  }
+  .proto-accordion-item.active-proto {
+    border: 1.5px solid #10b981;
+    background: rgba(16, 185, 129, 0.05);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+  }
+  .proto-accordion-item.queued-proto {
+    border: 1.5px solid #f59e0b;
+    background: rgba(245, 158, 11, 0.05);
+  }
+  .proto-accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 14px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+    gap: 12px;
+  }
+  .proto-accordion-header:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .proto-accordion-chevron {
+    transition: transform 0.2s ease;
+    font-size: 11px;
+    color: var(--text-muted);
+    display: inline-block;
+    padding: 2px 4px;
+  }
+  .proto-accordion-item.open .proto-accordion-chevron {
+    transform: rotate(180deg);
+    color: var(--accent);
+  }
+  .proto-accordion-body {
+    display: none;
+    padding: 12px 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.22);
+    font-size: 12px;
+  }
+  .proto-accordion-item.open .proto-accordion-body {
+    display: block;
+    animation: fadeIn 0.18s ease;
+  }
 </style>
 </head>
 <body>
@@ -279,13 +336,28 @@
           <div id="chars-grid" class="chars-grid"></div>
         </div>
 
-        <div class="card">
+        <div class="card" id="char-edit-card">
           <div class="card-title">
-            <span>✏️ Chỉnh sửa Linh hồn (soul.md) - <span id="soul-char-title">default</span></span>
-            <button class="btn btn-primary" onclick="saveSoul()">💾 Lưu Linh Hồn</button>
+            <span>⚙️ Cấu Hình Nhân Vật: <strong id="char-edit-title" style="color: var(--accent);">Hiyori</strong></span>
+            <button class="btn btn-primary" onclick="saveCurrentCharacterDetails()">💾 Lưu Thay Đổi Nhân Vật</button>
           </div>
-          <p class="panel-desc" style="margin-bottom: 8px;">Định hình phong cách giao tiếp, thói quen xưng hô và kỹ năng chuyên biệt cho nhân vật.</p>
-          <textarea id="soul-editor" class="textarea" rows="10"></textarea>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+            <div>
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tên hiển thị trên màn hình:</label>
+              <input id="char-edit-display-name" class="input" placeholder="VD: Hiyori Momose, Bé Mèo, Quân Sư Neito...">
+            </div>
+            <div>
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Giọng nói gán cho nhân vật:</label>
+              <div style="display: flex; gap: 6px;">
+                <select id="char-edit-voice-select" class="input" style="flex: 1; background: rgba(15,23,42,0.9);"></select>
+                <button class="btn" onclick="testCharVoice()" title="Nghe thử giọng này" style="white-space: nowrap;">▶ Test</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Linh hồn & Phong cách giao tiếp (soul.md):</label>
+            <textarea id="soul-editor" class="textarea" rows="8"></textarea>
+          </div>
         </div>
       </div>
 
@@ -405,119 +477,136 @@
           <div id="provider-test-result" style="display: none; margin-top: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 10px; font-size: 12px;"></div>
         </div>
 
-        <!-- Provider Grid -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-          
-          <!-- 1. Google Antigravity (AGY CLI) -->
-          <div class="card" style="border-color: rgba(56, 189, 248, 0.4); margin-bottom: 0;">
-            <div class="card-title">
-              <span style="color: #38bdf8; display: flex; align-items: center; gap: 6px;">
-                <span>🚀 Google Antigravity (AGY CLI)</span>
-                <span style="background: rgba(56,189,248,0.2); color: #38bdf8; font-size: 9px; padding: 1px 6px; border-radius: 999px;">KHUYÊN DÙNG</span>
-              </span>
-              <button class="btn btn-sm" onclick="scanAgyModels()">↻ Quét Model</button>
-            </div>
-            <p class="panel-desc" style="margin-bottom: 10px;">Trích xuất mô hình trực tiếp từ CLI Google Antigravity đang chạy trên máy. 0 token setup, tốc độ siêu tốc.</p>
-            <div style="margin-bottom: 12px;">
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Chọn mô hình AGY:</label>
-              <select id="agy-model-select" class="input" style="background: rgba(15,23,42,0.9);"></select>
-            </div>
-            <button class="btn btn-primary" onclick="applyAgyModel()" style="width: 100%;">✓ Áp Dụng AGY Cho Phidata & Smolagents</button>
+        <!-- Provider Single Select & Dynamic Form (Chuẩn Ni-Oh Architecture) -->
+        <div class="card">
+          <div class="card-title"><span>⚙️ Cấu Hình Nhà Cung Cấp Model</span></div>
+          <div style="margin-bottom: 14px;">
+            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 6px;">Nhà cung cấp (Phidata & Smolagents dùng chung):</label>
+            <select id="setting-model-provider" class="input" style="font-size: 13px; font-weight: 600; padding: 8px 12px; background: rgba(15,23,42,0.95); border: 1.5px solid var(--accent); width: 100%;" onchange="onProviderSelectChange(this.value)">
+              <option value="agy">🚀 Google Antigravity CLI (Mặc định - Gemini 3.8 / Claude 3.7 / GPT)</option>
+              <option value="ollama">💻 Ollama Local (Offline - Quét trực tiếp trên máy)</option>
+              <option value="openrouter">🌐 OpenRouter (DeepSeek R1, Claude, Llama 3, ...)</option>
+              <option value="nous">🏛️ Nous Portal (Hermes 3, DeepSeek)</option>
+              <option value="gemini">✨ Google Gemini API Key (Miễn phí)</option>
+              <option value="custom">⚙️ Chuẩn Endpoint Thủ Công (OpenAI-compatible)</option>
+            </select>
           </div>
 
-          <!-- 2. Ollama (Local Machine) -->
-          <div class="card" style="border-color: rgba(16, 185, 129, 0.4); margin-bottom: 0;">
-            <div class="card-title">
-              <span style="color: #10b981; display: flex; align-items: center; gap: 6px;">
-                <span>💻 Ollama (Local Machine)</span>
-                <span id="ollama-status-badge" style="background: rgba(16,185,129,0.2); color: #10b981; font-size: 9px; padding: 1px 6px; border-radius: 999px;">LOCAL</span>
-              </span>
-              <button class="btn btn-sm" onclick="scanOllamaModels()">🔍 Quét Máy</button>
-            </div>
-            <p class="panel-desc" style="margin-bottom: 10px;">Chạy hoàn toàn offline trên máy cá nhân. Tự động nhận diện model đã tải trong Ollama.</p>
-            <div style="margin-bottom: 8px;">
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Địa chỉ Ollama Endpoint:</label>
-              <input id="ollama-endpoint-input" class="input" value="http://localhost:11434">
-            </div>
-            <div style="margin-bottom: 12px;">
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô hình Local phát hiện:</label>
-              <select id="ollama-model-select" class="input" style="background: rgba(15,23,42,0.9);">
-                <option value="">(Bấm 'Quét Máy' để tìm model)...</option>
-              </select>
-            </div>
-            <button class="btn btn-primary" onclick="applyOllamaModel()" style="width: 100%;">✓ Áp Dụng Ollama Local</button>
-          </div>
-
-          <!-- 3. OpenRouter -->
-          <div class="card" style="margin-bottom: 0;">
-            <div class="card-title"><span style="color: #c084fc;">🌐 OpenRouter</span></div>
-            <p class="panel-desc" style="margin-bottom: 10px;">Cổng kết nối hàng trăm mô hình mã nguồn mở (Claude 3.5, DeepSeek R1, Llama 3.3, v.v.).</p>
-            <div style="margin-bottom: 8px;">
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">OpenRouter API Key:</label>
-              <input id="openrouter-key-input" type="password" class="input" placeholder="sk-or-v1-...">
-            </div>
-            <div style="margin-bottom: 12px;">
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô hình:</label>
-              <input id="openrouter-model-input" class="input" value="google/gemini-2.0-flash-001" placeholder="vd: deepseek/deepseek-chat">
-            </div>
-            <button class="btn btn-primary" onclick="applyOpenRouterModel()" style="width: 100%;">✓ Lưu & Áp Dụng OpenRouter</button>
-          </div>
-
-          <!-- 4. Nous Portal -->
-          <div class="card" style="margin-bottom: 0;">
-            <div class="card-title"><span style="color: #f59e0b;">🏛️ Nous Portal</span></div>
-            <p class="panel-desc" style="margin-bottom: 10px;">Nền tảng Nous Research chuyên biệt với dòng mô hình Hermes lý luận mạnh mẽ.</p>
-            <div style="margin-bottom: 8px;">
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Nous Portal API Key:</label>
-              <input id="nous-key-input" type="password" class="input" placeholder="API Key...">
-            </div>
-            <div style="margin-bottom: 12px;">
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô hình Hermes:</label>
-              <input id="nous-model-input" class="input" value="Hermes-3-Llama-3.1-8B">
-            </div>
-            <button class="btn btn-primary" onclick="applyNousModel()" style="width: 100%;">✓ Lưu & Áp Dụng Nous Portal</button>
-          </div>
-
-          <!-- 5. Google Gemini API Key -->
-          <div class="card" style="margin-bottom: 0;">
-            <div class="card-title"><span style="color: #38bdf8;">🔑 Google Gemini API Key</span></div>
-            <p class="panel-desc" style="margin-bottom: 10px;">Sử dụng API Key cá nhân từ Google AI Studio (Gemini 2.0 Flash, 1.5 Pro).</p>
-            <div style="margin-bottom: 8px;">
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Google Gemini API Key:</label>
-              <input id="gemini-key-input" type="password" class="input" placeholder="AIzaSy...">
-            </div>
-            <div style="margin-bottom: 12px;">
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Chọn model:</label>
-              <select id="gemini-model-select" class="input" style="background: rgba(15,23,42,0.9);">
-                <option value="gemini-2.0-flash">Gemini 2.0 Flash (Khuyên dùng, siêu nhanh)</option>
-                <option value="gemini-1.5-pro">Gemini 1.5 Pro (Lý luận sâu)</option>
-                <option value="gemini-1.5-flash">Gemini 1.5 Flash (Tiết kiệm)</option>
-              </select>
-            </div>
-            <button class="btn btn-primary" onclick="applyGeminiModel()" style="width: 100%;">✓ Lưu & Áp Dụng Gemini API</button>
-          </div>
-
-          <!-- 6. Chuẩn Endpoint Thủ Công -->
-          <div class="card" style="margin-bottom: 0;">
-            <div class="card-title"><span style="color: #94a3b8;">⚙️ Chuẩn Endpoint Thủ Công (OpenAI-compatible)</span></div>
-            <p class="panel-desc" style="margin-bottom: 10px;">Tương thích vLLM, LM Studio, Text-Gen-WebUI hoặc bất kỳ server chuẩn OpenAI nào.</p>
-            <div style="margin-bottom: 8px;">
-              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Base URL Endpoint:</label>
-              <input id="custom-endpoint-input" class="input" value="http://localhost:8000/v1" placeholder="http://localhost:8000/v1">
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-              <div>
-                <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">API Key (nếu có):</label>
-                <input id="custom-key-input" type="password" class="input" placeholder="Không bắt buộc">
-              </div>
-              <div>
-                <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tên Model:</label>
-                <input id="custom-model-input" class="input" value="default-model" placeholder="vd: my-model">
+          <!-- SUB-FORM: AGY -->
+          <div id="subform-agy" class="provider-subform">
+            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 14px; border: 1px solid rgba(56,189,248,0.3); margin-bottom: 12px;">
+              <p class="panel-desc" style="margin-bottom: 10px;">Trích xuất mô hình trực tiếp từ CLI Google Antigravity. Dùng chung 100% giữa Phidata (Bộ não phân tích) và Smolagents (Đôi tay thực thi). 0 token setup, tốc độ cao nhất.</p>
+              <div style="display: flex; gap: 8px; align-items: flex-end;">
+                <div style="flex: 1;">
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Chọn mô hình AGY:</label>
+                  <select id="agy-model-select" class="input" style="background: rgba(15,23,42,0.9); width: 100%;"></select>
+                </div>
+                <button class="btn btn-sm" onclick="scanAgyModels()">↻ Quét Model</button>
               </div>
             </div>
-            <button class="btn btn-primary" onclick="applyCustomModel()" style="width: 100%;">✓ Lưu & Áp Dụng Custom Endpoint</button>
           </div>
 
+          <!-- SUB-FORM: OLLAMA -->
+          <div id="subform-ollama" class="provider-subform" style="display: none;">
+            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 14px; border: 1px solid rgba(16,185,129,0.3); margin-bottom: 12px;">
+              <p class="panel-desc" style="margin-bottom: 10px;">Chạy hoàn toàn offline trên máy cá nhân. Tự động nhận diện model đã tải trong Ollama.</p>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+                <div>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Địa chỉ Ollama Endpoint:</label>
+                  <input id="ollama-endpoint-input" class="input" value="http://localhost:11434" style="width: 100%;">
+                </div>
+                <div>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô hình Local phát hiện:</label>
+                  <div style="display: flex; gap: 6px;">
+                    <select id="ollama-model-select" class="input" style="flex: 1; background: rgba(15,23,42,0.9);">
+                      <option value="">(Bấm 'Quét Máy' để tìm model)...</option>
+                    </select>
+                    <button class="btn btn-sm" onclick="scanOllamaModels()">🔍 Quét Máy</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-FORM: OPENROUTER -->
+          <div id="subform-openrouter" class="provider-subform" style="display: none;">
+            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 14px; border: 1px solid rgba(192,132,252,0.3); margin-bottom: 12px;">
+              <p class="panel-desc" style="margin-bottom: 10px;">Cổng kết nối hàng trăm mô hình mã nguồn mở (Claude 3.5, DeepSeek R1, Llama 3.3, v.v.).</p>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">OpenRouter API Key:</label>
+                  <input id="openrouter-key-input" type="password" class="input" placeholder="sk-or-v1-..." style="width: 100%;">
+                </div>
+                <div>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô hình:</label>
+                  <input id="openrouter-model-input" class="input" value="google/gemini-2.0-flash-001" placeholder="vd: deepseek/deepseek-chat" style="width: 100%;">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-FORM: NOUS -->
+          <div id="subform-nous" class="provider-subform" style="display: none;">
+            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 14px; border: 1px solid rgba(245,158,11,0.3); margin-bottom: 12px;">
+              <p class="panel-desc" style="margin-bottom: 10px;">Nền tảng Nous Research chuyên biệt với dòng mô hình Hermes lý luận mạnh mẽ.</p>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Nous Portal API Key:</label>
+                  <input id="nous-key-input" type="password" class="input" placeholder="API Key..." style="width: 100%;">
+                </div>
+                <div>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô hình Hermes:</label>
+                  <input id="nous-model-input" class="input" value="Hermes-3-Llama-3.1-8B" style="width: 100%;">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-FORM: GEMINI -->
+          <div id="subform-gemini" class="provider-subform" style="display: none;">
+            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 14px; border: 1px solid rgba(56,189,248,0.3); margin-bottom: 12px;">
+              <p class="panel-desc" style="margin-bottom: 10px;">Sử dụng API Key cá nhân từ Google AI Studio (Gemini 2.0 Flash, 1.5 Pro).</p>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Google Gemini API Key:</label>
+                  <input id="gemini-key-input" type="password" class="input" placeholder="AIzaSy..." style="width: 100%;">
+                </div>
+                <div>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Chọn model:</label>
+                  <select id="gemini-model-select" class="input" style="background: rgba(15,23,42,0.9); width: 100%;">
+                    <option value="gemini-2.0-flash">Gemini 2.0 Flash (Khuyên dùng, siêu nhanh)</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro (Lý luận sâu)</option>
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash (Tiết kiệm)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-FORM: CUSTOM -->
+          <div id="subform-custom" class="provider-subform" style="display: none;">
+            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 14px; border: 1px solid rgba(148,163,184,0.3); margin-bottom: 12px;">
+              <p class="panel-desc" style="margin-bottom: 10px;">Tương thích vLLM, LM Studio, Text-Gen-WebUI hoặc bất kỳ server chuẩn OpenAI nào.</p>
+              <div style="margin-bottom: 10px;">
+                <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Base URL Endpoint:</label>
+                <input id="custom-endpoint-input" class="input" value="http://localhost:8000/v1" placeholder="http://localhost:8000/v1" style="width: 100%;">
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">API Key (nếu có):</label>
+                  <input id="custom-key-input" type="password" class="input" placeholder="Không bắt buộc" style="width: 100%;">
+                </div>
+                <div>
+                  <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tên Model:</label>
+                  <input id="custom-model-input" class="input" value="default-model" placeholder="vd: my-model" style="width: 100%;">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px;">
+            <button class="btn btn-primary" onclick="applySelectedProvider()" style="font-weight: 600; padding: 8px 20px;">💾 Lưu Cấu Hình & Áp Dụng Cho Cả Phidata & Smolagents</button>
+          </div>
         </div>
       </div>
 
@@ -608,47 +697,73 @@
         </div>
       </div>
 
-      <!-- ══ TAB 4: GIỌNG NÓI AI ══ -->
+      <!-- ══ TAB 4: GIỌNG NÓI AI (CHUẨN 2 DÒNG NI-OH) ══ -->
       <div id="tab-voice" class="tab-panel">
         <div class="panel-header">
-          <div class="panel-title">🎙️ Giọng Nói & Tạo Giọng AI</div>
-          <div class="panel-desc">Cấu hình TTS, tạo giọng nói mới từ mô tả hoặc tải lên file âm thanh mẫu</div>
+          <div class="panel-title">🎙️ Giọng Nói & Đúc Giọng AI</div>
+          <div class="panel-desc">Hai hàng tinh gọn: Chọn giọng đang dùng & Nghe thử đồng bộ Pet — Đúc giọng mới từ mô tả hoặc file mẫu</div>
         </div>
 
+        <!-- DÒNG 1: CHỌN GIỌNG ĐANG DÙNG + TEST ĐỒNG BỘ OVERLAY -->
         <div class="card">
-          <div class="card-title"><span>🔊 Giọng Nói Hiện Tại</span></div>
-          <div style="margin-bottom: 14px;">
-            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Âm lượng (<span id="voice-vol-val">100</span>%)</label>
-            <input type="range" min="0" max="100" value="100" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('voice-vol-val').innerText = this.value">
+          <div class="card-title">
+            <span>🔊 Dòng 1: Giọng Đang Dùng Của Pet</span>
+            <span style="font-size: 11px; color: #10b981;">● Đồng bộ 100% với Pet</span>
           </div>
-          <div style="margin-bottom: 14px;">
-            <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tốc độ nói (<span id="voice-rate-val">1.0</span>x)</label>
-            <input type="range" min="0.5" max="2.0" step="0.1" value="1.0" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('voice-rate-val').innerText = this.value">
+          <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 14px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 260px;">
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Danh sách giọng nói khả dụng:</label>
+              <select id="vsel" class="input" style="width: 100%; font-size: 12.5px; background: rgba(15,23,42,0.95); border: 1.5px solid var(--accent);"></select>
+            </div>
+            <button class="btn btn-primary" id="btn-test-voice" onclick="testCurrentVoice()" title="Nghe thử đúng giọng Pet sẽ nói trên màn hình">▶ Test Giọng Này</button>
+            <button class="btn" onclick="saveActiveVoiceSelection()" title="Lưu giọng này làm mặc định cho Pet">💾 Lưu Giọng Mặc Định</button>
           </div>
-          <button class="btn btn-primary" onclick="testVoiceSpeak()">▶ Nghe Thử Giọng Nói</button>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; background: rgba(0,0,0,0.25); padding: 10px 14px; border-radius: 8px;">
+            <div>
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Âm lượng phát (<span id="voice-vol-val">100</span>%)</label>
+              <input type="range" min="0" max="100" value="100" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('voice-vol-val').innerText = this.value">
+            </div>
+            <div>
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tốc độ nói (<span id="voice-rate-val">1.05</span>x) — Quân sư tự tăng lên 1.30x khi combat</label>
+              <input type="range" min="0.5" max="2.0" step="0.05" value="1.05" style="width: 100%; accent-color: var(--accent);" oninput="document.getElementById('voice-rate-val').innerText = this.value">
+            </div>
+          </div>
         </div>
 
-        <div class="card" style="border-color: rgba(168, 85, 247, 0.4); background: rgba(168, 85, 247, 0.04);">
-          <div class="card-title"><span style="color: #a855f7;">✨ Tạo Giọng Nói Mới Từ Mô Tả</span></div>
-          <p class="panel-desc" style="margin-bottom: 10px;">Mô tả giọng nói mong muốn bằng ngôn ngữ tự nhiên — AI sẽ phân tích và tạo profile giọng phù hợp.</p>
-          <textarea id="voice-desc-input" class="textarea" rows="3" placeholder="Ví dụ: Giọng nữ trẻ, cao, vui tươi và năng động. Nói nhanh, rõ ràng, có chút tinh nghịch..." style="margin-bottom: 10px;"></textarea>
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <button class="btn btn-primary" id="btn-gen-voice" onclick="generateVoiceFromDesc()">✨ Tạo Giọng Mới</button>
-            <span id="voice-gen-status" style="font-size: 11px; color: var(--text-muted);"></span>
+        <!-- DÒNG 2: ĐÚC GIỌNG MỚI & TẢI LÊN GIỌNG NÓI MẪU -->
+        <div class="card" style="border-color: rgba(245, 158, 11, 0.45); background: rgba(245, 158, 11, 0.04);">
+          <div class="card-title">
+            <span style="color: #f59e0b;">✨ Dòng 2: Đúc Giọng Mới / Tải Lên Giọng Mẫu</span>
           </div>
-        </div>
+          <p class="panel-desc" style="margin-bottom: 12px;">Đúc profile giọng mới từ ngôn ngữ tự nhiên hoặc tải file âm thanh mẫu (.mp3, .wav, .ogg) từ 5-30 giây.</p>
 
-        <div class="card" style="border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.04);">
-          <div class="card-title"><span style="color: #f59e0b;">📁 Tải Lên Giọng Nói Mẫu</span></div>
-          <p class="panel-desc" style="margin-bottom: 10px;">Tải lên file âm thanh (.mp3, .wav, .ogg) chứa giọng nói mẫu — Hệ thống sẽ phân tích và clone voice profile.</p>
-          <div id="voice-dropzone" style="border: 2px dashed rgba(245,158,11,0.4); border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; background: rgba(0,0,0,0.2);" onclick="document.getElementById('voice-file-input').click()" ondragover="event.preventDefault(); this.style.borderColor='#f59e0b'; this.style.background='rgba(245,158,11,0.08)';" ondragleave="this.style.borderColor='rgba(245,158,11,0.4)'; this.style.background='rgba(0,0,0,0.2)';" ondrop="handleVoiceDrop(event)">
-            <div style="font-size: 28px; margin-bottom: 6px;">🎵</div>
-            <div style="color: #f59e0b; font-weight: 600; font-size: 12px;">Kéo thả file âm thanh vào đây</div>
-            <div style="color: var(--text-muted); font-size: 11px; margin-top: 4px;">hoặc bấm để chọn file (.mp3, .wav, .ogg)</div>
-            <input type="file" id="voice-file-input" accept=".mp3,.wav,.ogg,.m4a" style="display: none;" onchange="handleVoiceFileSelect(this)">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px;">
+            <div>
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tên Voice Profile mới:</label>
+              <input id="vc-name" class="input" placeholder="VD: Giong_Thach_Sanh, Nu_Anime_Vui_Tuoi..." style="width: 100%;">
+              <div style="margin-top: 10px;">
+                <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Mô tả tính cách & phong cách giọng nói:</label>
+                <textarea id="vc-desc" class="textarea" rows="4" placeholder="VD: Giọng nữ trẻ 18 tuổi, âm sắc trong trẻo cao vút, nói nhanh dứt khoát kiểu quân sư anime, đôi khi pha chút tinh nghịch..."></textarea>
+              </div>
+            </div>
+
+            <div>
+              <label style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px;">Tệp âm thanh mẫu (Voice Cloning):</label>
+              <div id="voice-dropzone" style="border: 2px dashed rgba(245,158,11,0.4); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: rgba(0,0,0,0.25);" onclick="document.getElementById('voice-file-input').click()" ondragover="event.preventDefault(); this.style.borderColor='#f59e0b';" ondragleave="this.style.borderColor='rgba(245,158,11,0.4)';" ondrop="handleVoiceDrop(event)">
+                <div style="font-size: 26px; margin-bottom: 4px;">🎧</div>
+                <div style="color: #f59e0b; font-weight: 600; font-size: 12px;">Kéo thả file âm thanh mẫu vào đây</div>
+                <div style="color: var(--text-muted); font-size: 11px; margin-top: 2px;">hoặc bấm để chọn file (.mp3, .wav, .ogg)</div>
+                <input type="file" id="voice-file-input" accept=".mp3,.wav,.ogg,.m4a" style="display: none;" onchange="handleVoiceFileSelect(this)">
+              </div>
+              <div id="voice-upload-status" style="display: none; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 8px; font-size: 11px; color: #cbd5e1; margin-top: 8px;"></div>
+            </div>
           </div>
-          <div id="voice-upload-status" style="display: none; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; font-size: 12px; color: #cbd5e1;"></div>
-          <div id="voice-list" style="margin-top: 10px;"></div>
+
+          <div style="display: flex; gap: 10px; align-items: center; justify-content: flex-end;">
+            <span id="voice-gen-status" style="font-size: 11.5px; color: var(--text-muted);"></span>
+            <button class="btn btn-primary" id="btn-gen-voice" onclick="generateVoiceFromDesc()" style="font-weight: 600; padding: 8px 18px;">✨ Đúc Giọng Mới</button>
+          </div>
+          <div id="voice-list" style="margin-top: 14px;"></div>
         </div>
       </div>
 
@@ -722,7 +837,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     else if (tabId === 'tab-protocols') loadProtocols();
     else if (tabId === 'tab-providers') loadProviders();
     else if (tabId === 'tab-vision') refreshVisionStatus();
-    else if (tabId === 'tab-voice') loadVoiceList();
+    else if (tabId === 'tab-voice') loadVoiceTab();
     else if (tabId === 'tab-logs') loadActionLogs();
   });
 });
@@ -746,6 +861,8 @@ function showToast(msg) {
 }
 
 // 3. TAB NHÂN VẬT & LINH HỒN
+let allCharacterList = [];
+
 async function loadCharacters() {
   const CHAR_LABELS = {
     hiyori: 'Hiyori Momose (VTuber Anime)',
@@ -753,17 +870,30 @@ async function loadCharacters() {
     duck: 'Vịt Vàng', fox: 'Cáo Lửa', rocky: 'Hòn Đá', totoro: 'Totoro'
   };
   const FALLBACK_CHARS = [
-    { name: 'hiyori', path: 'assets/characters/hiyori/default.svg', is_vtuber: true },
-    { name: 'panda', path: 'assets/characters/panda/default.gif' },
-    { name: 'cat', path: 'assets/characters/cat/default.svg' },
-    { name: 'clippy', path: 'assets/characters/clippy/default.gif' },
-    { name: 'dog', path: 'assets/characters/dog/default.gif' },
-    { name: 'duck', path: 'assets/characters/duck/default.gif' },
-    { name: 'fox', path: 'assets/characters/fox/default.gif' },
-    { name: 'rocky', path: 'assets/characters/rocky/default.gif' },
-    { name: 'totoro', path: 'assets/characters/totoro/default.gif' }
+    { name: 'hiyori', display_name: 'Hiyori Momose', path: 'assets/characters/hiyori/default.svg', is_vtuber: true },
+    { name: 'panda', display_name: 'Gấu Panda', path: 'assets/characters/panda/default.gif' },
+    { name: 'cat', display_name: 'Mèo Con', path: 'assets/characters/cat/default.svg' },
+    { name: 'clippy', display_name: 'Kẹp Giấy', path: 'assets/characters/clippy/default.gif' },
+    { name: 'dog', display_name: 'Cún Cưng', path: 'assets/characters/dog/default.gif' },
+    { name: 'duck', display_name: 'Vịt Vàng', path: 'assets/characters/duck/default.gif' },
+    { name: 'fox', display_name: 'Cáo Lửa', path: 'assets/characters/fox/default.gif' },
+    { name: 'rocky', display_name: 'Hòn Đá', path: 'assets/characters/rocky/default.gif' },
+    { name: 'totoro', display_name: 'Totoro', path: 'assets/characters/totoro/default.gif' }
   ];
   let chars = FALLBACK_CHARS;
+
+  // Load available voices into character voice dropdown
+  try {
+    const vRes = await fetch(BACKEND + '/api/voice/all');
+    if (vRes.ok) {
+      const vData = await vRes.json();
+      const vSel = document.getElementById('char-edit-voice-select');
+      if (vSel && vData.voices) {
+        vSel.innerHTML = vData.voices.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
+      }
+    }
+  } catch(e) {}
+
   try {
     const res = await fetch(BACKEND + '/api/characters');
     if (res.ok) {
@@ -775,6 +905,8 @@ async function loadCharacters() {
     }
   } catch(e) {}
 
+  allCharacterList = chars;
+
   const grid = document.getElementById('chars-grid');
   grid.innerHTML = '';
   chars.forEach(c => {
@@ -782,16 +914,29 @@ async function loadCharacters() {
     const isVtuber = (c.is_vtuber || c.name === 'hiyori');
     const item = document.createElement('div');
     item.className = 'char-item' + (isSel ? ' selected' : '');
+    const disp = c.display_name || CHAR_LABELS[c.name] || c.name;
     item.innerHTML = `
       ${isSel ? '<span class="active-badge">Đang dùng</span>' : ''}
       ${isVtuber ? '<span style="position: absolute; bottom: 6px; right: 6px; background: linear-gradient(135deg, #ec4899, #8b5cf6); color: #fff; font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 4px; box-shadow: 0 2px 6px rgba(236,72,153,0.4);">VTUBER</span>' : ''}
       <img class="char-thumb" src="${c.path}" alt="${c.name}" onerror="this.src='assets/characters/hiyori/default.svg'">
-      <span class="char-name">${CHAR_LABELS[c.name] || c.name}</span>
+      <span class="char-name">${disp}</span>
     `;
     item.onclick = () => selectCharacter(c.name);
     grid.appendChild(item);
   });
+
+  const activeCharObj = chars.find(c => c.name === currentChar) || { name: currentChar };
+  populateCharacterConfig(activeCharObj);
   loadSoul(currentChar);
+}
+
+function populateCharacterConfig(c) {
+  const titleEl = document.getElementById('char-edit-title');
+  const dNameEl = document.getElementById('char-edit-display-name');
+  const vSel = document.getElementById('char-edit-voice-select');
+  if (titleEl) titleEl.textContent = c.name;
+  if (dNameEl) dNameEl.value = c.display_name || c.name;
+  if (vSel && c.voice_id) vSel.value = c.voice_id;
 }
 
 async function selectCharacter(name) {
@@ -812,7 +957,6 @@ async function selectCharacter(name) {
 }
 
 async function loadSoul(name) {
-  document.getElementById('soul-char-title').textContent = name;
   try {
     const res = await fetch(BACKEND + `/api/soul?char=${encodeURIComponent(name)}`);
     if (res.ok) {
@@ -822,19 +966,40 @@ async function loadSoul(name) {
   } catch(e) {}
 }
 
-async function saveSoul() {
-  const content = document.getElementById('soul-editor').value;
+function testCharVoice() {
+  const v = document.getElementById('char-edit-voice-select').value || 'google_vi';
+  const dName = document.getElementById('char-edit-display-name').value.trim() || currentChar;
+  const text = `Dạ em chào Sếp! Em là ${dName}, sẵn sàng tác chiến cùng Sếp!`;
+  const url = BACKEND + '/api/speech/tts?text=' + encodeURIComponent(text) + '&voice=' + encodeURIComponent(v);
+  const a = new Audio(url);
+  a.playbackRate = 1.05;
+  a.play().catch(() => showToast('Không thể phát âm thanh test.'));
+  showToast(`Đang nghe thử giọng cho [${dName}]...`);
+}
+
+async function saveCurrentCharacterDetails() {
+  const dName = document.getElementById('char-edit-display-name').value.trim();
+  const vId = document.getElementById('char-edit-voice-select').value;
+  const soul = document.getElementById('soul-editor').value;
   try {
-    const res = await fetch(BACKEND + '/api/soul', {
+    const res = await fetch(BACKEND + '/api/character/update', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ character: currentChar, content })
+      body: JSON.stringify({
+        name: currentChar,
+        display_name: dName,
+        voice_id: vId,
+        soul: soul
+      })
     });
     if (res.ok) {
-      showToast('Đã lưu linh hồn nhân vật thành công!');
+      showToast(`Đã lưu thông tin nhân vật [${currentChar}] thành công!`);
+      loadCharacters();
+    } else {
+      throw new Error('Save error');
     }
   } catch(e) {
-    showToast('Lỗi lưu linh hồn.');
+    showToast('Lỗi lưu thông tin nhân vật.');
   }
 }
 
@@ -855,48 +1020,70 @@ async function toggleYolo() {
   showToast(yoloState ? 'Đã bật Mắt quan sát YOLO!' : 'Đã tắt Mắt quan sát YOLO.');
 }
 
-// 6. TAB GIỌNG NÓI AI
-function testVoiceSpeak() {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance("Dạ em chào Sếp! Em là Neito Tactical Companion, luôn sẵn sàng đồng hành cùng Sếp!");
-    u.lang = 'vi-VN';
-    u.rate = parseFloat(document.getElementById('voice-rate-val').innerText) || 1.0;
-    u.volume = (parseFloat(document.getElementById('voice-vol-val').innerText) || 100) / 100;
-    window.speechSynthesis.speak(u);
-    showToast('Đang phát giọng nói mẫu...');
-  } else {
-    showToast('Trình duyệt không hỗ trợ Web Speech API.');
-  }
+// 6. TAB GIỌNG NÓI AI (ĐỒNG BỘ 100% BACKEND TTS)
+async function loadVoiceTab() {
+  try {
+    const res = await fetch(BACKEND + '/api/voice/all');
+    if (res.ok) {
+      const data = await res.json();
+      const list = data.voices || [];
+      const vsel = document.getElementById('vsel');
+      if (vsel) {
+        vsel.innerHTML = list.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
+      }
+    }
+  } catch(e) {}
+  loadVoiceList();
+}
+
+function testCurrentVoice() {
+  const vsel = document.getElementById('vsel');
+  const voiceId = vsel ? vsel.value : 'google_vi';
+  const rate = parseFloat(document.getElementById('voice-rate-val').innerText) || 1.05;
+  const vol = (parseFloat(document.getElementById('voice-vol-val').innerText) || 100) / 100;
+  const text = "Dạ em chào Sếp! Em là Neito Tactical Companion, luôn sẵn sàng đồng hành và tác chiến cùng Sếp!";
+  const audioUrl = BACKEND + '/api/speech/tts?text=' + encodeURIComponent(text) + '&voice=' + encodeURIComponent(voiceId);
+  const audio = new Audio(audioUrl);
+  audio.playbackRate = rate;
+  audio.volume = vol;
+  audio.play().catch(() => showToast('Không thể phát âm thanh test.'));
+  showToast('Đang phát giọng đọc mẫu đồng bộ 100% với Pet...');
+}
+
+function saveActiveVoiceSelection() {
+  const vsel = document.getElementById('vsel');
+  const v = vsel ? vsel.value : 'google_vi';
+  showToast(`Đã lưu [${v}] làm giọng mặc định cho Pet!`);
 }
 
 async function generateVoiceFromDesc() {
-  const desc = document.getElementById('voice-desc-input').value.trim();
-  if (!desc) { showToast('Vui lòng nhập mô tả giọng nói!'); return; }
+  const name = (document.getElementById('vc-name') ? document.getElementById('vc-name').value.trim() : '') || 'Voice_Custom';
+  const desc = (document.getElementById('vc-desc') ? document.getElementById('vc-desc').value.trim() : '') || '';
+  if (!desc) { showToast('Vui lòng nhập mô tả tính cách & phong cách giọng nói!'); return; }
   const btn = document.getElementById('btn-gen-voice');
   const status = document.getElementById('voice-gen-status');
   btn.disabled = true;
-  btn.textContent = '⏳ Đang tạo...';
-  status.textContent = 'AI đang phân tích mô tả và tạo voice profile...';
+  btn.textContent = '⏳ Đang đúc...';
+  status.textContent = 'AI đang phân tích mô tả và tạo profile...';
   try {
     const res = await fetch(BACKEND + '/api/voice/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description: desc })
+      body: JSON.stringify({ name: name, description: desc })
     });
     if (res.ok) {
       const data = await res.json();
-      status.innerHTML = `<span style="color:#10b981;">✓ ${data.message || 'Đã tạo voice profile thành công!'}</span>`;
-      showToast('Đã tạo giọng nói mới!');
-      loadVoiceList();
+      status.innerHTML = `<span style="color:#10b981;">✓ ${data.message || 'Đã đúc giọng thành công!'}</span>`;
+      showToast('Đã đúc giọng nói mới!');
+      loadVoiceTab();
     } else {
       throw new Error('Server error');
     }
   } catch(e) {
-    status.innerHTML = '<span style="color:var(--err);">Lỗi tạo giọng nói. Kiểm tra kết nối server.</span>';
+    status.innerHTML = '<span style="color:var(--err);">Lỗi tạo giọng nói.</span>';
   } finally {
     btn.disabled = false;
-    btn.textContent = '✨ Tạo Giọng Mới';
+    btn.textContent = '✨ Đúc Giọng Mới';
   }
 }
 
@@ -1174,65 +1361,102 @@ async function loadProtocols() {
       const isActive = p.status === 'active';
       const isQueued = p.status === 'queued';
       const item = document.createElement('div');
-      item.style.cssText = `
-        background: rgba(15, 23, 42, 0.6);
-        border: 1.5px solid ${isActive ? '#10b981' : isQueued ? '#f59e0b' : 'var(--border)'};
-        border-radius: 10px; padding: 14px 16px;
-        display: flex; align-items: center; justify-content: space-between; gap: 14px;
-        box-shadow: ${isActive ? '0 0 14px rgba(16, 185, 129, 0.25)' : 'none'};
-      `;
+      item.id = 'proto-card-' + p.id;
+      item.className = 'proto-accordion-item' + (isActive ? ' active-proto open' : isQueued ? ' queued-proto' : '');
 
       let badgeHtml = '';
       if (isActive) {
-        badgeHtml = '<span style="background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid #10b981; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;">ACTIVE (ON-TOP)</span>';
+        badgeHtml = '<span style="background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid #10b981; font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px;">ACTIVE (ON-TOP)</span>';
       } else if (isQueued) {
-        badgeHtml = `<span style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid #f59e0b; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;">QUEUE #${p.queuePosition || 1}</span>`;
+        badgeHtml = `<span style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid #f59e0b; font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px;">QUEUE #${p.queuePosition || 1}</span>`;
       } else {
-        badgeHtml = '<span style="background: rgba(255,255,255,0.06); color: #94a3b8; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px;">INACTIVE</span>';
+        badgeHtml = '<span style="background: rgba(255,255,255,0.06); color: #94a3b8; font-size: 9.5px; font-weight: 600; padding: 2px 7px; border-radius: 999px;">INACTIVE</span>';
       }
 
       // Tag danh mục
       let catBadge = '';
       if (p.category === 'game') {
-        catBadge = '<span style="background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid #ef4444; font-size: 9.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px;">🎮 GAME</span>';
+        catBadge = '<span style="background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid #ef4444; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 999px;">🎮 GAME</span>';
       } else if (p.category === 'topic') {
-        catBadge = '<span style="background: rgba(168,85,247,0.2); color: #c084fc; border: 1px solid #a855f7; font-size: 9.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px;">🧠 CHỦ ĐỀ</span>';
+        catBadge = '<span style="background: rgba(168,85,247,0.2); color: #c084fc; border: 1px solid #a855f7; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 999px;">🧠 CHỦ ĐỀ</span>';
       } else {
-        catBadge = '<span style="background: rgba(56,189,248,0.2); color: #38bdf8; border: 1px solid #38bdf8; font-size: 9.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px;">💼 APP</span>';
+        catBadge = '<span style="background: rgba(56,189,248,0.2); color: #38bdf8; border: 1px solid #38bdf8; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 999px;">💼 APP</span>';
       }
 
       const procBadge = (p.app_processes && p.app_processes.length) 
         ? `<span style="color: #a855f7; font-size: 10.5px; font-weight: 500;">🖥️ ${p.app_processes.join(', ')}</span>`
         : '';
 
-      const btnActionText = p.category === 'topic' ? '▶ Kích hoạt Chủ Đề' : '▶ Kích hoạt';
+      const btnActionText = p.category === 'topic' ? '▶ Kích hoạt' : '▶ Kích hoạt';
+      const sits = p.situations || [];
+      const yoloClasses = p.yolo_classes || [];
+      const videos = p.video_sources || [];
 
       item.innerHTML = `
-        <div style="flex: 1;">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+        <div class="proto-accordion-header" onclick="toggleProtoAccordion('${p.id}')">
+          <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
             ${catBadge}
-            <strong style="font-size: 13.5px; color: #fff;">${p.name}</strong>
-            <span style="font-size: 11px; color: var(--text-muted);">(${p.appName || p.id})</span>
+            <strong style="font-size: 13px; color: #fff; cursor: pointer; text-decoration: underline dotted rgba(255,255,255,0.3); white-space: nowrap;">${p.name}</strong>
+            <span style="font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;">(${p.appName || p.id})</span>
             ${badgeHtml}
           </div>
-          <div style="font-size: 11.5px; color: #94a3b8; line-height: 1.4; margin-bottom: 6px;">${p.description}</div>
-          <div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 10.5px; color: #64748b; margin-bottom: 4px;">
-            ${procBadge}
-            <span>🏷️ Nhãn YOLO: <strong>${(p.yolo_classes || []).length}</strong></span>
-            <span>⚡ Tình huống: <strong>${(p.situations || []).length}</strong></span>
-            <span>🎥 Video: <strong>${(p.video_sources || []).length}</strong></span>
-            <span>🗂️ Dataset: <strong>${p.datasetSize || 0}</strong> mẫu</span>
+          <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
+            <span style="font-size: 10px; color: #64748b; margin-right: 4px;">🏷️ ${yoloClasses.length} • ⚡ ${sits.length}</span>
+            <button class="btn btn-sm" onclick="event.stopPropagation(); researchVideo('${p.name}', '${p.id}')" title="Tra cứu video và cẩm nang trên mạng" style="padding: 3px 8px; font-size: 11px;">🎥 Video</button>
+            ${!isActive ? `<button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); activateProtocol('${p.id}')" style="padding: 3px 10px; font-size: 11px;">${btnActionText}</button>` : `<button class="btn btn-sm" disabled style="opacity: 0.6; padding: 3px 8px; font-size: 11px;">✓ Đang dùng</button>`}
+            <span class="proto-accordion-chevron">▼</span>
           </div>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <button class="btn btn-sm" onclick="researchVideo('${p.name}', '${p.id}')" title="Tra cứu video và cẩm nang trên mạng">🎥 Video Mạng</button>
-          ${!isActive ? `<button class="btn btn-sm btn-primary" onclick="activateProtocol('${p.id}')">${btnActionText}</button>` : `<button class="btn btn-sm" disabled style="opacity: 0.6;">✓ Đang dùng</button>`}
+
+        <div class="proto-accordion-body">
+          <div style="font-size: 12px; color: #cbd5e1; line-height: 1.5; margin-bottom: 10px; background: rgba(0,0,0,0.3); border-radius: 6px; padding: 8px 12px;">
+            <strong>📝 Mô tả:</strong> ${p.description || 'Chưa có mô tả chi tiết.'}
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 11px; color: #94a3b8; margin-bottom: 10px;">
+            ${procBadge ? `<div>${procBadge}</div>` : ''}
+            <div>📢 Meta: <strong style="color: #cbd5e1;">${p.meta || 'Mặc định'}</strong></div>
+            <div>🗂️ Dataset: <strong style="color: #cbd5e1;">${p.datasetSize || 0}</strong> mẫu</div>
+          </div>
+
+          <div style="margin-bottom: 10px;">
+            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 4px;"><strong>🏷️ Nhãn nhận diện YOLO-World:</strong></div>
+            <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+              ${yoloClasses.map(c => `<span style="background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.3); color: var(--accent); font-size: 10.5px; padding: 2px 7px; border-radius: 4px;">🏷️ ${c}</span>`).join('') || '<span style="color: #64748b; font-size: 10.5px;">Chưa có nhãn</span>'}
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 4px;"><strong>⚔️ Tình huống & Câu thoại Quân sư:</strong></div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              ${sits.map(s => `
+                <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 6px 10px; font-size: 11px; border: 1px solid rgba(255,255,255,0.04);">
+                  <span style="color: #38bdf8; font-weight: 600;">⚡ ${s.trigger}:</span>
+                  <span style="color: #e2e8f0; font-style: italic; margin-left: 6px;">"${s.advice}"</span>
+                </div>
+              `).join('') || '<div style="color: #64748b; font-size: 10.5px;">Chưa có tình huống nào</div>'}
+            </div>
+          </div>
+
+          ${videos.length > 0 ? `
+            <div style="margin-top: 10px; font-size: 11px; color: #94a3b8;">
+              <strong>🎥 Cẩm nang video đã lưu:</strong>
+              ${videos.map(v => `<div style="color: #cbd5e1; margin-top: 2px;">• 📺 ${v}</div>`).join('')}
+            </div>
+          ` : ''}
         </div>
       `;
       grid.appendChild(item);
     });
   } catch(e) {
     showToast('Lỗi khi tải danh sách Giao thức tác chiến.');
+  }
+}
+
+function toggleProtoAccordion(protoId) {
+  const item = document.getElementById('proto-card-' + protoId);
+  if (item) {
+    item.classList.toggle('open');
   }
 }
 
@@ -1250,6 +1474,12 @@ async function loadProviders() {
 
     const lbl = document.getElementById('active-provider-model-label');
     if (lbl) lbl.textContent = `${pName} ➔ ${curM}`;
+
+    const selProvider = document.getElementById('setting-model-provider');
+    if (selProvider) {
+      selProvider.value = curP;
+      onProviderSelectChange(curP);
+    }
 
     // Cập nhật giá trị vào các form
     const allCfg = providersConfig.all_config || {};
@@ -1417,6 +1647,43 @@ function applyCustomModel() {
   const m = document.getElementById('custom-model-input').value.trim();
   if (!ep || !m) { showToast('Vui lòng nhập đầy đủ Endpoint và Tên Model!'); return; }
   selectProviderModel('custom', m, { endpoint: ep, api_key: k, selected_model: m });
+}
+
+function onProviderSelectChange(key) {
+  document.querySelectorAll('.provider-subform').forEach(el => {
+    el.style.display = 'none';
+  });
+  const target = document.getElementById('subform-' + key);
+  if (target) {
+    target.style.display = 'block';
+  }
+}
+
+function applySelectedProvider() {
+  const sel = document.getElementById('setting-model-provider');
+  const key = sel ? sel.value : 'agy';
+  switch (key) {
+    case 'agy':
+      applyAgyModel();
+      break;
+    case 'ollama':
+      applyOllamaModel();
+      break;
+    case 'openrouter':
+      applyOpenRouterModel();
+      break;
+    case 'nous':
+      applyNousModel();
+      break;
+    case 'gemini':
+      applyGeminiModel();
+      break;
+    case 'custom':
+      applyCustomModel();
+      break;
+    default:
+      applyAgyModel();
+  }
 }
 
 async function testActiveProviderModel() {

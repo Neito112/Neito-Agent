@@ -27,12 +27,27 @@ LATEST_EVENT = None
 LAST_TRIGGER_TIME = time.time() + 30.0  # Khoảng đệm an toàn khi khởi động: Không nói gì trong 30s đầu
 CURRENT_ACTIVE_PROTOCOL_ID = None
 
+def make_crisp_advice(advice_text: str) -> str:
+    """Rút gọn câu thoại quân sư dưới 12 từ, dứt khoát chuẩn quân sự."""
+    if not advice_text:
+        return ""
+    text = advice_text.strip()
+    # Tách câu đầu tiên nếu có nhiều câu dấu chấm than hoặc chấm
+    parts = [p.strip() for p in text.replace('.', '!').split('!') if p.strip()]
+    if parts:
+        first = parts[0]
+        words = first.split()
+        if len(words) > 12:
+            return " ".join(words[:12]) + "!"
+        return first + "!"
+    return text[:60]
+
 def advisor_loop():
     global ADVISOR_RUNNING, LATEST_EVENT, LAST_TRIGGER_TIME, CURRENT_ACTIVE_PROTOCOL_ID
     print("[YOLO-World-Advisor] Khởi chạy vòng lặp Quân sư tác chiến thường trực (Always-On)...", flush=True)
 
     vision_engine = get_vision_engine()
-    next_cooldown = random.randint(35, 75)
+    next_cooldown = random.randint(45, 90)
 
     while ADVISOR_RUNNING:
         try:
@@ -50,19 +65,22 @@ def advisor_loop():
                 if proto_id != "general":
                     if not is_protocol_app_running(proto):
                         # Ứng dụng/Game không mở trên máy -> TUYỆT ĐỐI KHÔNG lải nhải chiến thuật game!
-                        time.sleep(2.5)
+                        time.sleep(3.0)
                         continue
 
                 # Định kỳ kiểm tra tình huống chiến thuật (chỉ khi đủ điều kiện thời gian)
                 if now - LAST_TRIGGER_TIME > next_cooldown:
                     situations = proto.get("situations", [])
                     # Với chế độ General, giảm tỉ lệ thoại để tránh làm phiền Sếp làm việc
-                    speak_prob = 0.35 if proto_id == "general" else 0.70
+                    speak_prob = 0.25 if proto_id == "general" else 0.75
                     
                     if situations and random.random() < speak_prob:
                         sit = random.choice(situations)
-                        source_tag = "📺 CẨM NANG VIDEO" if sit.get("source") == "video_online_research" else "⚔️ QUÂN SƯ"
+                        source_tag = "📺 CẨM NANG" if sit.get("source") == "video_online_research" else "⚡ QUÂN SƯ"
                         attn_pt = sit.get("attention_point")
+                        raw_advice = sit.get("advice", "")
+                        crisp_advice = make_crisp_advice(raw_advice) if proto_id != "general" else raw_advice
+
                         LATEST_EVENT = {
                             "event_id": f"evt_{int(now)}",
                             "type": "known_situation",
@@ -70,21 +88,21 @@ def advisor_loop():
                             "protocol_name": proto.get("name"),
                             "situation_id": sit.get("id"),
                             "trigger": sit.get("trigger"),
-                            "advice": sit.get("advice"),
+                            "advice": crisp_advice,
                             "attention_point": attn_pt,
                             "source": sit.get("source", "protocol_compiled"),
                             "timestamp": now
                         }
                         LAST_TRIGGER_TIME = now
-                        next_cooldown = random.randint(45, 90) if proto_id != "general" else random.randint(90, 180)
+                        next_cooldown = random.randint(50, 100) if proto_id != "general" else random.randint(120, 240)
                         
-                        advice_text = sit.get("advice")
-                        print(f"[YOLO-World-Advisor] [{source_tag}] ({proto.get('name')}): {advice_text}", flush=True)
+                        print(f"[YOLO-World-Advisor] [{source_tag}] ({proto.get('name')}): {crisp_advice}", flush=True)
                         
                         # Tự động đẩy vào Speech Queue để Pet phát ngôn và hiển thị bóng thoại
+                        is_urgent = any(k in crisp_advice.lower() for k in ['nguy hiểm', 'gank', 'lùi', 'def', 'cứu', 'hủy', 'mất'])
                         enqueue_speech(
-                            f"[{proto.get('name').upper()}] {source_tag}: {advice_text}",
-                            emotion="alert" if proto_id != "general" else "happy",
+                            f"[{proto.get('name').upper()}] {source_tag}: {crisp_advice}",
+                            emotion="alert" if (proto_id != "general" and is_urgent) else ("tactical" if proto_id != "general" else "happy"),
                             source="advisor",
                             attention_point=attn_pt
                         )

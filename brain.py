@@ -73,8 +73,22 @@ def get_character_list():
                     except Exception:
                         pass
 
+                meta_file = os.path.join(cdir, 'meta.json')
+                display_name = name
+                voice_id = 'google_vi'
+                if os.path.exists(meta_file):
+                    try:
+                        with open(meta_file, 'r', encoding='utf-8') as f:
+                            m = json.load(f)
+                            display_name = m.get('display_name', display_name)
+                            voice_id = m.get('voice_id', voice_id)
+                    except Exception:
+                        pass
+
                 characters.append({
                     'name': name,
+                    'display_name': display_name,
+                    'voice_id': voice_id,
                     'path': thumb if thumb else f'assets/characters/{name}',
                     'kind': kind,
                     'is_vtuber': is_vtuber,
@@ -282,6 +296,41 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({'success': True, 'character': CURRENT_CHARACTER}).encode('utf-8'))
 
+        elif self.path == '/api/character/update':
+            char_name = data.get('name', 'hiyori')
+            display_name = data.get('display_name', '')
+            voice_id = data.get('voice_id', '')
+            soul_text = data.get('soul', None)
+
+            cdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'neito-agent', 'ui', 'assets', 'characters', char_name)
+            os.makedirs(cdir, exist_ok=True)
+
+            meta_path = os.path.join(cdir, 'meta.json')
+            meta = {}
+            if os.path.exists(meta_path):
+                try:
+                    with open(meta_path, 'r', encoding='utf-8') as f:
+                        meta = json.load(f)
+                except Exception:
+                    pass
+            if display_name:
+                meta['display_name'] = display_name
+            if voice_id:
+                meta['voice_id'] = voice_id
+            with open(meta_path, 'w', encoding='utf-8') as f:
+                json.dump(meta, f, ensure_ascii=False, indent=2)
+
+            if soul_text is not None:
+                soul_path = os.path.join(cdir, 'soul.md')
+                with open(soul_path, 'w', encoding='utf-8') as f:
+                    f.write(soul_text)
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True, 'meta': meta}, ensure_ascii=False).encode('utf-8'))
+
         elif self.path == '/api/memories':
             key = data.get('key', 'Ghi chú')
             val = data.get('value', '')
@@ -389,7 +438,8 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
             parsed = urllib.parse.urlparse(self.path)
             qs = urllib.parse.parse_qs(parsed.query)
             tts_text = qs.get('text', [''])[0]
-            audio_bytes = generate_tts_bytes(tts_text)
+            voice_param = qs.get('voice', [''])[0]
+            audio_bytes = generate_tts_bytes(tts_text, voice=voice_param)
             if audio_bytes:
                 self.send_response(200)
                 self.send_header('Content-Type', 'audio/mpeg')
@@ -490,6 +540,28 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
                             with open(os.path.join(voices_dir, fname), 'r', encoding='utf-8') as f:
                                 profile = json.load(f)
                                 voices.append(profile)
+                        except Exception:
+                            pass
+            self.wfile.write(json.dumps({'voices': voices}, ensure_ascii=False).encode('utf-8'))
+
+        elif self.path == '/api/voice/all':
+            voices = [
+                {'id': 'google_vi', 'name': 'Google TTS (Tiếng Việt Nữ Chuẩn - 0 Token)', 'type': 'system'},
+                {'id': 'hoaimy', 'name': 'Edge TTS Hoài My (Nữ truyền cảm)', 'type': 'system'},
+                {'id': 'namminh', 'name': 'Edge TTS Nam Minh (Nam trầm ấm)', 'type': 'system'}
+            ]
+            voices_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voices')
+            if os.path.exists(voices_dir):
+                for fn in sorted(os.listdir(voices_dir)):
+                    if fn.endswith('.json'):
+                        try:
+                            with open(os.path.join(voices_dir, fn), 'r', encoding='utf-8') as f:
+                                vp = json.load(f)
+                                voices.append({
+                                    'id': vp.get('id', fn.replace('.json', '')),
+                                    'name': f"🎵 {vp.get('name', fn)} (Custom Clone)",
+                                    'type': 'custom'
+                                })
                         except Exception:
                             pass
             self.wfile.write(json.dumps({'voices': voices}, ensure_ascii=False).encode('utf-8'))

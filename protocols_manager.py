@@ -468,6 +468,12 @@ def get_active_protocol():
     protocols = load_protocols()
     for p in protocols:
         if p.get('status') == 'active':
+            # Nếu giao thức active là game nhưng game không chạy trên máy -> Tự động fallback về 'general'
+            if p.get('category') == 'game' and not is_protocol_app_running(p):
+                activate_protocol('general')
+                for p2 in load_protocols():
+                    if p2.get('id') == 'general':
+                        return p2
             return p
     if protocols:
         protocols[0]['status'] = 'active'
@@ -549,10 +555,17 @@ PROCESS_APP_MAP = {
     'explorer.exe': 'general',
 }
 
+NON_GAME_PROCESSES = {
+    'msedge.exe', 'chrome.exe', 'brave.exe', 'firefox.exe', 'opera.exe', 'vivaldi.exe',
+    'code.exe', 'cursor.exe', 'windowsterminal.exe', 'wt.exe', 'cmd.exe', 'powershell.exe',
+    'explorer.exe', 'discord.exe', 'slack.exe', 'telegram.exe', 'devenv.exe', 'idea64.exe'
+}
+
 def match_protocol_by_window(proc_name: str, window_title: str) -> Optional[dict]:
     """
     Khớp cửa sổ đang On-Top với các Giao thức đã định nghĩa.
-    Khớp chính xác theo PROCESS_APP_MAP, danh sách app_processes hoặc window_keywords.
+    TUYỆT ĐỐI KHÔNG khớp Giao thức Game từ tiêu đề tab trình duyệt web hoặc IDE.
+    Giao thức Game bắt buộc phải có tiến trình game thực sự đang chạy.
     """
     if not proc_name and not window_title:
         return None
@@ -574,15 +587,27 @@ def match_protocol_by_window(proc_name: str, window_title: str) -> Optional[dict
             if proc.lower() == proc_lower:
                 return p
 
-    # 3. Khớp theo từ khóa tiêu đề cửa sổ (tối thiểu 3 ký tự)
+    # NGUYÊN TẮC BẤT DI BẤT DỊCH: Nếu là trình duyệt web hoặc công cụ dev / chat:
+    # TUYỆT ĐỐI KHÔNG match game từ tiêu đề web (vd: xem youtube hay báo về valorant)
+    if proc_lower in NON_GAME_PROCESSES:
+        for p in protocols:
+            if p.get('id') == 'general':
+                return p
+        return None
+
+    # 3. Khớp theo từ khóa tiêu đề cửa sổ (CHỈ ÁP DỤNG CHO ỨNG DỤNG / CHỦ ĐỀ NON-GAME)
     for p in protocols:
+        if p.get("category") == "game":
+            continue  # Bỏ qua game nếu không đúng tiến trình game
         for kw in p.get("window_keywords", []):
             kw_l = kw.lower()
             if len(kw_l) >= 3 and kw_l in title_lower:
                 return p
 
-    # 4. Khớp theo appName (tối thiểu 4 ký tự tránh so khớp nhầm)
+    # 4. Khớp theo appName (tối thiểu 4 ký tự tránh so khớp nhầm, KHÔNG match game)
     for p in protocols:
+        if p.get("category") == "game":
+            continue
         appName = p.get("appName", "").lower()
         if len(appName) >= 4 and (appName in title_lower or appName == proc_lower.replace('.exe', '')):
             return p
