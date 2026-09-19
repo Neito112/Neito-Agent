@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import json
 import os
 import sys
@@ -21,10 +21,15 @@ from foreground_watcher import (
     get_latest_switch_event,
     set_auto_switch
 )
+from speech_manager import (
+    get_latest_speech,
+    enqueue_speech,
+    generate_tts_bytes
+)
 
 CHARACTERS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'neito-agent', 'ui', 'assets', 'characters')
 CURRENT_CHARACTER = 'panda'
-YOLO_ACTIVE = False
+YOLO_ACTIVE = True  # Always-On Reflex theo thiết kế chuẩn app gốc
 
 def get_character_list():
     characters = []
@@ -91,11 +96,28 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
                     'emotion': 'happy',
                     'guide_point': None
                 }
+            
+            # Tự động đẩy phản hồi vào Speech Queue để Pet phát ngôn
+            answer_text = result.get('answer') or result.get('reply') or ''
+            if answer_text:
+                enqueue_speech(answer_text, emotion=result.get('emotion', 'happy'), source='chat', force=True)
+
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+
+        elif self.path == '/api/speech/say':
+            text = data.get('text', '')
+            emotion = data.get('emotion', 'happy')
+            force = data.get('force', True)
+            evt = enqueue_speech(text, emotion=emotion, source='api', force=force)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': bool(evt), 'event': evt}, ensure_ascii=False).encode('utf-8'))
 
         elif self.path == '/api/yolo':
             YOLO_ACTIVE = data.get('active', not YOLO_ACTIVE)
@@ -149,8 +171,6 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
 
         elif self.path == '/api/protocol/create':
             name = data.get('name', 'Giao thức mới')
-            app_name = data.get('appName', '')
-            desc = data.get('description', '')
             ok, p = protocols_manager.phidata_learn_topic(name)
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
@@ -226,6 +246,27 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         global CURRENT_CHARACTER, YOLO_ACTIVE
+
+        # 1. Endpoint Stream TTS Audio MP3
+        if self.path.startswith('/api/speech/tts'):
+            parsed = urllib.parse.urlparse(self.path)
+            qs = urllib.parse.parse_qs(parsed.query)
+            tts_text = qs.get('text', [''])[0]
+            audio_bytes = generate_tts_bytes(tts_text)
+            if audio_bytes:
+                self.send_response(200)
+                self.send_header('Content-Type', 'audio/mpeg')
+                self.send_header('Content-Length', str(len(audio_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(audio_bytes)
+            else:
+                self.send_response(204)
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+            return
+
+        # 2. Các Endpoint JSON
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -245,6 +286,10 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
                 'advisor_status': yolo_world_advisor.get_advisor_status()
             }
             self.wfile.write(json.dumps(status_info, ensure_ascii=False).encode('utf-8'))
+
+        elif self.path == '/api/speech/latest':
+            evt = get_latest_speech()
+            self.wfile.write(json.dumps({'event': evt}, ensure_ascii=False).encode('utf-8'))
 
         elif self.path == '/api/yolo':
             self.wfile.write(json.dumps({'active': YOLO_ACTIVE}).encode('utf-8'))
@@ -305,15 +350,20 @@ class BrainHTTPHandler(BaseHTTPRequestHandler):
         pass
 
 def run_server():
-    # 1. Khởi chạy bộ giám sát cửa sổ tiền cảnh On-Top
+    # 1. Khởi chạy bộ giám sát cửa sổ tiền cảnh On-Top chuẩn WinAPI
     start_foreground_watcher()
 
-    # 2. Khởi chạy HTTP Server
+    # 2. Khởi chạy Quân sư tác chiến thường trực (Always-On Reflex)
+    yolo_world_advisor.start_advisor()
+
+    # 3. Khởi chạy HTTP Server
     server_address = ('127.0.0.1', 4242)
     httpd = ThreadingHTTPServer(server_address, BrainHTTPHandler)
     print('=' * 65, flush=True)
     print('  NEITO AGENT BRAIN SERVER (PHIDATA + SMOLAGENTS + YOLO-WORLD)', flush=True)
-    print('  Foreground On-Top Auto-Switch: ENABLED', flush=True)
+    print('  Foreground On-Top Auto-Switch & Auto-Spawn: ENABLED', flush=True)
+    print('  Tactical Advisor (Always-On Reflex): ENABLED', flush=True)
+    print('  Speech Queue & Vietnamese Audio TTS Engine: READY', flush=True)
     print('  Dang lang nghe tai: http://127.0.0.1:4242', flush=True)
     print('=' * 65, flush=True)
     httpd.serve_forever()

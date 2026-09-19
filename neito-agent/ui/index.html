@@ -289,9 +289,9 @@
       </svg>
 
       <!-- 5 Nút dãn đều ~60px, cách xa thân Pet (X: 235-290px) -->
-      <button id="btn-arc-yolo" class="arc-btn" style="left: 235px; top: 355px;" data-title="Bật/tắt Mắt YOLO">👁️</button>
+      <button id="btn-arc-yolo" class="arc-btn active" style="left: 235px; top: 355px;" data-title="Bật/tắt Mắt YOLO">👁️</button>
       <button id="btn-arc-mic" class="arc-btn" style="left: 272px; top: 300px;" data-title="Bật/tắt Micro">🎙️</button>
-      <button id="btn-arc-voice" class="arc-btn" style="left: 288px; top: 235px;" data-title="Bật/tắt Tiếng nói">🔇</button>
+      <button id="btn-arc-voice" class="arc-btn active" style="left: 288px; top: 235px;" data-title="Bật/tắt Tiếng nói">🔊</button>
       <button id="btn-arc-icon-mode" class="arc-btn" style="left: 272px; top: 170px;" data-title="Thu nhỏ thành Icon">🙈</button>
       <button id="btn-arc-dashboard" class="arc-btn" style="left: 235px; top: 115px;" data-title="Mở Dashboard">📊</button>
     </div>
@@ -326,10 +326,12 @@
   let curProtocol = null;
   let isIconMode = false;
   let bubbleTimer = null;
-  let yoloActive = false;
+  let yoloActive = true;
   let micActive = false;
-  let voiceActive = false;
+  let voiceActive = true;
   let lastAdvisorEventId = null;
+  let lastSpeechId = null;
+  let currentAudio = null;
 
   // ══════════════════════════════════════════════════════════════════
   // 1. KÉO THẢ NATIVE AN TOÀN TUYỆT ĐỐI (KHÔNG BAO GIỜ BAY MẤT CỬA SỔ)
@@ -349,6 +351,14 @@
 
   zoneChar.addEventListener('mousedown', handleDragStart);
   iconBadge.addEventListener('mousedown', handleDragStart);
+
+  // Click vào nhân vật Pet để tương tác và cất tiếng nói
+  zoneChar.addEventListener('click', (e) => {
+    if (e.target.closest('button') || e.target.closest('textarea') || e.target.closest('input')) return;
+    if (Math.abs(e.screenX - mouseDownPos.x) < 5 && Math.abs(e.screenY - mouseDownPos.y) < 5) {
+      onPetClick();
+    }
+  });
 
   // Click vào icon badge khi không di chuyển để khôi phục
   iconBadge.addEventListener('click', (e) => {
@@ -435,7 +445,7 @@
 
   // Lắng nghe Quân sư YOLO-World khi đang chơi game / bật mắt quan sát
   async function pollAdvisor() {
-    if (!yoloActive) return;
+    // Always-On: advisor luôn hoạt động bất kể nút 👁️
     try {
       const res = await fetch(BACKEND + '/api/advisor/latest');
       if (res.ok) {
@@ -496,6 +506,18 @@
     }
   }
 
+  function onPetClick() {
+    setAnim('happy', 2500);
+    const pName = curProtocol ? curProtocol.name : 'Chiến thuật chung';
+    const greetings = [
+      `Dạ em đây Sếp ơi! Em đang quan sát và hỗ trợ Sếp trong [${pName}]! ✨`,
+      `Quân sư Neito sẵn sàng tác chiến! Sếp bảo gì em làm ngay nhé! ⚔️`,
+      `Em đang túc trực bên cạnh Sếp đây ạ! Mọi biến động trên màn hình em đều nắm rõ! 💖`
+    ];
+    const pick = greetings[Math.floor(Math.random() * greetings.length)];
+    showBubble(pick);
+  }
+
   function speakVoice(text) {
     if (!voiceActive || !('speechSynthesis' in window) || !text) return;
     try {
@@ -509,15 +531,73 @@
     } catch(e) {}
   }
 
-  function showBubble(text) {
+  function playSpeechAndBubble(text, emotion = 'happy', spokenText = '') {
     if (!text) return;
-    bubble.textContent = text;
-    bubble.classList.add('show');
-    speakVoice(text);
-    clearTimeout(bubbleTimer);
-    bubbleTimer = setTimeout(() => {
-      bubble.classList.remove('show');
-    }, Math.max(5000, text.length * 80));
+    if (emotion) setAnim(emotion, 4000);
+
+    const cleanSpoken = spokenText || text.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').replace(/[⚔️👁️🎙️🔊🔇💡ℹ️⚠️❌🟢🔴🤖👤🧠👉✨🎮📌📊⏳💖]/g, '').trim();
+
+    let bubbleShown = false;
+    const triggerBubble = () => {
+      if (!bubbleShown) {
+        bubbleShown = true;
+        bubble.textContent = text;
+        bubble.classList.add('show');
+        clearTimeout(bubbleTimer);
+        bubbleTimer = setTimeout(() => {
+          bubble.classList.remove('show');
+        }, Math.max(5500, text.length * 85));
+      }
+    };
+
+    if (voiceActive && cleanSpoken) {
+      try {
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio = null;
+        }
+        const audioUrl = BACKEND + '/api/speech/tts?text=' + encodeURIComponent(cleanSpoken);
+        const audio = new Audio(audioUrl);
+        currentAudio = audio;
+
+        // Cơ chế _pendingBubble: Khi audio cất lên -> Nở bóng thoại đồng bộ tiếng và hình
+        audio.onplay = () => triggerBubble();
+        audio.onerror = () => {
+          triggerBubble();
+          speakVoice(cleanSpoken);
+        };
+        audio.play().catch(() => {
+          triggerBubble();
+          speakVoice(cleanSpoken);
+        });
+
+        // Timeout bảo hiểm nếu mạng chậm: sau 350ms nở bóng thoại luôn
+        setTimeout(triggerBubble, 350);
+        return;
+      } catch (e) {
+        // Fallback
+      }
+    }
+
+    triggerBubble();
+  }
+
+  function showBubble(text) {
+    playSpeechAndBubble(text, 'happy', '');
+  }
+
+  async function pollSpeech() {
+    try {
+      const res = await fetch(BACKEND + '/api/speech/latest');
+      if (res.ok) {
+        const data = await res.json();
+        const evt = data.event;
+        if (evt && evt.id && evt.id !== lastSpeechId) {
+          lastSpeechId = evt.id;
+          playSpeechAndBubble(evt.text, evt.emotion || 'happy', evt.spoken_text || '');
+        }
+      }
+    } catch(e) {}
   }
   bubble.addEventListener('click', () => bubble.classList.remove('show'));
 
@@ -697,9 +777,16 @@
   // Khởi chạy
   setCharacter('panda', false);
   setAnim('idle');
+  // Đồng bộ trạng thái Always-On ngay khi khởi động
+  yoloActive = true;
+  voiceActive = true;
+  btnArcYolo.classList.add('active');
+  btnArcVoice.textContent = '🔊';
+  btnArcVoice.classList.add('active');
   syncStatus();
   setInterval(syncStatus, 2000);
   setInterval(pollAdvisor, 2500);
+  setInterval(pollSpeech, 1200);  // Lắng nghe Speech Queue từ brain
   setTimeout(() => {
     showBubble('Em chào Sếp! Neito Tactical Companion đã sẵn sàng tác chiến! ✨');
   }, 1000);

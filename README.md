@@ -1,4 +1,4 @@
-﻿# 🛡️ Neito Agent — Tactical Companion & Autonomous Desktop Pet
+# 🛡️ Neito Agent — Tactical Companion & Autonomous Desktop Pet
 
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6.svg?logo=windows)]()
 [![Backend](https://img.shields.io/badge/Backend-Python%203.10%2B-3776AB.svg?logo=python)]()
@@ -47,12 +47,15 @@ Neito Agent hoạt động theo mô hình **1 Active, 2 Queued** giúp bạn chu
 `
 
 - **Chế độ Tự Học (Self-Learning Mode)**: Nhập tên bất kỳ Game hay Ứng dụng nào (LMHT, Valorant, Dota 2, AutoCAD, Premiere Pro...). Bộ não Phidata sẽ tự động tra cứu cơ chế, phím tắt, meta để xuất ra bộ nhãn nhận diện cho YOLO-World cùng danh mục câu thoại hỗ trợ mẫu.
-- **Quân Sư Đứng Sau**: Khi bật Mắt YOLO (👁️), Pet liên tục quét màn hình. Bắt gặp tình huống đã học sẽ lập tức phát câu hỗ trợ chiến thuật sắc bén (<200ms) mà không cần chờ gọi LLM.
-- **Tự Động Thu Thập Dataset**: Khi gặp tình huống chưa từng có trên màn hình, YOLO gửi tín hiệu sang Phidata tự động phân tích ý nghĩa, xuất câu thoại mẫu và lưu mẫu vào datasets/{protocol_id}/{situation_id}/ cho YOLO-World học tập.
+- **Quân Sư Thường Trực (Always-On Advisor)**: Mắt YOLO luôn thường trực quan sát màn hình theo giao thức On-Top. Bắt gặp tình huống chiến thuật đã học sẽ lập tức phản xạ câu chỉ huy (<200ms) vào Speech Queue.
+- **Tự Động Thu Thập Dataset**: Khi gặp tình huống chưa từng có trên màn hình, YOLO gửi tín hiệu sang Phidata tự động phân tích ý nghĩa, xuất câu thoại mẫu và lưu mẫu vào `datasets/{protocol_id}/{situation_id}/` cho YOLO-World học tập.
+- **Giám Sát On-Top & Auto-Spawn Protocol**: Tích hợp module Win32 API lọc triệt để cửa sổ ảo Win10/11 UWP cloaked (`DWMWA_CLOAKED`) và tiến trình hệ thống rác. Khi phát hiện Sếp mở Game hoặc Ứng dụng lạ chưa có trong danh mục, Pet sẽ tự động gọi AI tạo Giao thức mới (Auto-Spawn), nạp kiến thức và kích hoạt ngay lập tức.
+- **Hệ Thống Phát Ngôn Đồng Bộ (Speech & Bubble Sync)**: Tích hợp Hàng đợi phát ngôn trung tâm (Speech Queue), bộ nhớ chống lặp câu thoại 24h (`_said_ring`), chuẩn hóa phiên âm tiếng Việt (LOL, Valorant, CS2, AI...) và phát âm thanh Google TTS kết hợp bóng thoại nở đồng bộ tiếng & hình.
 
 ### 2. 🎭 Giao Diện Desktop Overlay Đỉnh Cao
-- **Kéo thả tự do & Ổn định tuyệt đối**: Bấm giữ chuột trái lên thân nhân vật để kéo thả khắp màn hình mà không bao giờ bị văng vị trí.
+- **Kéo thả tự do & Ổn định tuyệt đối**: Bấm giữ chuột trái lên thân nhân vật để kéo thả khắp màn hình thông qua Native OS Dragging của Tauri v2 (không lo giật lag hay lệch toạ độ).
 - **Thu phóng mượt mà (Zoom Scale)**: Lăn chuột giữa trên vùng Overlay để phóng to / thu nhỏ nhân vật với điểm neo chuẩn xác theo con trỏ chuột.
+- **Tương tác trực tiếp bằng Giọng nói**: Nhấp chuột vào Pet để trò chuyện, hoặc gõ phím vào bảng chat nhanh; Pet luôn phản hồi bằng giọng nói và cảm xúc tương ứng.
 - **Menu Vòng Cung Chiến Thuật (Radial Arc Menu)**: Bấm vào bánh răng ⚙️ để mở vòng cung chức năng (Mắt YOLO, Micro, Giọng nói, Thu nhỏ Icon mini, Mở Dashboard).
 - **Kho 8 Nhân Vật Đa Dạng**: Gấu Trúc Panda, Mèo Cute, Kẹp Giấy Clippy, Cún Cưng, Vịt Vàng, Cáo Lửa, Totoro, Hòn Đá Rocky.
 - **Tùy biến Linh Hồn (soul.md)**: Tự do định hình tính cách, phong cách xưng hô và kỹ năng chuyên biệt cho từng nhân vật.
@@ -102,9 +105,11 @@ Script sẽ tự động:
 Neito-Agent/
 ├── brain.py                    # Máy chủ HTTP REST API điều phối trung tâm (:4242)
 ├── neito_brain.py              # Bộ não kết hợp Phidata LLM Orchestrator
-├── protocols_manager.py        # Quản lý giao thức tác chiến (1 Active, 2 Queued, Tự học)
-├── protocols_data.json         # Cơ sở dữ liệu giao thức mặc định (LOL, Valorant, Genshin...)
-├── yolo_world_advisor.py       # Quân sư chiến thuật YOLO-World & Mô phỏng tình huống
+├── speech_manager.py           # Quản lý phát ngôn, Speech Queue, Anti-repetition ring 24h & Google TTS
+├── foreground_watcher.py       # Bộ giám sát On-Top Win32 API (chống cloaked UWP, Auto-Spawn Protocol)
+├── protocols_manager.py        # Quản lý giao thức tác chiến (1 Active, 2 Queued, Tự học Phidata)
+├── protocols_data.json         # Cơ sở dữ liệu giao thức mặc định (LOL, Valorant, CS2, Genshin...)
+├── yolo_world_advisor.py       # Quân sư chiến thuật YOLO-World Always-On & Mô phỏng tình huống
 ├── smolagents_hand.py          # Cánh tay tự hành Smolagents CodeAgent với các công cụ hệ thống
 ├── memory.py                   # Trí nhớ dài hạn Mem0 tích hợp SQLite
 ├── vision.py                   # Module quét và phân tích màn hình
@@ -113,13 +118,13 @@ Neito-Agent/
 ├── .env.example                # Mẫu thiết lập biến môi trường (không chứa secret)
 ├── datasets/                   # Thư mục lưu trữ mẫu dataset tình huống của YOLO-World
 ├── assets/                     # Kho tài nguyên hình ảnh nhân vật
-└── neito-agent/                # Ứng dụng Desktop chạy bằng Tauri v2
+└── neito-agent/                # Ứng dụng Desktop chạy bằng Tauri v2 (Rust)
     ├── src-tauri/              # Mã nguồn Rust (Quản lý cửa sổ, Tray icon, Hotkeys, Native Drag)
     └── ui/                     # Giao diện Webview2 (HTML5, CSS3, Vanilla JS)
-        ├── index.html          # Giao diện Desktop Pet Overlay trong suốt
+        ├── index.html          # Giao diện Desktop Pet Overlay trong suốt, Speech & Bubble Sync
         ├── dashboard.html      # Giao diện Tactical Companion Dashboard
         └── assets/             # Assets giao diện và nhân vật
-`
+```
 
 ---
 

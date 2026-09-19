@@ -287,35 +287,132 @@ def activate_protocol(proto_id):
     save_protocols(protocols)
     return True, f"Đã kích hoạt giao thức: {target['name']}"
 
+PROCESS_APP_MAP = {
+    'leagueclient.exe': 'lol',
+    'leagueclientux.exe': 'lol',
+    'league of legends.exe': 'lol',
+    'valorant-win64-shipping.exe': 'valorant',
+    'valorant.exe': 'valorant',
+    'riotclientservices.exe': 'valorant',
+    'genshinimpact.exe': 'genshin',
+    'yuanshen.exe': 'genshin',
+    'cs2.exe': 'cs2',
+    'csgo.exe': 'cs2',
+    'b1-win64-shipping.exe': 'Black Myth Wukong',
+    'wukong.exe': 'Black Myth Wukong',
+    'blender.exe': 'Blender 3D',
+    'photoshop.exe': 'Adobe Photoshop',
+    'premiere.exe': 'Adobe Premiere',
+    'code.exe': 'vscode',
+    'excel.exe': 'excel',
+    'dota2.exe': 'dota_2',
+}
+
 def match_protocol_by_window(proc_name: str, window_title: str) -> Optional[dict]:
     """
     Khớp cửa sổ đang On-Top với các Giao thức đã định nghĩa.
-    Khớp theo tên tiến trình thực thi (process_name) hoặc từ khóa tiêu đề (window_keywords).
+    Khớp chính xác theo PROCESS_APP_MAP, danh sách app_processes hoặc window_keywords.
     """
     if not proc_name and not window_title:
         return None
 
     proc_lower = (proc_name or "").lower()
     title_lower = (window_title or "").lower()
-
     protocols = load_protocols()
+
+    # 1. Khớp qua bảng ánh xạ quy chuẩn PROCESS_APP_MAP
+    mapped_target = PROCESS_APP_MAP.get(proc_lower)
+    if mapped_target:
+        for p in protocols:
+            if p.get('id') == mapped_target or p.get('name').lower() == mapped_target.lower():
+                return p
+
+    # 2. Khớp theo danh sách process đã đăng ký
     for p in protocols:
-        # 1. Khớp theo danh sách process
         for proc in p.get("app_processes", []):
             if proc.lower() == proc_lower:
                 return p
 
-        # 2. Khớp theo từ khóa tiêu đề cửa sổ
+    # 3. Khớp theo từ khóa tiêu đề cửa sổ (tối thiểu 3 ký tự)
+    for p in protocols:
         for kw in p.get("window_keywords", []):
-            if kw.lower() in title_lower:
+            kw_l = kw.lower()
+            if len(kw_l) >= 3 and kw_l in title_lower:
                 return p
 
-        # 3. Khớp mềm theo appName hoặc name
+    # 4. Khớp theo appName (tối thiểu 4 ký tự tránh so khớp nhầm)
+    for p in protocols:
         appName = p.get("appName", "").lower()
-        if appName and (appName in title_lower or appName in proc_lower):
+        if len(appName) >= 4 and (appName in title_lower or appName == proc_lower.replace('.exe', '')):
             return p
 
     return None
+
+def spawn_and_activate_protocol(proc_name: str, window_title: str) -> Optional[dict]:
+    """
+    Cơ chế Spawn Protocol tự động (kế thừa từ app gốc D:\\Ni-Oh: continuous_protocol_factory & app_detector):
+    Khi Sếp mở một game hoặc app mới chưa từng có trong giao thức:
+    1. Tự động xác định tên sạch của App/Game.
+    2. Gọi bộ não Phidata LLM để nghiên cứu, đúc kết bách khoa toàn thư, nhãn YOLO và câu thoại.
+    3. Lưu vào protocols_data.json.
+    4. Kích hoạt vào Active (bảo toàn 1 Active, 2 Queued).
+    5. Phát ngôn chào mừng và thông báo kích hoạt giao thức mới.
+    """
+    from speech_manager import enqueue_speech
+    
+    if not proc_name and not window_title:
+        return None
+    
+    proc_lower = (proc_name or "").lower()
+    # Xác định tên ứng dụng chuẩn
+    clean_name = ""
+    if proc_lower in PROCESS_APP_MAP:
+        clean_name = PROCESS_APP_MAP[proc_lower]
+    else:
+        raw_name = proc_name.replace('.exe', '').replace('-', ' ').replace('_', ' ').strip()
+        clean_name = raw_name.title() if raw_name else window_title.split('-')[-1].strip()
+    
+    if not clean_name or len(clean_name) < 2:
+        return None
+
+    # Kiểm tra xem đã có chưa
+    existing = match_protocol_by_window(proc_name, window_title)
+    if existing:
+        activate_protocol(existing["id"])
+        return existing
+
+    print(f"[Protocol-Spawn] Phát hiện app/game mới: {clean_name} ({proc_name}). Tiến hành tự động sinh giao thức...")
+    try:
+        new_proto = phidata_learn_topic(clean_name)
+        if new_proto:
+            # Gắn thêm proc_name và window_keyword để các lần sau nhận diện tức thì
+            protocols = load_protocols()
+            for p in protocols:
+                if p["id"] == new_proto["id"]:
+                    if "app_processes" not in p:
+                        p["app_processes"] = []
+                    if proc_name and proc_name not in p["app_processes"]:
+                        p["app_processes"].append(proc_name)
+                    if "window_keywords" not in p:
+                        p["window_keywords"] = []
+                    if clean_name not in p["window_keywords"]:
+                        p["window_keywords"].append(clean_name)
+                    break
+            save_protocols(protocols)
+            activate_protocol(new_proto["id"])
+            
+            # Cất tiếng qua Speech Queue
+            enqueue_speech(
+                f"⚔️ Sếp vừa mở [{clean_name}]! Em đã tự động nghiên cứu và khởi tạo Giao thức: {new_proto['name']}!",
+                emotion="happy",
+                source="spawn_protocol",
+                force=True
+            )
+            return new_proto
+    except Exception as e:
+        print(f"[Protocol-Spawn] Lỗi khi sinh giao thức mới: {e}")
+    return None
+
 
 def get_active_protocol_context():
     active = get_active_protocol()

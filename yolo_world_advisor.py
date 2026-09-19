@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 YOLO-World Tactical Advisor (Quân Sư Chiến Thuật YOLO-World)
 - Sử dụng Protocol đang kích hoạt để soi màn hình thời gian thực thông qua YOLO11n + YOLO-World.
@@ -6,6 +6,7 @@ YOLO-World Tactical Advisor (Quân Sư Chiến Thuật YOLO-World)
 - Khi gặp tình huống đã biên dịch -> Đáp trả nhanh câu hỗ trợ mẫu của Quân sư (<200ms).
 - Khi gặp tình huống chưa biên dịch -> Gửi tín hiệu sang Phidata tự tra cứu,
   sinh câu hỗ trợ mẫu và nạp mẫu dữ liệu vào dataset của YOLO-World.
+- Đồng bộ trực tiếp vào Hàng đợi Phát ngôn (Speech Queue) để Pet cất tiếng và hiển thị bóng thoại.
 """
 
 import time
@@ -18,6 +19,7 @@ from protocols_manager import (
     phidata_resolve_unknown_situation
 )
 from vision import get_vision_engine
+from speech_manager import enqueue_speech
 
 ADVISOR_RUNNING = False
 LATEST_EVENT = None
@@ -26,9 +28,10 @@ CURRENT_ACTIVE_PROTOCOL_ID = None
 
 def advisor_loop():
     global ADVISOR_RUNNING, LATEST_EVENT, LAST_TRIGGER_TIME, CURRENT_ACTIVE_PROTOCOL_ID
-    print("[YOLO-World-Advisor] Khởi chạy vòng lặp Quân sư tác chiến...")
+    print("[YOLO-World-Advisor] Khởi chạy vòng lặp Quân sư tác chiến thường trực (Always-On)...", flush=True)
 
     vision_engine = get_vision_engine()
+    next_cooldown = random.randint(20, 50)
 
     while ADVISOR_RUNNING:
         try:
@@ -41,11 +44,12 @@ def advisor_loop():
                     vision_engine.set_active_classes(classes)
 
                 now = time.time()
-                # Định kỳ kiểm tra tình huống chiến thuật (khoảng 10-18 giây một lần)
-                if now - LAST_TRIGGER_TIME > 12:
+                # Định kỳ kiểm tra tình huống chiến thuật (cooldown ngẫu nhiên 20-50s theo watcherRules của app gốc)
+                if now - LAST_TRIGGER_TIME > next_cooldown:
                     situations = proto.get("situations", [])
-                    if situations and random.random() < 0.7:
+                    if situations and random.random() < 0.75:
                         sit = random.choice(situations)
+                        source_tag = "📺 CẨM NANG VIDEO" if sit.get("source") == "video_online_research" else "⚔️ QUÂN SƯ"
                         LATEST_EVENT = {
                             "event_id": f"evt_{int(now)}",
                             "type": "known_situation",
@@ -58,12 +62,22 @@ def advisor_loop():
                             "timestamp": now
                         }
                         LAST_TRIGGER_TIME = now
-                        print(f"[YOLO-World-Advisor] [QUÂN SƯ] ({proto.get('name')}) Phát hiện: {sit.get('trigger')} -> Lời khuyên: {sit.get('advice')}")
+                        next_cooldown = random.randint(25, 60)
+                        
+                        advice_text = sit.get("advice")
+                        print(f"[YOLO-World-Advisor] [{source_tag}] ({proto.get('name')}): {advice_text}", flush=True)
+                        
+                        # Tự động đẩy vào Speech Queue để Pet phát ngôn và hiển thị bóng thoại
+                        enqueue_speech(
+                            f"[{proto.get('name').upper()}] {source_tag}: {advice_text}",
+                            emotion="alert",
+                            source="advisor"
+                        )
         except Exception as e:
             # print(f"[-] Advisor loop error: {e}")
             pass
 
-        time.sleep(2.5)
+        time.sleep(2.0)
 
 def start_advisor():
     global ADVISOR_RUNNING
@@ -71,12 +85,12 @@ def start_advisor():
         ADVISOR_RUNNING = True
         t = threading.Thread(target=advisor_loop, daemon=True)
         t.start()
-        print("[YOLO-World-Advisor] Đã bật chế độ Quân Sư.")
+        print("[YOLO-World-Advisor] Đã bật chế độ Quân Sư tác chiến.", flush=True)
 
 def stop_advisor():
     global ADVISOR_RUNNING
     ADVISOR_RUNNING = False
-    print("[YOLO-World-Advisor] Đã tắt chế độ Quân Sư.")
+    print("[YOLO-World-Advisor] Đã tạm dừng chế độ Quân Sư.", flush=True)
 
 def get_latest_event():
     return LATEST_EVENT
@@ -88,17 +102,28 @@ def simulate_new_situation(protocol_id: str, situation_desc: str):
     global LATEST_EVENT, LAST_TRIGGER_TIME
     result = phidata_resolve_unknown_situation(protocol_id, situation_desc)
     now = time.time()
+    advice = result.get("advice", "Sếp hãy cẩn trọng quan sát và giữ vị trí an toàn!")
+    proto_name = result.get("protocol", protocol_id)
+    
     LATEST_EVENT = {
         "event_id": f"evt_{int(now)}",
         "type": "new_learned_situation",
         "protocol_id": protocol_id,
-        "protocol_name": result.get("protocol"),
+        "protocol_name": proto_name,
         "situation_id": result.get("situation", {}).get("id"),
         "trigger": situation_desc,
-        "advice": result.get("advice"),
+        "advice": advice,
         "timestamp": now
     }
     LAST_TRIGGER_TIME = now
+    
+    # Đẩy ngay vào Speech Queue với ưu tiên cao (force=True)
+    enqueue_speech(
+        f"[TỰ HỌC PHIDATA] 🧠 Đã tra cứu: {situation_desc} ➔ \"{advice}\"",
+        emotion="curious",
+        source="active_learning",
+        force=True
+    )
     return result
 
 def get_advisor_status() -> Dict:
@@ -108,7 +133,11 @@ def get_advisor_status() -> Dict:
     return {
         "advisor_running": ADVISOR_RUNNING,
         "active_protocol": proto.get("name") if proto else "None",
-        "protocol_id": proto.get("id") if proto else None,
-        "vision_engine": vision_status,
+        "dual_engine": {
+            "bounding_engine": vision_status.get("bounding_engine"),
+            "open_vocabulary_engine": vision_status.get("open_vocabulary_engine"),
+            "active_classes_count": vision_status.get("active_classes_count", 0),
+            "backend": vision_status.get("backend")
+        },
         "latest_event": LATEST_EVENT
     }
